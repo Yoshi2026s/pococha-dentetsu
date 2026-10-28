@@ -5,12 +5,13 @@
  if(!cfg||!cfg.apiKey){window.__PD_NO_FB=true;return;}
  const fail=e=>{window.__PD_BOOT_ERROR=String(e.code||e.message||e);};
  if(!window.firebase){window.__PD_NO_FB=true;window.__PD_FB_MISSING=true;return;}
- if(cfg.projectId!=='pococha-dentetsu'){fail(new Error('接続設定または通信ライブラリを確認してください'));window.claude={use:async()=>null};return;}
+ if(cfg.projectId!=='pococha-dentetsu'){fail(new Error('接続設定または通信ライブラリを確認してください'));window.__PD_NO_FB=true;window.__PD_AUTH_FAIL=true;return;}
  let auth,fs,ready;
  try {firebase.initializeApp(cfg);auth=firebase.auth();fs=firebase.firestore();fs.settings({ignoreUndefinedProperties:true,merge:true});
- ready=auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(()=>auth.signInAnonymously()).then(r=>r.user);
+ /* 匿名ログインが20秒たっても終わらない場合も失敗あつかいにする */
+ ready=Promise.race([auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(()=>auth.signInAnonymously()).then(r=>r.user),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('匿名ログインが時間切れになりました'),{code:'auth/timeout'})),20000))]);
  ready.catch(fail);
- } catch(e){fail(e);window.claude={use:async()=>null};return;}
+ } catch(e){fail(e);window.__PD_NO_FB=true;window.__PD_AUTH_FAIL=true;return;}
  const stamp=()=>firebase.firestore.FieldValue.serverTimestamp();
  const clean=x=>JSON.parse(JSON.stringify(x));
  const uid=()=>auth.currentUser.uid;
@@ -79,5 +80,5 @@
  });},snapshotError));
  const connectivity=()=>connFns.forEach(f=>f(navigator.onLine));addEventListener('online',connectivity);addEventListener('offline',connectivity);
  return {on(t,f){if(t==='stamp')stampHandler=f;},emit(t,data){if(t!=='stamp')return Promise.resolve();return base.collection('stamps').doc(me).set({uid:me,i:data.i,at:stamp()});},presence(p){pres=p;return beat();},onPeers(f){peerFns.push(f);f({peers:last});},onConnection(f){connFns.push(f);f(navigator.onLine);},leave(){clearInterval(hb);clearInterval(iv);listeners.forEach(f=>f());pref.delete().catch(()=>{});removeEventListener('online',connectivity);removeEventListener('offline',connectivity);}};}};
- window.claude={firebase:true,use:async n=>{try{await ready;}catch(e){fail(e);return null;}return n==='db'?db:n==='room'?room:n==='user'?{id:async()=>uid(),can:async()=>true,profiles:async()=>({})}:null;}};
+ window.claude={firebase:true,use:async n=>{try{await ready;}catch(e){fail(e);window.__PD_NO_FB=true;window.__PD_AUTH_FAIL=true;/* 匿名ログイン失敗時は端末内モード（CPU対戦のみ）に切り替える */return window.__PD_LOCAL?window.__PD_LOCAL.use(n):null;}return n==='db'?db:n==='room'?room:n==='user'?{id:async()=>uid(),can:async()=>true,profiles:async()=>({})}:null;}};
 })();

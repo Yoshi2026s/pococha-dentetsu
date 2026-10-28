@@ -781,12 +781,13 @@ body.gfs-shake .wrap{animation:shk .45s}
  if(!cfg||!cfg.apiKey){window.__PD_NO_FB=true;return;}
  const fail=e=>{window.__PD_BOOT_ERROR=String(e.code||e.message||e);};
  if(!window.firebase){window.__PD_NO_FB=true;window.__PD_FB_MISSING=true;return;}
- if(cfg.projectId!=='pococha-dentetsu'){fail(new Error('接続設定または通信ライブラリを確認してください'));window.claude={use:async()=>null};return;}
+ if(cfg.projectId!=='pococha-dentetsu'){fail(new Error('接続設定または通信ライブラリを確認してください'));window.__PD_NO_FB=true;window.__PD_AUTH_FAIL=true;return;}
  let auth,fs,ready;
  try {firebase.initializeApp(cfg);auth=firebase.auth();fs=firebase.firestore();fs.settings({ignoreUndefinedProperties:true,merge:true});
- ready=auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(()=>auth.signInAnonymously()).then(r=>r.user);
+ /* 匿名ログインが20秒たっても終わらない場合も失敗あつかいにする */
+ ready=Promise.race([auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(()=>auth.signInAnonymously()).then(r=>r.user),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('匿名ログインが時間切れになりました'),{code:'auth/timeout'})),20000))]);
  ready.catch(fail);
- } catch(e){fail(e);window.claude={use:async()=>null};return;}
+ } catch(e){fail(e);window.__PD_NO_FB=true;window.__PD_AUTH_FAIL=true;return;}
  const stamp=()=>firebase.firestore.FieldValue.serverTimestamp();
  const clean=x=>JSON.parse(JSON.stringify(x));
  const uid=()=>auth.currentUser.uid;
@@ -855,13 +856,13 @@ body.gfs-shake .wrap{animation:shk .45s}
  });},snapshotError));
  const connectivity=()=>connFns.forEach(f=>f(navigator.onLine));addEventListener('online',connectivity);addEventListener('offline',connectivity);
  return {on(t,f){if(t==='stamp')stampHandler=f;},emit(t,data){if(t!=='stamp')return Promise.resolve();return base.collection('stamps').doc(me).set({uid:me,i:data.i,at:stamp()});},presence(p){pres=p;return beat();},onPeers(f){peerFns.push(f);f({peers:last});},onConnection(f){connFns.push(f);f(navigator.onLine);},leave(){clearInterval(hb);clearInterval(iv);listeners.forEach(f=>f());pref.delete().catch(()=>{});removeEventListener('online',connectivity);removeEventListener('offline',connectivity);}};}};
- window.claude={firebase:true,use:async n=>{try{await ready;}catch(e){fail(e);return null;}return n==='db'?db:n==='room'?room:n==='user'?{id:async()=>uid(),can:async()=>true,profiles:async()=>({})}:null;}};
+ window.claude={firebase:true,use:async n=>{try{await ready;}catch(e){fail(e);window.__PD_NO_FB=true;window.__PD_AUTH_FAIL=true;/* 匿名ログイン失敗時は端末内モード（CPU対戦のみ）に切り替える */return window.__PD_LOCAL?window.__PD_LOCAL.use(n):null;}return n==='db'?db:n==='room'?room:n==='user'?{id:async()=>uid(),can:async()=>true,profiles:async()=>({})}:null;}};
 })();
 
 </script>
 <script>
 // ===== GitHub Pages版：claude.ai の共有保存のかわりに、この端末の中（localStorage）に保存する =====
-(function(){if(window.claude&&window.claude.use)return;
+(function(){
 const PFX='pdl:',bc=('BroadcastChannel' in window)?new BroadcastChannel('pococha-dentetsu-local'):null;
 const ls={get(k){try{const v=localStorage.getItem(PFX+k);return v==null?undefined:JSON.parse(v)}catch{return mem[k]}},set(k,v){mem[k]=v;try{localStorage.setItem(PFX+k,JSON.stringify(v))}catch{}},del(k){delete mem[k];try{localStorage.removeItem(PFX+k)}catch{}},keys(){const out=new Set(Object.keys(mem));try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(PFX))out.add(k.slice(PFX.length))}}catch{}return[...out]}};
 const mem={};
@@ -893,7 +894,9 @@ function collection(c){c=norm(c);return{path:c,doc:id=>doc(c+'/'+id),
   onSnapshot(fn){const L={fn},a=colL.get(c)||[];a.push(L);colL.set(c,a);setTimeout(()=>fn(colSnap(c)),0);return()=>{colL.set(c,(colL.get(c)||[]).filter(x=>x!==L))}}}}
 const db={doc,collection};
 const user={id:async()=>uid,can:async()=>true,profiles:async ids=>{const o={};ids.forEach(i=>o[i]={name:i===uid?'あなた':'プレイヤー'});return o},profile:async()=>({id:uid,name:'あなた'})};
-window.claude={use:async n=>n==='db'?db:n==='user'?user:null,local:true};
+/* 端末内モードは常に用意しておき、オンライン接続（匿名ログイン）に失敗したときの切替先にも使う */
+window.__PD_LOCAL={use:async n=>n==='db'?db:n==='user'?user:null,local:true};
+if(!(window.claude&&window.claude.use))window.claude=window.__PD_LOCAL;
 })();
 </script>
 <script>
@@ -1807,7 +1810,7 @@ function errText(e){if(db&&db.online)return '操作できません：'+String(e&
 async function boot(){[db,room,user]=await Promise.all([use('db'),use('room'),use('user')]);
   if(!db){$('#permNote').textContent=window.__PD_BOOT_ERROR||'共有保存の初期化に失敗しました。ページを再読み込みしてください。';$('#bCreate').disabled=true;$('#bJoin').disabled=true;return}
   myId=user?await user.id():null;const w=user?await user.can('data.write'):null;canWrite=w!==false;
-  $('#permNote').textContent=window.__PD_NO_FB?(window.__PD_FB_MISSING?'【端末内モード】通信ライブラリを読み込めなかったため、CPU対戦のみ遊べます。通信対戦は電波の良い場所で再読み込みしてください。':'【端末内モード】通信の設定がないため、CPU対戦のみ遊べます。'):canWrite?'部屋を作るか、届いた部屋コードで参加してください。':'このアカウントは閲覧のみです。部屋コードを入れると観戦できます。';
+  $('#permNote').textContent=window.__PD_NO_FB?(window.__PD_AUTH_FAIL?'【端末内モード】オンライン対戦の接続（匿名ログイン）に失敗したため、CPU対戦のみ遊べます。通信対戦は少し時間をおいて再読み込みしてください。'+(window.__PD_BOOT_ERROR?'（原因：'+window.__PD_BOOT_ERROR+'）':''):window.__PD_FB_MISSING?'【端末内モード】通信ライブラリを読み込めなかったため、CPU対戦のみ遊べます。通信対戦は電波の良い場所で再読み込みしてください。':'【端末内モード】通信の設定がないため、CPU対戦のみ遊べます。'):canWrite?'部屋を作るか、届いた部屋コードで参加してください。':'このアカウントは閲覧のみです。部屋コードを入れると観戦できます。';
   if(window.__PD_NO_FB)$('#netHelp').textContent='';$('#bCreate').disabled=!canWrite||!myId;$('#bJoin').disabled=false;refreshResume();try{const l=localStorage.getItem('poco-room');if(l)$('#iCode').value=l}catch{}}
 // ===== 中断と再開 =====
 // 中断：部屋の情報に「中断中」を書く → 全員の画面に中断画面が出て、手番もCPUの代行も止まる。
