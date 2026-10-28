@@ -579,6 +579,80 @@ button.small,.chip{box-shadow:none}
 .ingame .bar .inner{gap:6px}
 .ingame .bar #actMain button{min-height:46px}
 .bar.attn{animation:barattn 1s ease-in-out 3}@keyframes barattn{50%{box-shadow:0 -6px 0 color-mix(in srgb,var(--pink) 60%,transparent)}}
+
+/* ===== v33 スマホ見やすさ・操作性の調整（2026-10-27） ===== */
+/* タイトル：主ボタンを大きく、操作をまとまりで整理 */
+#vLobby .row:first-of-type{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#vLobby #bCreate{grid-column:1/-1;min-height:52px;font-size:17px}
+#vLobby #bHow,#vLobby #bSys{min-height:44px;width:100%}
+#vLobby .row:nth-of-type(2){display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin-top:6px}
+#vLobby #iCode{width:100%;min-width:0;min-height:48px;box-sizing:border-box}
+#vLobby #bJoin{min-height:48px}
+#permNote{background:color-mix(in srgb,var(--pink) 9%,var(--panel));border:1.5px solid color-mix(in srgb,var(--pink) 30%,var(--line));border-radius:12px;padding:8px 10px;color:var(--ink)!important}
+#vLobby p.muted:not(#permNote){font-size:12.5px;line-height:1.6}
+#netHelp:empty{display:none}
+/* 入力欄：コード以外は字間を詰め、プレースホルダーが切れないように */
+input[type=text]:not(#iCode){box-sizing:border-box;letter-spacing:.02em!important;text-transform:none!important;font-size:16px!important;min-height:44px}
+input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
+#iCode::placeholder{letter-spacing:.1em}
+/* ロビー：席名を2行まで表示、操作ボタンを大きく */
+.seat{min-height:84px}
+.seat .who{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+#vRoom #bReady,#vRoom #bStart,#vRoom #bLeaveRoom{min-height:48px;width:100%}
+#vRoom .row:has(#bReady){display:grid;grid-template-columns:1fr;gap:8px}
+#vRoom #bStart{font-size:16px}
+#vRoom select{min-height:44px;font-size:16px}
+#bCopy{min-height:44px}
+/* 対戦画面：プレイヤー欄の小さすぎる文字を読める大きさに */
+#status.rankview .pl-l1 .pl-rank{font-size:11px!important;padding:1px 5px!important}
+#status.rankview .pl-now{font-size:11px!important}
+#status.rankview .pl-l2 .pl-fan,#status.rankview .pl-l2 .pl-ye,#status.rankview .pl-l2 .pl-goal{font-size:11.5px!important}
+#status.rankview .pl-l2 b{font-size:12.5px!important}
+#status.rankview .pl-tot small{font-size:10px!important}
+#status.rankview .pl-pos small{font-size:11px}
+/* ポコチャレ欄：文字を大きく、右端に続きがあることを示す */
+.ingame .misbar{font-size:11px!important;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);padding-right:18px;scroll-snap-type:x proximity}
+.ingame .misbar .mis{scroll-snap-align:start;min-height:30px}
+.mis-h{font-size:11px}
+/* メニュー・全体を見る：押しやすい大きさに */
+.menubtn{min-height:38px!important;padding:2px 12px!important}
+.menubtn small{font-size:12.5px!important}
+.mapbtn{min-height:40px!important;padding:4px 14px!important;font-size:13px!important}
+#turnText{font-size:12.5px!important;line-height:1.5}
+.goalarrow{font-size:12px!important;padding:4px 10px 4px 6px!important}
+/* システム説明：見出しボタンを横1列のスクロールにして本文を広く */
+.sys-tabs{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;margin:6px -4px 10px!important;padding:2px 4px 6px;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}
+.sys-tabs{flex-shrink:0!important}.sys-tabs::-webkit-scrollbar{display:none}
+.sys-tabs button{flex:0 0 auto;min-height:40px!important;scroll-snap-align:start;white-space:nowrap}
+/* 設定：チェックボックスとスライダーを指で操作しやすく */
+.overlay input[type=checkbox]{width:22px;height:22px;flex:0 0 22px;accent-color:var(--pink);margin:0 8px 0 0}
+.overlay label:has(input[type=checkbox]){display:flex;align-items:center;min-height:44px;text-align:left;cursor:pointer}
+.overlay input[type=range]{min-height:36px;accent-color:var(--pink)}
+.overlay select{min-height:44px;font-size:16px}
+.overlay button.small{min-height:36px;padding:4px 12px}
+.sqrow{display:flex;align-items:center;gap:10px}.sqrow select{flex:1;min-width:0}
+#turnText{text-wrap:pretty}
+input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!important}
+.ac-btns button{white-space:nowrap;font-size:clamp(13px,3.9vw,16px)!important;padding-inline:10px!important}
+/* 画面の低いスマホ（iPhone SEなど）：プレイヤー欄を詰めて、地図とメニューが隠れないように */
+@media (max-height:760px){
+ .ingame #status{position:static!important}
+ .ingame #status.rankview{gap:3px 6px!important}
+ .ingame #status.rankview .pl{padding:2px 8px 2px 6px!important;row-gap:0!important}
+ .ingame #status.rankview .pl-pos{font-size:17px!important}
+ .ingame #status.rankview .st-head{padding-block:0!important;min-height:0!important}
+}
+.ingame:not(.stream) .wrap{padding-bottom:var(--barh,119px)!important}
+/* お知らせ：画面幅いっぱいまで広げて、3行に折れないように */
+.toast{width:max-content!important;max-width:calc(100vw - 32px)!important;box-sizing:border-box;border-radius:16px!important;text-align:center;line-height:1.45;font-size:13.5px!important}
+/* 決算表：見出しを1行に、名前は折り返しても読めるように */
+.overlay .card table{width:100%;border-collapse:collapse;font-size:13px}
+.overlay .card table tr:first-child td{white-space:nowrap;font-size:11.5px}
+.overlay .card table td{padding:7px 4px;vertical-align:middle}
+.overlay .card table td:first-child{word-break:keep-all;overflow-wrap:anywhere}
+/* 閉じるボタン（右上） */
+.sheet>.xclose{position:sticky!important;top:0;align-self:flex-end;float:right;margin:-6px -6px -34px 8px}
+.xclose{position:absolute;top:8px;right:8px;width:40px;height:40px;min-height:40px!important;padding:0!important;border-radius:999px;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;z-index:3}
 </style>
 
 <div class="wrap">
@@ -706,7 +780,8 @@ body.gfs-shake .wrap{animation:shk .45s}
  const cfg=window.FIREBASE_CONFIG;
  if(!cfg||!cfg.apiKey){window.__PD_NO_FB=true;return;}
  const fail=e=>{window.__PD_BOOT_ERROR=String(e.code||e.message||e);};
- if(cfg.projectId!=='pococha-dentetsu'||!window.firebase){fail(new Error('接続設定または通信ライブラリを確認してください'));window.claude={use:async()=>null};return;}
+ if(!window.firebase){window.__PD_NO_FB=true;window.__PD_FB_MISSING=true;return;}
+ if(cfg.projectId!=='pococha-dentetsu'){fail(new Error('接続設定または通信ライブラリを確認してください'));window.claude={use:async()=>null};return;}
  let auth,fs,ready;
  try {firebase.initializeApp(cfg);auth=firebase.auth();fs=firebase.firestore();fs.settings({ignoreUndefinedProperties:true,merge:true});
  ready=auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(()=>auth.signInAnonymously()).then(r=>r.user);
@@ -1732,8 +1807,8 @@ function errText(e){if(db&&db.online)return '操作できません：'+String(e&
 async function boot(){[db,room,user]=await Promise.all([use('db'),use('room'),use('user')]);
   if(!db){$('#permNote').textContent=window.__PD_BOOT_ERROR||'共有保存の初期化に失敗しました。ページを再読み込みしてください。';$('#bCreate').disabled=true;$('#bJoin').disabled=true;return}
   myId=user?await user.id():null;const w=user?await user.can('data.write'):null;canWrite=w!==false;
-  $('#permNote').textContent=window.__PD_NO_FB?'【端末内モード】通信の設定がないため、CPU対戦のみ遊べます。':canWrite?'部屋を作るか、届いた部屋コードで参加してください。':'このアカウントは閲覧のみです。部屋コードを入れると観戦できます。';
-  if(window.__PD_NO_FB)$('#netHelp').textContent='端末内モードです。この端末だけでCPUと対戦できます。';$('#bCreate').disabled=!canWrite||!myId;$('#bJoin').disabled=false;refreshResume();try{const l=localStorage.getItem('poco-room');if(l)$('#iCode').value=l}catch{}}
+  $('#permNote').textContent=window.__PD_NO_FB?(window.__PD_FB_MISSING?'【端末内モード】通信ライブラリを読み込めなかったため、CPU対戦のみ遊べます。通信対戦は電波の良い場所で再読み込みしてください。':'【端末内モード】通信の設定がないため、CPU対戦のみ遊べます。'):canWrite?'部屋を作るか、届いた部屋コードで参加してください。':'このアカウントは閲覧のみです。部屋コードを入れると観戦できます。';
+  if(window.__PD_NO_FB)$('#netHelp').textContent='';$('#bCreate').disabled=!canWrite||!myId;$('#bJoin').disabled=false;refreshResume();try{const l=localStorage.getItem('poco-room');if(l)$('#iCode').value=l}catch{}}
 // ===== 中断と再開 =====
 // 中断：部屋の情報に「中断中」を書く → 全員の画面に中断画面が出て、手番もCPUの代行も止まる。
 // ページを閉じても盤面は保存済み。次回はタイトル画面の「続きから遊ぶ」か部屋コードで、中断したところから再開できる。
@@ -2343,7 +2418,10 @@ function updateGoalArrow(){const a=$('#goalArrow'),s=dispState;if(!a||!s||s.goal
   const inside=g.x>v[0]+m&&g.x<v[0]+v[2]-m&&g.y>v[1]+m&&g.y<v[1]+v[3]-m;if(inside||v[2]>=WW-1){a.hidden=true;return}
   const cx=v[0]+v[2]/2,cy=v[1]+v[3]/2,dx=g.x-cx,dy=g.y-cy,k=Math.min(Math.abs((v[2]/2-14)/(dx||1e-6)),Math.abs((v[3]/2-14)/(dy||1e-6)));
   const px=(dx*k+v[2]/2)/v[2]*100,py=(dy*k+v[3]/2)/v[3]*100,ang=Math.atan2(dy,dx)*180/Math.PI,fs=focusSeat(),d=D(s.goal)[s.players[fs].pos];
-  a.hidden=false;a.style.left=Math.min(76,Math.max(22,px))+'%';a.style.top=Math.min(92,Math.max(8,py))+'%';a.innerHTML=`<i style="transform:rotate(${ang}deg)">➤</i><span>${esc(g.name)}<b>あと${d}</b></span>`}
+  a.hidden=false;a.style.left=Math.min(76,Math.max(22,px))+'%';a.style.top=Math.min(92,Math.max(8,py))+'%';a.innerHTML=`<i style="transform:rotate(${ang}deg)">➤</i><span>${esc(g.name)}<b>あと${d}</b></span>`;
+  {const box=$('#mapbox'),br=box.getBoundingClientRect();if(br.height>0){let r=a.getBoundingClientRect();const hit=q=>r.left<q.right&&q.left<r.right&&r.top<q.bottom&&q.top<r.bottom;
+   for(const el of [$('#bView'),$('#skyLabel')]){if(!el||el.hidden)continue;const q=el.getBoundingClientRect();if(q.width&&hit(q)){a.style.top=((q.bottom-br.top+r.height/2+6)/br.height*100)+'%';r=a.getBoundingClientRect()}}
+   const dc=box.querySelector('.dicebox');if(dc){const q=dc.getBoundingClientRect();if(q.width&&hit(q)){a.style.top=((q.top-br.top-r.height/2-6)/br.height*100)+'%'}}}}}
 // 指でドラッグして地図を動かす（タップとは区別する）
 (function(){const box=$('#mapbox');let st=null,moved=false;box.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;st={x:e.clientX,y:e.clientY,v:vb.slice()};moved=false});
   box.addEventListener('pointermove',e=>{if(!st)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(!moved&&Math.hypot(dx,dy)<8)return;moved=true;panned=true;cancelAnimationFrame(camAnim);const u=st.v[2]/box.clientWidth;
@@ -2585,7 +2663,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   drawTurnBar(ds,ts);
   const me=mySeat();$('#goalName').textContent=NODES[ds.goal]?NODES[ds.goal].name:'–';$('#goalLeft').textContent=me>=0?`あなたはあと${D(ds.goal)[ds.players[me].pos]}マス`:'';
   const cs=curSeat(st),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),left=Math.max(0,Math.ceil(((db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)-age)/1000)),isCpu=(meta.cpu||[]).includes(cs);
-  $('#turnText').textContent=st.finished?'ゲーム終了':`${st.month}日目 ${st.hour}:00・第${st.turn+1}手番（${st.maxTurn?'全'+st.maxTurn+'手':'無制限'}）`+(cs===me?'あなたの番です':`${cs+1}P ${seatName(cs)}の番`+(isCpu?'':'（考え中…）'))+(isCpu||st.finished?'':`　残り${left}秒`);
+  $('#turnText').textContent=st.finished?'ゲーム終了':`${st.month}日目 ${st.hour}:00・第${st.turn+1}手番（${st.maxTurn?'全'+st.maxTurn+'手':'無制限'}）`+(cs===me?'あなたの番です':`${cs+1}P ${seatName(cs)}の番`+(isCpu?'':'（考え中…）'))+(isCpu||st.finished?'':`　残\u2060り\u2060${left}\u2060秒`);
   LAYER.drums=cs===me&&!st.finished;LAYER.tempo=st.month===st.days&&st.hour>=21?1.05:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos];if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':isNight(ds.hour)?'night':regionSong(st.players[cs].pos));
   const fs=pending&&pending.stage==='fsell',act=pending&&pending.stage==='act',buy=pending&&pending.stage==='buy',shp=pending&&pending.stage==='shop',rt=pending&&pending.stage==='route',rw=pending&&pending.stage==='reward';$('#actMain').hidden=buy||rt||rw||shp||fs;$('#actFsell').hidden=!fs;$('#actShop').hidden=!shp;$('#bar').classList.toggle('routing',!!rt);$('#actReward').hidden=!rw;$('#actBuy').hidden=!buy;$('#actRoute').hidden=!rt;document.body.classList.toggle('routeview',!!rt);
   $('#bRoll').disabled=!act;$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
@@ -2612,8 +2690,8 @@ const HOW=[['目的地を目指そう','目的地はプレイヤーの場所に�
  ['エール','エールは1K（1,000）単位。エールマス・イベント・ポコチャレ・目的地1番乗りで増え、炎上などで減ります。10Kたまるごとにボーナスの応援ポイント（ランク帯の基本応援ポイント×2）がもらえます。誰かが目的地に着いて目的地が変わるたびに、全員のエールは0にリセットされます。'],
  ['ランク帯','E・D・C・B・A・Sの6つの帯に、それぞれ1〜6の段階があります（E1〜S6の36段階）。全員E1スタートです。ランクが高いほど基本応援ポイントが多くなり、マスやイベントの金額と、0:00決算の支給が増えます。ランクポイントは目的地1番乗り・イベント・ポコチャレ・0:00の締めの条件（コアファン獲得、ポコチャレ2回、エール10K、応援ポイント目標）で貯まり、必要数に届くとすぐランクアップ。炎上・案件キャンセル・荒らしコメントでポイントが減り、0を下回るとランクダウン。0:00の締めの条件を1つもクリアできなかったときもランクダウンします。ランクダウンしたら、次のランクまでのポイントは0から貯め直しです。'],
  ['時間・お邪魔キャラ','1周＝1時間の24時間制で、18:00スタート。ポコチャレは6時間ごとに3つ出ます。誰かがゴールすると、一番遠い人に「荒らしラグ王」が取りつくので要注意。最後の0:00決算のあと、応援ポイント＋コアファンの合計＋ランクボーナスが一番多い人の優勝です。途中でやめるときは「⏸ 中断」。次回はタイトル画面の「続きから遊ぶ」から再開できます。']];
-let howI=0;function showHow(){const o=$('#ov');const [h,t]=HOW[howI];o.innerHTML=`<div class="card"><p class="eyebrow">遊び方 ${howI+1}／${HOW.length}</p><h3>${h}</h3><p style="text-align:left">${t}</p><div class="row" style="justify-content:center">${howI>0?'<button class="ghost" id="hPrev">もどる</button>':''}<button id="hNext">${howI<HOW.length-1?'つぎへ':'はじめる'}</button></div></div>`;o.hidden=false;
-  const p=$('#hPrev');if(p)p.onclick=()=>{howI--;showHow()};$('#hNext').onclick=()=>{if(howI<HOW.length-1){howI++;showHow()}else{o.hidden=true;o.innerHTML='';howI=0}}}
+let howI=0;function showHow(){const o=$('#ov');const [h,t]=HOW[howI];o.innerHTML=`<div class="card"><button type="button" class="ghost xclose" id="hClose" aria-label="閉じる">×</button><p class="eyebrow">遊び方 ${howI+1}／${HOW.length}</p><h3>${h}</h3><p style="text-align:left">${t}</p><div class="row" style="justify-content:center">${howI>0?'<button class="ghost" id="hPrev">もどる</button>':''}<button id="hNext">${howI<HOW.length-1?'つぎへ':'はじめる'}</button></div></div>`;o.hidden=false;
+  const p=$('#hPrev');if(p)p.onclick=()=>{howI--;showHow()};$('#hClose').onclick=()=>{o.hidden=true;o.innerHTML='';howI=0};$('#hNext').onclick=()=>{if(howI<HOW.length-1){howI++;showHow()}else{o.hidden=true;o.innerHTML='';howI=0}}}
 $('#bHow').onclick=showHow;$('#bSys').onclick=()=>showSys(0);$('#bJoin').onclick=()=>{const v=normCode($('#iCode').value);if(!v){const r=document.querySelector('.resumebtn');if(r){enter(r.dataset.c);return}}enter(v)};
 $('#iCode').addEventListener('input',e=>{const v=normCode(e.target.value).slice(0,4);if(e.target.value!==v)e.target.value=v;$('#bJoin').classList.toggle('ready',v.length===4)});
 $('#iCode').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#bJoin').click()}});$('#bReady').onclick=toggleReady;$('#bMyName').onclick=()=>{const i=mySeat();if(i<0){toast('先に席に座ってください');return}setName(i,$('#iMyName').value)};$('#bStart').onclick=startGame;$('#selDays').onchange=e=>{if(meta&&meta.host===myId)db.doc('games/'+code).update({days:+e.target.value}).catch(er=>toast(errText(er)))};$('#selLv').onchange=e=>{if(meta&&meta.host===myId)db.doc('games/'+code).update({cpuLv:e.target.value}).catch(er=>toast(errText(er)))};
@@ -2758,7 +2836,7 @@ $('#bPause').onclick=()=>{unlock();const o=$('#ov');o.innerHTML=`<div class="car
   $('#ovClose').onclick=()=>{o.hidden=true;o.innerHTML=''};$('#pzYes').onclick=async()=>{o.hidden=true;o.innerHTML='';await pauseGame();if(meta&&meta.paused){leaveRoom();toast('中断しました。タイトルの「続きから遊ぶ」から再開できます')}};
   {const e=$('#pzEnd');if(e)e.onclick=()=>{o.innerHTML=`<div class="card"><h3>ゲームを終えますか？</h3><p style="text-align:left">今の手番が終わったところで最終決算をして、順位を決めます。元には戻せません。</p><button id="pzEnd2">終える</button><button class="ghost" id="ovClose">やめる</button></div>`;
     $('#ovClose').onclick=()=>{o.hidden=true;o.innerHTML=''};$('#pzEnd2').onclick=async()=>{o.hidden=true;o.innerHTML='';try{await db.doc('games/'+code).update({endReq:{by:myId,seat:mySeat(),at:Date.now()}});toast('次の手番のあとで最終決算をします')}catch{toast('終了の連絡に失敗しました。もう一度お試しください')}}}}};
-$('#bSet').onclick=()=>{unlock();const o=$('#ov');o.innerHTML=`<div class="card sheet"><h3>音と設定</h3><label for="sB">BGM<input type="range" id="sB" min="0" max="100" value="${SET.bgm}"></label><label for="sS">効果音<input type="range" id="sS" min="0" max="100" value="${SET.se}"></label><label for="sUi"><input type="checkbox" id="sUi" ${SET.ui!==false?'checked':''}> ボタンを押した音</label><label for="sF"><input type="checkbox" id="sF" ${SET.fast?'checked':''}> 演出を速くする</label><label for="sCam"><input type="checkbox" id="sCam" ${SET.cam?'checked':''}> 地図をなめらかに動かす</label><label for="sView"><input type="checkbox" id="sView" ${SET.view!=='all'?'checked':''}> ふだんは現在地のまわりを大きく表示</label><label for="sQ">演出の量<select id="sQ"><option value="rich">豪華</option><option value="normal">ふつう</option><option value="lite">控えめ（古いスマホ向け）</option></select></label><label for="sV"><input type="checkbox" id="sV" ${SET.vib?'checked':''}> 振動（Androidのみ）</label><label for="sStr"><input type="checkbox" id="sStr" ${SET.stream?'checked':''}> 配信モード（操作を隠して地図を大きく。Pocochaに映す用）</label><p class="muted" style="text-align:left">iPhoneのマナーモード中でも鳴るようにしています。音が出ないときは、本体の音量ボタンで音量を上げてください。</p><button class="ghost" id="sT">テスト音を鳴らす</button><label for="sBgmT">曲を試聴<select id="sBgmT"><option value="">（ゲームに合わせる）</option>${Object.entries(SONGS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('')}</select></label><p class="muted" style="text-align:left">演出の見本（対戦中に押すと地図の上で見られます）</p><div class="row" id="demoRow" style="justify-content:center"></div><button id="sC">とじる</button></div>`;o.hidden=false;
+$('#bSet').onclick=()=>{unlock();const o=$('#ov');o.innerHTML=`<div class="card sheet"><h3>音と設定</h3><label for="sB">BGM<input type="range" id="sB" min="0" max="100" value="${SET.bgm}"></label><label for="sS">効果音<input type="range" id="sS" min="0" max="100" value="${SET.se}"></label><label for="sUi"><input type="checkbox" id="sUi" ${SET.ui!==false?'checked':''}> ボタンを押した音</label><label for="sF"><input type="checkbox" id="sF" ${SET.fast?'checked':''}> 演出を速くする</label><label for="sCam"><input type="checkbox" id="sCam" ${SET.cam?'checked':''}> 地図をなめらかに動かす</label><label for="sView"><input type="checkbox" id="sView" ${SET.view!=='all'?'checked':''}> ふだんは現在地のまわりを大きく表示</label><label for="sQ" class="sqrow"><span style="white-space:nowrap">演出の量</span><select id="sQ"><option value="rich">豪華</option><option value="normal">ふつう</option><option value="lite">控えめ（古いスマホ向け）</option></select></label><label for="sV"><input type="checkbox" id="sV" ${SET.vib?'checked':''}> 振動（Androidのみ）</label><label for="sStr"><input type="checkbox" id="sStr" ${SET.stream?'checked':''}> 配信モード（操作を隠して地図を大きく。Pocochaに映す用）</label><p class="muted" style="text-align:left">iPhoneのマナーモード中でも鳴るようにしています。音が出ないときは、本体の音量ボタンで音量を上げてください。</p><button class="ghost" id="sT">テスト音を鳴らす</button><label for="sBgmT">曲を試聴<select id="sBgmT"><option value="">（ゲームに合わせる）</option>${Object.entries(SONGS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('')}</select></label><p class="muted" style="text-align:left">演出の見本（対戦中に押すと地図の上で見られます）</p><div class="row" id="demoRow" style="justify-content:center"></div><button id="sC">とじる</button></div>`;o.hidden=false;
   const save=()=>{try{localStorage.setItem('poco-set',JSON.stringify(SET))}catch{}};$('#sB').oninput=e=>{SET.bgm=+e.target.value;setVol();if(SET.bgm===0)music(null);else render();save()};$('#sS').oninput=e=>{SET.se=+e.target.value;setVol();sfx('stamp');save()};$('#sUi').onchange=e=>{SET.ui=e.target.checked;save()};$('#sF').onchange=e=>{SET.fast=e.target.checked;save()};$('#sCam').onchange=e=>{SET.cam=e.target.checked;save();camHome(0)};$('#sView').onchange=e=>{SET.view=e.target.checked?'near':'all';save();camHome(400)};$('#sQ').value=SET.fxq;$('#sQ').onchange=e=>{SET.fxq=e.target.value;parts=[];save()};$('#sV').onchange=e=>{SET.vib=e.target.checked;save();vib(40)};$('#sStr').onchange=e=>{SET.stream=e.target.checked;save();applyStream()};$('#sT').onclick=()=>{unlock();setTimeout(()=>sfx('myturn'),150)};$('#sBgmT').onchange=e=>{unlock();const k=e.target.value;if(k){if(SET.bgm===0)toast('BGMの音量が0です');music(k)}else render()};[['エール','yell'],['プラス','plus'],['マイナス','minus'],['コアファン獲得','buy'],['ランクアップ','rank'],['ゴール','goal'],['お邪魔','troll'],['自分の番','turn']].forEach(([n,k])=>{const b=document.createElement('button');b.className='small';b.textContent=n;b.disabled=!dispState;b.onclick=()=>{o.hidden=true;o.innerHTML='';unlock();setTimeout(()=>demoFx(k),200)};$('#demoRow').appendChild(b)});$('#sC').onclick=()=>{const pv=$('#sBgmT')&&$('#sBgmT').value;o.hidden=true;o.innerHTML='';if(pv)render()}};
 
 // ================= メニュー（第24.4版）：音・設定・スタンプ・中断・タイトルに戻る =================
@@ -2802,6 +2880,11 @@ function openMenu(){unlock();const o=$('#ov'),inG=!!(meta&&meta.phase==='playing
     o.innerHTML=`<div class="card"><div class="pz-icon">🏠</div><h3>タイトルに戻りますか？</h3><p style="text-align:left">${sit&&canWrite?'ゲームは「中断」として保存されます。タイトルの「続きから遊ぶ」（または部屋コード）から、続きを遊べます。':'部屋から出ます。部屋コードを入れると、また見に来られます。'}</p><button id="mtYes">タイトルに戻る</button><button class="ghost" id="mtNo">やめる</button></div>`;
     $('#mtNo').onclick=close;$('#mtYes').onclick=async()=>{close();if(sit&&canWrite&&!(meta&&meta.paused)){const t=curTip();if(t&&!t.state.finished)await pauseGame()}leaveRoom()}}}
 $('#bMenu').onclick=openMenu;
+// 下の操作バーの高さに合わせて余白を取り、余分なスクロールで上の欄がずれないようにする
+{const bar=$('#bar');if(bar&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--barh',(bar.hidden?0:bar.offsetHeight)+'px')}).observe(bar)}
+{let wasG=false;new MutationObserver(()=>{const g=document.body.classList.contains('ingame');if(g&&!wasG)scrollTo(0,0);wasG=g}).observe(document.body,{attributes:true,attributeFilter:['class']})}
+// 長いシートは下までスクロールしなくても閉じられるよう、右上に×を付ける（「とじる」ボタンを押すのと同じ）
+new MutationObserver(()=>{const o=$('#ov');if(o.hidden)return;const c=o.querySelector('.card');if(!c||c.querySelector('.xclose'))return;const cl=[...c.querySelectorAll('button')].reverse().find(b=>/^(とじる|閉じる)$/.test(b.textContent.trim()));if(!cl||c.offsetHeight<innerHeight*.8&&c.scrollHeight<=c.clientHeight+4)return;const x=document.createElement('button');x.type='button';x.className='ghost xclose';x.setAttribute('aria-label','閉じる');x.textContent='×';x.onclick=()=>cl.click();c.prepend(x)}).observe($('#ov'),{childList:true});
 // 見えている画面の高さに合わせる（アプリの下部バーやキーボードで隠れないように）
 if(window.visualViewport){const vvFix=()=>{const b=$('#bar');if(!b)return;const ae=document.activeElement,typing=!!ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);const hid=typing?Math.max(0,window.innerHeight-(visualViewport.height+visualViewport.offsetTop)):0;b.style.bottom=hid+'px';setTimeout(fitMap,60)};visualViewport.addEventListener('resize',vvFix);visualViewport.addEventListener('scroll',vvFix);document.addEventListener('focusout',()=>setTimeout(vvFix,80));vvFix()}
 

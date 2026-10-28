@@ -4,7 +4,8 @@
  const cfg=window.FIREBASE_CONFIG;
  if(!cfg||!cfg.apiKey){window.__PD_NO_FB=true;return;}
  const fail=e=>{window.__PD_BOOT_ERROR=String(e.code||e.message||e);};
- if(cfg.projectId!=='pococha-dentetsu'||!window.firebase){fail(new Error('接続設定または通信ライブラリを確認してください'));window.claude={use:async()=>null};return;}
+ if(!window.firebase){window.__PD_NO_FB=true;window.__PD_FB_MISSING=true;return;}
+ if(cfg.projectId!=='pococha-dentetsu'){fail(new Error('接続設定または通信ライブラリを確認してください'));window.claude={use:async()=>null};return;}
  let auth,fs,ready;
  try {firebase.initializeApp(cfg);auth=firebase.auth();fs=firebase.firestore();fs.settings({ignoreUndefinedProperties:true,merge:true});
  ready=auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).then(()=>auth.signInAnonymously()).then(r=>r.user);
