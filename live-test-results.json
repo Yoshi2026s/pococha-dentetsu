@@ -1,0 +1,12 @@
+{
+  "projectId": "pococha-dentetsu",
+  "checks": [
+    "異なる2つの匿名UIDで認証成功",
+    "本番で専用部屋を作成",
+    "別UIDで参加",
+    "開始・CPU補完・手番確定・別UIDの盤面一致",
+    "本番ルールが参加者の盤面直接書込を拒否",
+    "テスト部屋を中断して保持（削除せず）"
+  ],
+  "physicalDevices": false
+}

@@ -1,0 +1,13 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const html=fs.readFileSync('index.html','utf8');
+const source=html.slice(html.indexOf('function drawPause(play)'),html.indexOf('function leaveRoom()'));
+const box={dataset:{},innerHTML:''},button={},els={'#pauseBox':box,'#bPause':{},'#bResume':button,'#bToTitle':{}};
+let tip={id:'3-1',state:{month:1,hour:18,seat:3}};
+const ctx={$:s=>els[s],meta:{paused:{at:1000,seat:0}},dispState:{month:1,hour:18,seat:2},mySeat:()=>0,code:'TEST',canWrite:true,curTip:()=>tip,curSeat:s=>s.seat,seatName:i=>['あなた','CPU2','CPU3','CPU4'][i],esc:s=>s,resumeGame(){},leaveRoom(){}};
+vm.createContext(ctx);vm.runInContext(source,ctx);ctx.drawPause(true);
+assert(box.innerHTML.includes('4P CPU4 の番から再開'),'演出中の古い盤面より保存済み盤面を優先');
+tip={id:'4-1',state:{month:1,hour:19,seat:0}};ctx.drawPause(true);
+assert(box.innerHTML.includes('19:00・1P あなた の番から再開'),'中断後の遅延通知でも表示を更新');
+tip=null;ctx.drawPause(true);assert(box.innerHTML.includes('3P CPU3 の番から再開'),'取得前の表示状態へのフォールバック');
+ctx.meta.paused=null;ctx.drawPause(true);assert(box.hidden);
+console.log('PASS 中断表示4項目（最新盤面・遅延通知・フォールバック・非表示）');

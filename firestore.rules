@@ -1,0 +1,117 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signed(){return request.auth != null;}
+  function me(){return request.auth.uid;}
+  function room(c){return get(/databases/$(database)/documents/pdGames/$(c)).data;}
+  function afterRoom(c){return getAfter(/databases/$(database)/documents/pdGames/$(c)).data;}
+  function member(c){return signed() && me() in room(c).members;}
+  function host(c){return member(c) && room(c).host == me();}
+  function valid(m){return m.keys().hasAll(['schemaVersion','rulesVersion','host','members','seatUids','phase','revision','tipId','days','cpuLv','cpu','cpuChar','uname','pname','paused','createdAt','turnAt'])
+   && m.keys().hasOnly(['schemaVersion','rulesVersion','host','members','seatUids','phase','revision','tipId','days','cpuLv','cpu','cpuChar','uname','pname','paused','createdAt','turnAt','seed','resumedAt','endReq','disconnectSec','cpuTimeoutSec'])
+   && m.schemaVersion==2 && m.rulesVersion==32 && m.host is string
+   && m.members is list && m.members.size()>=1 && m.members.size()<=4 && m.members.toSet().size()==m.members.size()
+   && m.host in m.members && m.seatUids is list && m.seatUids.size()==4
+   && m.seatUids[0] is string && m.seatUids[1] is string && m.seatUids[2] is string && m.seatUids[3] is string
+   && m.seatUids.toSet().difference([''].toSet()) == m.members.toSet()
+   && m.phase in ['lobby','playing','closed'] && m.revision is int && m.revision>=0
+   && m.tipId is string && m.days in [0,1,2,3,7,14,30,60,90,120,365]
+   && m.cpuLv in ['weak','normal','strong'] && m.cpu is list && m.cpu.size()<=3
+   && m.cpuChar is map && m.uname is map && m.pname is map
+   && m.get('disconnectSec',45) in [45,60,90,120,180,300] && m.get('cpuTimeoutSec',90) in [60,90,120,180,300,600]
+   && m.createdAt is timestamp && m.turnAt is timestamp;
+  }
+  function slotChange(a,b,i,u){return a[i]=='' && b[i]==u && b[(i+1)%4]==a[(i+1)%4] && b[(i+2)%4]==a[(i+2)%4] && b[(i+3)%4]==a[(i+3)%4];}
+  function ownSeat(c,m,i){return m.seatUids[i]==me() && getAfter(/databases/$(database)/documents/pdGames/$(c)/seats/$(i)).data.uid==me();}
+  function joined(c,a,b){let i=b.seatUids[0]!=a.seatUids[0]?0:(b.seatUids[1]!=a.seatUids[1]?1:(b.seatUids[2]!=a.seatUids[2]?2:3));
+   return a.phase=='lobby' && !(me() in a.members)
+   && b.diff(a).affectedKeys().hasOnly(['members','seatUids']) && b.members==a.members.concat([me()])
+   && b.members.size()<=4 && b.seatUids is list && b.seatUids.size()==4 && slotChange(a.seatUids,b.seatUids,i,me()) && ownSeat(c,b,i);}
+  function leftSlot(c,a,b,i){return a.seatUids[i]==me() && b.seatUids[i]==''
+   && b.seatUids[(i+1)%4]==a.seatUids[(i+1)%4] && b.seatUids[(i+2)%4]==a.seatUids[(i+2)%4] && b.seatUids[(i+3)%4]==a.seatUids[(i+3)%4]
+   && !existsAfter(/databases/$(database)/documents/pdGames/$(c)/seats/$(i));}
+  function left(c,a,b){let i=b.seatUids[0]!=a.seatUids[0]?0:(b.seatUids[1]!=a.seatUids[1]?1:(b.seatUids[2]!=a.seatUids[2]?2:3));
+   return a.phase=='lobby' && me()!=a.host && me() in a.members
+   && b.diff(a).affectedKeys().hasOnly(['members','seatUids']) && b.members.toSet()==a.members.toSet().difference([me()].toSet())
+   && leftSlot(c,a,b,i);}
+  function readySeat(c,m,i){return m.seatUids[i]=='' || get(/databases/$(database)/documents/pdGames/$(c)/seats/$(i)).data.ready==true;}
+  function cpus(m){return (m.seatUids[0]==''?[0]:[]).concat(m.seatUids[1]==''?[1]:[]).concat(m.seatUids[2]==''?[2]:[]).concat(m.seatUids[3]==''?[3]:[]);}
+  function hostAlive(c){return get(/databases/$(database)/documents/pdGames/$(c)/peers/$(room(c).host)).data.at > request.time-duration.value(room(c).get('disconnectSec',45),'s');}
+  match /pdGames/{c} {
+   allow get: if signed() && (!exists(/databases/$(database)/documents/pdGames/$(c)) || resource.data.phase=='lobby' || me() in resource.data.members);
+   allow list,delete: if false;
+   allow create: if signed() && c.matches('^[A-HJ-NP-Z2-9]{4}$') && valid(request.resource.data)
+    && request.resource.data.host==me() && request.resource.data.members==[me()] && request.resource.data.seatUids==[me(),'','','']
+    && request.resource.data.phase=='lobby' && request.resource.data.revision==0 && request.resource.data.tipId==''
+    && request.resource.data.cpu==[] && request.resource.data.cpuChar=={} && request.resource.data.uname=={} && request.resource.data.pname=={}
+    && request.resource.data.paused==null && request.resource.data.createdAt==request.time && request.resource.data.turnAt==request.time
+    && ownSeat(c,request.resource.data,0);
+   allow update: if signed() && (!(me() in resource.data.members) ? joined(c,resource.data,request.resource.data) : (left(c,resource.data,request.resource.data) || (
+      (me()==resource.data.host && resource.data.phase=='lobby' && request.resource.data.phase=='closed' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phase']))
+      || (me()==resource.data.host && resource.data.phase=='lobby' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['days','cpuLv','disconnectSec','cpuTimeoutSec']) && request.resource.data.days in [0,1,2,3,7,14,30,60,90,120,365] && request.resource.data.cpuLv in ['weak','normal','strong'] && request.resource.data.get('disconnectSec',45) in [45,60,90,120,180,300] && request.resource.data.get('cpuTimeoutSec',90) in [60,90,120,180,300,600])
+      || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uname']) && request.resource.data.uname.diff(resource.data.uname).affectedKeys().hasOnly([me()]) && request.resource.data.uname.get(me(),'') is string && request.resource.data.uname.get(me(),'').size()<=10)
+      || (me()==resource.data.host && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pname','cpuChar']) && request.resource.data.pname is map && request.resource.data.cpuChar is map && request.resource.data.pname.size()<=4 && request.resource.data.cpuChar.size()<=4)
+      || (resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paused','resumedAt'])
+        && (request.resource.data.paused==null || (request.resource.data.paused is map && request.resource.data.paused.by==me() && request.resource.data.paused.keys().hasOnly(['by','seat','at','turn']))))
+      || (resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['endReq']) && request.resource.data.endReq.by==me())
+      || (me()==resource.data.host && resource.data.phase=='lobby' && request.resource.data.phase=='playing'
+       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phase','cpu','cpuChar','seed','tipId','revision','turnAt','paused'])
+       && readySeat(c,resource.data,0)&&readySeat(c,resource.data,1)&&readySeat(c,resource.data,2)&&readySeat(c,resource.data,3)
+       && request.resource.data.cpu==cpus(resource.data) && request.resource.data.seed is string && request.resource.data.seed.size()==12
+       && request.resource.data.tipId=='0-0' && request.resource.data.revision==0 && request.resource.data.turnAt==request.time
+       && getAfter(/databases/$(database)/documents/pdGames/$(c)/turns/0-0).data.turn==0)
+      || (me()==resource.data.host && resource.data.phase=='playing' && resource.data.paused==null && hostAlive(c)
+       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tipId','revision','turnAt'])
+       && request.resource.data.revision==resource.data.revision+1 && request.resource.data.turnAt==request.time
+       && getAfter(/databases/$(database)/documents/pdGames/$(c)/turns/$(request.resource.data.tipId)).data.parent==resource.data.tipId
+       && getAfter(/databases/$(database)/documents/pdGames/$(c)/turns/$(request.resource.data.tipId)).data.turn==request.resource.data.revision)
+    )));
+   match /seats/{i} {
+    allow get,list: if signed() && (room(c).phase=='lobby' || member(c));
+    allow create: if signed() && i in ['0','1','2','3'] && request.resource.data.keys().hasOnly(['uid','ready'])
+     && request.resource.data.uid==me() && request.resource.data.ready==true && afterRoom(c).phase=='lobby' && afterRoom(c).seatUids[int(i)]==me();
+    allow update: if member(c) && room(c).phase=='lobby' && resource.data.uid==me() && request.resource.data.uid==me()
+     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ready']) && request.resource.data.ready is bool;
+    allow delete: if member(c) && room(c).phase=='lobby' && resource.data.uid==me() && afterRoom(c).seatUids[int(i)]=='';
+   }
+   match /turns/{id} {
+    allow read: if member(c);
+    allow update,delete: if false;
+    allow create: if host(c) && request.resource.data.keys().hasOnly(['id','turn','grant','parent','by','actionJson','stateJson','currentSeat','finished','rulesVersion'])
+     && request.resource.data.id==id && request.resource.data.rulesVersion==32 && request.resource.data.turn is int
+     && request.resource.data.stateJson is string && request.resource.data.stateJson.size()<500000 && request.resource.data.actionJson is string && request.resource.data.actionJson.size()<16384 && request.resource.data.currentSeat is int && request.resource.data.currentSeat>=0 && request.resource.data.currentSeat<4 && request.resource.data.finished is bool
+     && afterRoom(c).tipId==id && afterRoom(c).revision==request.resource.data.turn
+     && ((room(c).phase=='lobby' && id=='0-0' && request.resource.data.turn==0 && request.resource.data.parent==null)
+      || (room(c).phase=='playing' && room(c).paused==null && hostAlive(c) && request.resource.data.turn==room(c).revision+1 && request.resource.data.parent==room(c).tipId));
+   }
+   match /actions/{id} {
+    function validAction(){let a=request.resource.data;let m=room(c);let p=get(/databases/$(database)/documents/pdGames/$(c)/turns/$(m.tipId)).data;
+     return a.keys().hasOnly(['uid','revision','parent','seat','proxy','actionJson','status','createdAt'])
+      && a.uid==me() && a.revision==m.revision && a.parent==m.tipId && a.seat is int && a.seat>=0 && a.seat<4
+      && a.seat==p.currentSeat && !p.finished && a.proxy is bool && a.status=='pending' && a.createdAt==request.time
+      && a.actionJson is string && a.actionJson.size()<16384 && m.phase=='playing' && m.paused==null && hostAlive(c)
+      && ((!a.proxy && m.seatUids[a.seat]==me() && !(a.seat in m.cpu))
+       || (a.proxy && m.host==me() && (a.seat in m.cpu || request.time >= m.turnAt+duration.value(m.get('cpuTimeoutSec',90),'s'))));}
+    allow get: if member(c) && (room(c).host==me() || id==string(room(c).revision)+'-'+me() || resource.data.uid==me());
+    allow list: if host(c);
+    allow create: if member(c) && id==string(request.resource.data.revision)+'-'+me() && validAction();
+    allow update: if host(c) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in ['processed','rejected'];
+    allow delete: if false;
+   }
+   match /peers/{u} {
+    allow read: if member(c);
+    allow create,update: if member(c) && me()==u && request.resource.data.keys().hasOnly(['uid','presence','at']) && request.resource.data.uid==me()
+     && request.resource.data.at==request.time && request.resource.data.presence is map && request.resource.data.presence.size()<=1;
+    allow delete: if member(c) && me()==u;
+   }
+   match /stamps/{u} {
+    allow read: if member(c);
+    allow create,update: if member(c) && me()==u && request.resource.data.keys().hasOnly(['uid','i','at']) && request.resource.data.uid==me()
+     && request.resource.data.i is int && request.resource.data.i>=0 && request.resource.data.i<4 && request.resource.data.at==request.time
+     && (!exists(/databases/$(database)/documents/pdGames/$(c)/stamps/$(u)) || request.time>=resource.data.at+duration.value(3,'s'));
+   }
+  }
+  match /pdPlayers/{u} {allow read,write: if signed() && me()==u;}
+  // 旧ゲームの無制限許可は引き継がない。既存データは削除しない。
+ }
+}

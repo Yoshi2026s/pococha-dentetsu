@@ -1,0 +1,429 @@
+{
+ "songs": {
+  "title": {
+   "peak": 0.344,
+   "rmsDb": -28.9,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 27
+  },
+  "map": {
+   "peak": 0.118,
+   "rmsDb": -28.9,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 11
+  },
+  "night": {
+   "peak": 0.251,
+   "rmsDb": -28.4,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 26
+  },
+  "sea": {
+   "peak": 0.226,
+   "rmsDb": -29,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 18
+  },
+  "pinch": {
+   "peak": 0.098,
+   "rmsDb": -29.1,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 14
+  },
+  "superpinch": {
+   "peak": 0.311,
+   "rmsDb": -28.9,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 30
+  },
+  "closing": {
+   "peak": 0.172,
+   "rmsDb": -28.9,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 27
+  },
+  "ending": {
+   "peak": 0.153,
+   "rmsDb": -28.3,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 12
+  },
+  "hokkaido": {
+   "peak": 0.244,
+   "rmsDb": -28.9,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 25
+  },
+  "tohoku": {
+   "peak": 0.191,
+   "rmsDb": -28.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 17
+  },
+  "kanto": {
+   "peak": 0.2,
+   "rmsDb": -28.8,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 38
+  },
+  "chubu": {
+   "peak": 0.168,
+   "rmsDb": -28.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 26
+  },
+  "kinki": {
+   "peak": 0.206,
+   "rmsDb": -29.1,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 12
+  },
+  "sky": {
+   "peak": 0.192,
+   "rmsDb": -28.8,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 23
+  },
+  "wait": {
+   "peak": 0.144,
+   "rmsDb": -27.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 5
+  },
+  "kyushu": {
+   "peak": 0.192,
+   "rmsDb": -28.8,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 33
+  },
+  "okinawa": {
+   "peak": 0.196,
+   "rmsDb": -29,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 19
+  }
+ },
+ "se": {
+  "dice": {
+   "peak": 0.124,
+   "rmsDb": -40,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 29
+  },
+  "step": {
+   "peak": 0.051,
+   "rmsDb": -52.8,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 5
+  },
+  "yell": {
+   "peak": 0.164,
+   "rmsDb": -35,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 26
+  },
+  "anti": {
+   "peak": 0.092,
+   "rmsDb": -41.2,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 4
+  },
+  "card": {
+   "peak": 0.099,
+   "rmsDb": -41.9,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 10
+  },
+  "station": {
+   "peak": 0.146,
+   "rmsDb": -34,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 22
+  },
+  "buy": {
+   "peak": 0.111,
+   "rmsDb": -40.3,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 18
+  },
+  "troll": {
+   "peak": 0.245,
+   "rmsDb": -37,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 10
+  },
+  "myturn": {
+   "peak": 0.113,
+   "rmsDb": -37.1,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 13
+  },
+  "stamp": {
+   "peak": 0.042,
+   "rmsDb": -50.7,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 3
+  },
+  "rankup": {
+   "peak": 0.386,
+   "rmsDb": -28.7,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 42
+  },
+  "clock": {
+   "peak": 0.269,
+   "rmsDb": -29,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 27
+  },
+  "goal": {
+   "peak": 0.709,
+   "rmsDb": -22.9,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 272
+  },
+  "goalBig": {
+   "peak": 0.647,
+   "rmsDb": -22,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 417
+  },
+  "roulTick": {
+   "peak": 0.014,
+   "rmsDb": -70,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 3
+  },
+  "roulStop": {
+   "peak": 0.157,
+   "rmsDb": -38,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 23
+  },
+  "goalOld": {
+   "peak": 0.214,
+   "rmsDb": -32.8,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 14
+  },
+  "firework": {
+   "peak": 0.55,
+   "rmsDb": -34.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 17
+  },
+  "rarN": {
+   "peak": 0.082,
+   "rmsDb": -39.7,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 5
+  },
+  "rarR": {
+   "peak": 0.121,
+   "rmsDb": -37.4,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 9
+  },
+  "rarSR": {
+   "peak": 0.186,
+   "rmsDb": -32.8,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 24
+  },
+  "rarSSR": {
+   "peak": 0.549,
+   "rmsDb": -27.8,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 59
+  },
+  "rarUR": {
+   "peak": 0.532,
+   "rmsDb": -25.1,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 179
+  },
+  "badSR": {
+   "peak": 0.261,
+   "rmsDb": -31.1,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 11
+  },
+  "badUR": {
+   "peak": 0.563,
+   "rmsDb": -23.4,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 25
+  },
+  "ui": {
+   "peak": 0.01,
+   "rmsDb": -70,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 2
+  }
+ },
+ "lite": {
+  "title": {
+   "peak": 0.187,
+   "rmsDb": -29.4,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 28
+  },
+  "map": {
+   "peak": 0.113,
+   "rmsDb": -29.3,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 13
+  },
+  "night": {
+   "peak": 0.139,
+   "rmsDb": -29.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 19
+  },
+  "sea": {
+   "peak": 0.203,
+   "rmsDb": -29.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 16
+  },
+  "pinch": {
+   "peak": 0.094,
+   "rmsDb": -29.6,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 11
+  },
+  "superpinch": {
+   "peak": 0.183,
+   "rmsDb": -29.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 23
+  },
+  "closing": {
+   "peak": 0.162,
+   "rmsDb": -29.3,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 20
+  },
+  "ending": {
+   "peak": 0.131,
+   "rmsDb": -29.2,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 6
+  },
+  "hokkaido": {
+   "peak": 0.205,
+   "rmsDb": -29.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 19
+  },
+  "tohoku": {
+   "peak": 0.172,
+   "rmsDb": -29.7,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 17
+  },
+  "kanto": {
+   "peak": 0.188,
+   "rmsDb": -29.7,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 28
+  },
+  "chubu": {
+   "peak": 0.168,
+   "rmsDb": -29.2,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 28
+  },
+  "kinki": {
+   "peak": 0.283,
+   "rmsDb": -29.6,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 10
+  },
+  "sky": {
+   "peak": 0.197,
+   "rmsDb": -29,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 24
+  },
+  "wait": {
+   "peak": 0.124,
+   "rmsDb": -28.3,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 5
+  },
+  "kyushu": {
+   "peak": 0.184,
+   "rmsDb": -29.2,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 34
+  },
+  "okinawa": {
+   "peak": 0.194,
+   "rmsDb": -29.5,
+   "nan": 0,
+   "clip": 0,
+   "nodesPerSec": 19
+  }
+ },
+ "errors": []
+}

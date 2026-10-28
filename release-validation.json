@@ -1,0 +1,31 @@
+{
+  "scripts_passed": 3,
+  "rules_tests_passed": 31,
+  "offline_dom_checks_passed": 4,
+  "sha256": {
+    "index.html": "6601944832c84812f9a115c50225938399b9d0bfc189e6cc123c9ece30d2b9d1",
+    "online.js": "435fdae17fbad2f4fab42dce5d771e19f28f92282c5254eb394716b0bcbbc65d",
+    "firestore.rules": "41b27157ba98ed04a7a9e9d43a81263b296659fafae055e8f252ef4635f99497",
+    "firebase-config.js": "3edc30ba8e01a9372dc02169b25a6be51e3764bf3f480167248738ef3a3eb07b"
+  },
+  "real_browser_online": "公開ブラウザ＋独立SDKクライアントで参加者行動revision=2を確認。実機2台は未検証",
+  "timeout_update": {
+    "disconnect_seconds": [
+      45,
+      60,
+      90,
+      120,
+      180,
+      300
+    ],
+    "cpu_seconds": [
+      60,
+      90,
+      120,
+      180,
+      300,
+      600
+    ],
+    "live_ui": "公開版で切断判定120秒・CPU代行300秒へ変更し、再読み込み・再入室後の保持を確認"
+  }
+}

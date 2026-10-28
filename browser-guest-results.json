@@ -1,0 +1,8 @@
+{
+  "distinctAnonymousUsers": true,
+  "guestSeat": 2,
+  "guestActionCommitted": true,
+  "revision": 2,
+  "environment": "公開Cloud Browser + 独立Node.js SDKクライアント",
+  "physicalDevices": false
+}
