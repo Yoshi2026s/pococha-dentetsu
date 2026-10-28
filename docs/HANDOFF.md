@@ -22,3 +22,36 @@
 ブランチ feat/audio-upgrade（PR#2の上に1コミット）。音響区画は index.html の「第34版 音響エンジン」から sfx() まで。仕様は docs/AUDIO-SPEC.md。
 未pushのため、パッチ audio-v34.patch を利用者へ渡し済み。適用順：PR#2 → 本パッチ。旧セッションの未pushパッチ（1037bb6 通信ライブラリ未読込時の端末内モード切替、385e85a スマホ表示v33）は本ブランチに含まれない。v33は最後のstyleブロック末尾、本パッチは音響区画と設定画面の数行なので、重なりは設定画面の1行（音と設定の項目）のみの見込み。
 
+
+## 2026年10月28日 新サイト運用・秘密情報の誤登録防止
+
+運用先は https://yoshi2026s.github.io/pococha-dentetsu/ のみ。旧サイトは利用を終了する方針。2026年10月28日の確認時点で旧Pages URLは404だった。旧リポジトリのPages設定をこちらで停止したという意味ではない。
+
+### 確認・対応済み
+
+- Google CloudのFirebase用Browser APIキーは、ウェブサイトの許可先を `https://yoshi2026s.github.io` と `https://yoshi2026s.github.io/*` の2件に限定。API制限は既存のFirebase関連APIのまま維持した。
+- Firebase Authenticationの承認済みドメインへ `yoshi2026s.github.io` を追加し、`pococha2026.github.io` を削除。Firebase標準ドメインとlocalhostはそのまま。
+- 制限の保存後、新サイトの部屋作成が成功することを再確認した。実端末2台での対戦は未実施。
+- GitHubのGoogle API Keyアラート#1は、公開用Firebase Web設定であることと制限・動作確認を記録し、`Won't fix` として個別にクローズした。これはキーの失効や削除を意味しない。
+- リポジトリのSecret ProtectionとPush protectionは有効であることを確認した。
+- 元の `.gitignore` に、ローカル環境変数、秘密鍵、代表的なサービスアカウント鍵ファイル名の除外ルールを追記した。
+
+### 今後の公開・更新時
+
+1. `firebase-config.js` のFirebase Web設定は公開される前提で扱う。秘密鍵、サービスアカウントJSON、GitHubトークン、Geminiなど他サービスの秘密APIキーを追加しない。
+2. コミット前に `git status --short`、`git diff --cached --name-only` とステージ済み差分をローカルで確認する。鍵・トークン値をチャットや公開ログへ貼り付けない。
+3. `.gitignore` は既に追跡中のファイルや過去の履歴には効かず、任意の別名の秘密ファイルをすべて検出するものでもない。Web画面の手動アップロードや `git add -f` に頼って除外を回避しない。
+4. Push protectionに止められたら検出内容を確認し、本物の秘密は送信対象から除く。すでに漏えいした秘密は発行元で失効・再発行し、ファイルを削除しただけで対応済みとしない。
+5. Firebase公開キーの再警告は、対象キーとAPI制限・許可ドメインを再確認してから個別に判断する。新しいキーまで一括で許可したり、ファイル全体を検出除外したり、通知・Secret Protectionを無効にして処理しない。
+6. 必要なFirebase API以外へ用途を広げない。公開キーの許可APIにGenerative Language APIを追加しない。データへのアクセス権はFirestore Security Rules等で管理し、HTTPリファラー制限だけを認証・認可の代わりにしない。
+
+### 次に公開先を変更する際に提案する手順
+
+- 新しい公開ドメインをGoogle Cloud APIキーのウェブサイト制限とFirebase Authenticationの承認済みドメインに追加する。
+- 新サイトで部屋作成、参加、開始、サイコロ、対戦相手との同期を確認する。
+- 新サイトの動作確認後、旧ドメインを両方の許可設定から削除し、旧サイトの公開停止も確認する。
+- 許可先変更後に `API_KEY_HTTP_REFERRER_BLOCKED` や `auth/unauthorized-domain` が出た場合、この手順と実際のドメイン設定を確認する。
+
+将来の警告メールが必ずゼロになる設定ではない。別の秘密情報や新しい問題の警告は受け取り、原因を解消する。今回の変更は誤登録防止と運用記録のみで、ゲームコード・Firebase設定ファイル・Firestoreルールは変更していない。
+
+参考: [Firebase APIキーの扱い](https://firebase.google.com/docs/projects/api-keys)、[GitHub Push protection](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/work-with-leak-prevention/push-protection-in-the-github-ui)、[ファイル除外が検出に与える影響](https://docs.github.com/en/code-security/how-tos/secure-your-secrets/customize-leak-detection/exclude-folders-and-files)
