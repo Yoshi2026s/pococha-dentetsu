@@ -1,0 +1,35 @@
+# ポコチャ電鉄 作業ルール（Claude 用）
+
+## 会話
+- 回答・説明・確認メッセージは日本語で書く。
+- 結論を先に、簡潔に書く。推測で事実を補わない（分からないことは分からないと書く）。
+
+## ファイルの扱い
+- `index.html` と `online.js` の改行は CRLF のまま保つ（LF に変えない）。編集後に `file index.html online.js` で確認する。
+- `audio-test-results.json` の変更はコミットしない。
+- 依頼にないファイルは変更しない。
+
+## テスト（push 前に必ず実行し、全部合格を確認する）
+```bash
+npm install   # 初回のみ（jsdom などを入れる）
+node test-dom.cjs
+node test-regressions.cjs
+node test-pause.cjs
+node test-audio.cjs
+```
+- 更新で新しいテスト（例：`test-auth-fallback.cjs`）を追加したときは、それも実行する。
+- テストを実行すると結果 JSON が書き換わることがある。コミット前に `git status` で確認し、依頼にない結果ファイルは戻す。
+
+## 更新の流れ
+1. `main` の最新から作業ブランチを作る。
+2. 変更 → テスト全部合格を確認 → コミット → push → PR 作成。
+3. 更新が終わるたびに、ChatGPT に渡す「更新指示書」を **1ファイル** 作り、変更ファイル一式の zip と一緒にユーザーへ渡す（記録用。ユーザーは ChatGPT でも GitHub `Yoshi2026s/pococha-dentetsu` へアップする）。
+
+## 更新指示書に書くこと
+1. 対象：リポジトリ、元ブランチ（main）、作業ブランチ名
+2. 変更ファイルの表（ファイル／操作：置き換え・新規・削除／変更の要点）
+3. 守ること：CRLF のまま、`audio-test-results.json` は入れない、表にないファイルは変えない、添付ファイルを書き換えない
+4. テスト結果（実行したテストと合否）
+5. コミットメッセージ（コピペ用）
+6. PR のタイトルと本文（コピペ用）
+7. アップ後の確認：Files changed に表のファイルだけが入っている、CRLF のまま、`audio-test-results.json` が入っていない
