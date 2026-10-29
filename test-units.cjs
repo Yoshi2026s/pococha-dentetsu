@@ -23,6 +23,7 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=x=>w.eval(x);try{
   // 4) イベントの呼び名と説明（物件にちなむもの・基本G）
   assert.deepEqual([E('EVN.photo'),E('EVN.tour'),E('EVN.newfans'),E('CARDN.fanfes')],['物件めぐり配信','コアファンと聖地めぐり','初見さんがコアファンに','物件まつり']);
   assert(!/基本×/.test(html.slice(html.indexOf('const EVDEF='),html.indexOf('const XEV='))),'イベント説明に「基本×」が残っている');
+  assert.equal(E('MISQ.yell'),'fans','コアファンマスの絵がコアファン（ハートと人）になっていない');
   // 3) 古い呼び名：画面（リスナーコメント欄を除く）・ヘルプ・ソース（リスナーコメントの文面を除く）
   const cm=d.querySelector('#cmts');if(cm)cm.remove();
   const vt=d.querySelector('#vGame').textContent;assert(!/エール|応援ポイント|♥|📣/.test(vt),'画面に古い呼び名：'+(vt.match(/.{0,20}(エール|応援ポイント|♥|📣).{0,20}/)||[''])[0]);
