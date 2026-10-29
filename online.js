@@ -25,7 +25,7 @@
  const snapshotError=e=>{fail(e);window.dispatchEvent(new CustomEvent('pd-network-error',{detail:e}));};
  function doc(path){const r=fs.doc(native(path));return {id:r.id,path,
  get:async()=>wrap(await r.get({source:'server'})),set:v=>r.set(clean(v)),
- update:v=>fs.runTransaction(async tx=>{const d=await tx.get(r);if(!d.exists)err('部屋が見つかりません');tx.update(r,clean(v));}),
+ /* 読み取りなしの更新1回（存在しなければnot-foundで失敗する） */update:v=>r.update(clean(v)).catch(e=>{if(e.code==='not-found')err('部屋が見つかりません');throw e;}),
  delete:()=>r.delete(),acquire:async()=>({acquired:false}),
  onSnapshot:(fn,onErr)=>r.onSnapshot(d=>fn(wrap(d)),e=>{snapshotError(e);if(onErr)onErr(e);})};}
  function collection(path){let q=fs.collection(native(path));if(path.endsWith('/turns'))q=q.orderBy('turn').limitToLast(40);
@@ -46,12 +46,31 @@
  const cpu=[0,1,2,3].filter(i=>!m.seatUids[i]),rec=makeGenesis(seed,m.days);tx.set(r.collection('turns').doc('0-0'),encodeRec(rec));
  tx.update(r,{phase:'playing',cpu,cpuChar:choices[m.cpuLv+':'+cpu.reduce((n,i)=>n+(1<<i),0)],seed,tipId:'0-0',revision:0,turnAt:stamp(),paused:null});});return;}catch(e){if(e.code!=='permission-denied'||attempt===4)throw e;}}},
  async submit(c,tip,seat,action,proxy){const r=game(c),id=tip.turn+'-'+uid(),ref=r.collection('actions').doc(id);
- const a=clean(action);delete a.end;
- await fs.runTransaction(async tx=>{const d=await tx.get(r),old=await tx.get(ref),m=d.data();if(old.exists)return;
+ const a=clean(action);delete a.end;const body=()=>({uid:uid(),revision:tip.turn,parent:tip.id,seat,proxy:!!proxy,actionJson:JSON.stringify(a),status:'pending',createdAt:stamp()});
+ /* 速い経路：読み取りなしの書き込み1回（手番・席・ホスト在席はルールが検査）。拒否されたら従来の確認つき処理で再送・手番ずれを判定 */
+ try{await ref.set(body());return;}catch(e){if(e.code!=='permission-denied')throw e;}
+ await fs.runTransaction(async tx=>{const [d,old]=await Promise.all([tx.get(r),tx.get(ref)]),m=d.data();if(old.exists)return;
  if(!m||m.phase!=='playing'||m.paused||m.revision!==tip.turn||m.tipId!==tip.id)err('手番が更新されました。最新の画面で操作してください');
- tx.set(ref,{uid:uid(),revision:tip.turn,parent:tip.id,seat,proxy:!!proxy,actionJson:JSON.stringify(a),status:'pending',createdAt:stamp()});});},
+ tx.set(ref,body());});},
+ /* ホスト自身・CPUの手番：行動要求を経由せず、盤面と部屋を1回のまとめ書きで確定する（手番ずれ・二重確定はルールと手番IDで防ぐ）。確定できなければfalse */
+ async commit(c,tip,action,seat,proxy,m,apply){if(!m||!tip||m.host!==uid()||m.phase!=='playing'||m.paused||m.revision!==tip.turn||m.tipId!==tip.id||tip.state.finished)return false;
+ if(proxy?!(m.cpu||[]).includes(seat):m.seatUids[seat]!==uid())return false;
+ const a=clean(action);delete a.end;if(m.endReq&&!tip.state.days)a.end=true;let state;try{state=apply(tip.state,a,m.seed);}catch(e){return false;}
+ const r=game(c),id=state.turn+'-1',rec={id,turn:state.turn,grant:1,parent:tip.id,by:(proxy?'cpu':'s')+seat+':'+uid(),action:a,state,rulesVersion:m.rulesVersion},b=fs.batch();
+ b.set(r.collection('turns').doc(id),encodeRec(rec));b.update(r,{tipId:id,revision:state.turn,turnAt:stamp()});
+ try{await b.commit();return true;}catch(e){if(e.code==='permission-denied')return false;throw e;}},
+ /* 参加者の行動要求の確定（速い経路）：届いた要求と手元の最新盤面で検算し、読み取りなしのまとめ書き1回で確定。条件が合わなければfalse（従来のprocessで処理） */
+ async processFast(c,requestId,a,tipRec,m,apply,seatOf){if(!a||a.status!=='pending'||!tipRec||!m||m.host!==uid()||m.phase!=='playing'||m.paused)return false;
+ if(a.revision!==m.revision||a.parent!==m.tipId||tipRec.id!==m.tipId||tipRec.turn!==m.revision)return false;
+ const prev=tipRec.state,seat=seatOf(prev);if(prev.finished||seat!==a.seat)return false;
+ const actor=m.seatUids[seat],elapsed=Date.now()-(m.turnAt?.toMillis?.()||Date.now());
+ if(a.proxy){if(a.uid!==m.host||(!m.cpu.includes(seat)&&elapsed<(m.cpuTimeoutSec||90)*1000))return false;}else if(actor!==a.uid||m.cpu.includes(seat))return false;
+ let action,state;try{action=JSON.parse(a.actionJson);if(m.endReq&&!prev.days)action.end=true;state=apply(prev,action,m.seed);}catch(e){return false;}
+ const r=game(c),id=state.turn+'-1',rec={id,turn:state.turn,grant:1,parent:m.tipId,by:(a.proxy?'cpu':'s')+seat+':'+a.uid,action,state,rulesVersion:m.rulesVersion},b=fs.batch();
+ b.set(r.collection('turns').doc(id),encodeRec(rec));b.update(r,{tipId:id,revision:state.turn,turnAt:stamp()});b.update(r.collection('actions').doc(requestId),{status:'processed'});
+ try{await b.commit();return true;}catch(e){if(e.code==='permission-denied')return false;throw e;}},
  async process(c,requestId,apply,seatOf){const r=game(c),ar=r.collection('actions').doc(requestId);
- await fs.runTransaction(async tx=>{const md=await tx.get(r),ad=await tx.get(ar);if(!md.exists||!ad.exists)return;const m=md.data(),a=ad.data();
+ await fs.runTransaction(async tx=>{const [md,ad]=await Promise.all([tx.get(r),tx.get(ar)]);if(!md.exists||!ad.exists)return;const m=md.data(),a=ad.data();
  if(m.host!==uid()||a.status!=='pending')return;if(a.revision!==m.revision||a.parent!==m.tipId){tx.update(ar,{status:'rejected'});return;}if(m.phase!=='playing'||m.paused)return;
  const pd=await tx.get(r.collection('turns').doc(m.tipId));if(!pd.exists)return;const prev=decodeRec(pd.data()),seat=seatOf(prev.state);if(prev.state.finished||seat!==a.seat)return;
  const actor=m.seatUids[seat],elapsed=Date.now()-(m.turnAt?.toMillis()||Date.now());
@@ -59,7 +78,7 @@
  let state;try {const action=JSON.parse(a.actionJson);if(m.endReq&&!prev.state.days)action.end=true;state=apply(prev.state,action,m.seed);}catch(e){tx.update(ar,{status:'rejected'});return;}
  const id=state.turn+'-1',rec={id,turn:state.turn,grant:1,parent:m.tipId,by:(a.proxy?'cpu':'s')+seat+':'+a.uid,action:{...JSON.parse(a.actionJson),...(m.endReq&&!prev.state.days?{end:true}:{})},state,rulesVersion:m.rulesVersion};
  tx.set(r.collection('turns').doc(id),encodeRec(rec));tx.update(r,{tipId:id,revision:state.turn,turnAt:stamp()});tx.update(ar,{status:'processed'});});},
- watchActions(c,fn){return game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id);}),snapshotError);},
+ watchActions(c,fn){return game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),snapshotError);},
  async leave(c){const r=game(c);await fs.runTransaction(async tx=>{const d=await tx.get(r);if(!d.exists)return;const m=d.data(),i=m.seatUids.indexOf(uid());if(i<0)return;
  if(m.phase!=='lobby')return;
  if(m.host===uid()){tx.update(r,{phase:'closed'});return;}const a=m.seatUids.slice();a[i]='';tx.update(r,{seatUids:a,members:m.members.filter(u=>u!==uid())});tx.delete(r.collection('seats').doc(String(i)));});},
