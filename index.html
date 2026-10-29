@@ -1829,7 +1829,7 @@ function sfx(k,...a){if(AU.ac&&SET.se>0)try{const dk=SE_DUCK[k];if(dk&&SET.bgm>0
 const LOCK_TTL=15000,LOCK_RENEW=5000,MARGIN=5000,DEADLINE=60000,STAMPS=['ナイス！','エールありがとう','やられた〜','がんばれ！'];
 const $=s=>document.querySelector(s);
 let db=null,room=null,user=null,myId=null,canWrite=true,code=null,meta=null,seats=[null,null,null,null],grp=null;
-let metaWait=[];let records=new Map(),tipSeenAt=new Map(),busy=false,proxyBusy=false,unsub=[],lastStamp=0,peers=[],names={};
+let metaWait=[],sentTip=null;/* sentTip：操作を送った手番。結果が届くまで同じ手番を二度操作しない */let records=new Map(),tipSeenAt=new Map(),busy=false,proxyBusy=false,unsub=[],lastStamp=0,peers=[],names={};
 const use=n=>window.claude&&window.claude.use?window.claude.use(n):Promise.resolve(null);
 function toast(t){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,2600)}
 function errText(e){if(db&&db.online)return '操作できません：'+String(e&&e.code||e&&e.message||'原因不明')+'。通信状態を確認して再試行してください。';const c=e&&e.code;return c==='resource_exhausted'?'少し待ってから操作してください':c==='quota_exceeded'?'保存容量がいっぱいです。終わった部屋を削除してください':c==='invalid_argument'?'このページに書き込む権限がありません（観戦モード）':c==='revoked'?'このページを開く権限がなくなりました':'通信できませんでした。少し待ってからもう一度どうぞ'}
@@ -1885,7 +1885,7 @@ async function enter(c){unlock();c=normCode(c);if(!/^[A-Z0-9]{4}$/.test(c)){cons
   code=c;try{localStorage.setItem('poco-room',c)}catch{}saveRoom(c,{});unsub.forEach(u=>u());unsub=[];
   unsub.push(db.doc('games/'+c).onSnapshot(d=>{if(code!==c)return;const wasP=!!(meta&&meta.paused);meta=d.data()||null;metaWait=metaWait.filter(f=>!f());if(db.online&&meta&&meta.phase==='closed'){leaveRoom();toast('ホストが部屋を閉じました');return}onPauseChange(wasP);if(meta&&meta.next&&meta.next!==code)showNext(meta.next);render()},e=>toast(errText(e))));
   unsub.push(db.collection('games/'+c+'/seats').onSnapshot(q=>{if(code!==c)return;seats=[null,null,null,null];q.docs.forEach(d=>{const i=+d.id;if(i>=0&&i<4)seats[i]=d.data()});const m=mySeat();if(grp&&m>=0)grp.presence({seat:m}).catch(()=>{});resolveNames();render()},e=>toast(errText(e))));
-  unsub.push(db.collection('games/'+c+'/turns').onSnapshot(q=>{if(code!==c)return;q.docChanges().forEach(ch=>{if(ch.type!=='removed')records.set(ch.doc.id,ch.doc.data());else if(db.online)records.delete(ch.doc.id)});onRecords()},e=>toast(errText(e))));
+  unsub.push(db.collection('games/'+c+'/turns').onSnapshot(q=>{if(code!==c)return;q.docChanges().forEach(ch=>{if(ch.type!=='removed')confirmPred(ch.doc.id,ch.doc.data());else if(db.online)records.delete(ch.doc.id)});onRecords()},e=>toast(errText(e))));
   if(db.online&&s.data().host===myId){let processing=false;const queued=new Map();/* 処理中に届いた要求も捨てずに順に処理する（以前は2秒ごとの見回りまで待っていた） */const process=async(id,data)=>{queued.set(id,data);if(processing)return;processing=true;try{while(queued.size&&meta&&meta.host===myId&&code===c){const [qid,qd]=queued.entries().next().value;queued.delete(qid);try{if(!(qd&&await db.online.processFast(c,qid,qd,curTip(),meta,applyTurn,curSeat)))await db.online.process(c,qid,applyTurn,curSeat)}catch(e){toast(errText(e))}}}finally{processing=false}};
    unsub.push(db.online.watchActions(c,process));
    const poll=setInterval(async()=>{if(!meta||meta.host!==myId||meta.paused)return;try{const q=await db.online.requests(c);for(const d of q.docs)await process(d.id)}catch(e){toast(errText(e))}},2000);unsub.push(()=>clearInterval(poll));}
@@ -1900,7 +1900,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();aw
   await db.doc('games/'+old).update({next:c});$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();return enter(c)}}catch(e){toast(errText(e))}}
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
-function resetGame(){document.body.classList.remove('ingame');{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;lastCoins.length=0;
+function resetGame(){document.body.classList.remove('ingame');{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
   animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove())}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
@@ -1923,16 +1923,23 @@ const store={list:async()=>{const q=await db.collection('games/'+code+'/turns').
 const KEEP=40;function pruneOld(tipTurn){if(db.online)return;const cut=tipTurn-KEEP;if(cut<=0||!code)return;let n=0;
   for(const r of [...records.values()])if(r.turn<cut){records.delete(r.id);tipSeenAt.delete(r.id);if(canWrite&&n<12){n++;try{db.doc('games/'+code+'/turns/'+r.id).delete().catch(()=>{})}catch{}}}
   if(canWrite)for(let t=Math.max(0,cut-3);t<cut;t++){try{db.doc('games/'+code+'/locks/'+t).delete().catch(()=>{})}catch{}}}
+// 先読みした手番を取り消す：演出をやり直さずに、サーバーの最新盤面へ表示を合わせる
+function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.delete(id);VOK.clear();const t=curTip();if(t&&shownTip===id){shownTip=t.id;dispState=t.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}render()}
+// サーバーの記録で先読みを置きかえる。内容が違えば表示を直す
+function confirmPred(id,data){const old=records.get(id);records.set(id,data);if(!old||!old.pred)return;if(JSON.stringify(old.state)===JSON.stringify(data.state))return;VOK.clear();if(shownTip===id){dispState=data.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}}
 async function takeTurn(holder,forSeat,decide){const myCode=code;
  if(db.online){const tip=curTip();if(!tip||tip.state.finished||curSeat(tip.state)!==forSeat)return;
  const a=await decide(tip.state);if(!a||code!==myCode)return;
  const proxy=holder.startsWith('cpu');let done=false;
  // ホストは自分とCPUの手番を、行動要求を経由せず1回の書き込みで確定する（速い）。確定できなければ従来どおり行動要求を出す
  if(meta&&meta.host===myId){const t2=curTip();if(t2&&t2.id===tip.id)done=await db.online.commit(myCode,tip,a,forSeat,proxy,meta,applyTurn)}
- if(!done)await db.online.submit(myCode,tip,forSeat,a,proxy);
- if(pending){pending=null;render()}
- // 確定を待つ：毎回新しく購読せず、部屋の購読（meta）の更新で判定する
- await new Promise(resolve=>{const chk=()=>{if(code!==myCode||!meta||meta.revision>tip.turn||meta.paused){clearTimeout(timer);resolve();return true}return false},timer=setTimeout(()=>{metaWait=metaWait.filter(f=>f!==chk);resolve()},10000);if(!chk())metaWait.push(chk)});return;}
+ // 参加者は送信と同時に、手元で同じ計算をして結果の演出を先に始める（先読み）。サーバーの記録が届いたら照合し、違えば直す
+ let pred=null;if(!done&&!proxy&&meta&&meta.host!==myId&&meta.seed)try{const act=JSON.parse(JSON.stringify(a));delete act.end;if(meta.endReq&&!tip.state.days)act.end=true;const st=applyTurn(tip.state,act,meta.seed);
+   pred={id:st.turn+'-1',turn:st.turn,grant:1,parent:tip.id,by:'s'+forSeat+':'+myId,action:act,state:JSON.parse(JSON.stringify(st)),rulesVersion:RULES_VERSION,pred:Date.now()};if(!records.has(pred.id)){records.set(pred.id,pred);onRecords()}else pred=null}catch{pred=null}
+ if(!done)try{await db.online.submit(myCode,tip,forSeat,a,proxy)}catch(e){if(pred)dropPred(pred.id);throw e}
+ sentTip=tip.id;if(pending){pending=null;render()}
+ // 確定を待つ：盤面の記録（records）が次の手番に進むまで。部屋情報だけ先に届いても、同じ手番をもう一度操作させない
+ await new Promise(resolve=>{const chk=()=>{const t=curTip();if(code!==myCode||!meta||meta.paused||(t&&t.turn>tip.turn)){clearTimeout(timer);resolve();return true}return false},timer=setTimeout(()=>{metaWait=metaWait.filter(f=>f!==chk);resolve()},10000);if(!chk())metaWait.push(chk)});return;}
 
   const tip=pickTip(await store.list());if(!tip||tip.state.finished||curSeat(tip.state)!==forSeat)return;
   const lp='games/'+code+'/locks/'+tip.turn;let lease=await store.acquire(lp,holder);if(!lease.acquired)return;
@@ -2147,7 +2154,7 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
 
 // ================= 演出（v2：カメラ・跳ねる駒・足あと・夜景・花火・大きな演出カード） =================
 let shownTip=null,dispState=null;
-function onRecords(){if(records.size>KEEP+40){let mx=0;for(const r of records.values())if(r.turn>mx)mx=r.turn;pruneOld(mx)}if(!meta||meta.phase!=='playing'){render();return}
+function onRecords(){metaWait=metaWait.filter(f=>!f());if(records.size>KEEP+40){let mx=0;for(const r of records.values())if(r.turn>mx)mx=r.turn;pruneOld(mx)}if(!meta||meta.phase!=='playing'){render();return}
   const{chain}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip)return;
   if(!tipSeenAt.has(tip.id))tipSeenAt.set(tip.id,Date.now());
   if(shownTip&&shownTip!==tip.id){const prevOnChain=chain.some(r=>r.id===shownTip);if(!prevOnChain&&records.get(shownTip))toast('通信の遅れで盤面を直しました');
@@ -2706,11 +2713,12 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
     const s=document.createElement('span');s.textContent=`${r.state.lastSeat+1}P `+(r.state.ev||[]).map(e=>e.t).filter(Boolean).join('／')+(String(r.by).startsWith('cpu')?'（CPU）':'');li.append(n,s);L.appendChild(li)});
   const orphans=[...records.values()].filter(r=>r.rulesVersion===RULES_VERSION&&!chain.includes(r));if(orphans.length){const li=document.createElement('li');li.className='muted';li.textContent=`遅れて届いた行動（無効）${orphans.length}件`;L.appendChild(li)}}
 function tick(){if(db&&db.online&&meta&&meta.phase==='playing'&&meta.host!==myId&&!peers.some(p=>p.id===meta.host)){if(pending){const res=pending.res;pending=null;res(null)}render();$('#turnText').textContent='ホストとの接続を確認中です。進行を止めています。ホストが同じブラウザで戻ると再開できます。';return}if(!meta||meta.phase!=='playing'||!canWrite)return render();if(meta.paused)return render();
+  for(const r of [...records.values()])if(r.pred&&Date.now()-r.pred>15000)dropPred(r.id);
   const{chain}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip||tip.state.finished)return render();
   const seat=curSeat(tip.state),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),me=mySeat();
-  if(seat===me&&!busy&&age<(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)&&!animating()){busy=true;takeTurn('s'+me+':'+myId,me,myDecide).catch(e=>toast(errText(e))).finally(()=>{busy=false;pending=null;const g=$('#ghost');if(g)g.innerHTML='';clearChoices();render()})}
+  if(seat===me&&!busy&&tip.id!==sentTip&&!tip.pred&&age<(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)&&!animating()){busy=true;takeTurn('s'+me+':'+myId,me,myDecide).catch(e=>toast(errText(e))).finally(()=>{busy=false;pending=null;const g=$('#ghost');if(g)g.innerHTML='';clearChoices();render()})}
   const humans=[0,1,2,3].filter(i=>seats[i]&&seatOnline(i)),runner=db.online?seats.findIndex(s=>s&&s.uid===meta.host):(humans.length?Math.min(...humans):-1),isCpu=(meta.cpu||[]).includes(seat);
-  if(runner===me&&!proxyBusy&&!animating()&&(isCpu?age>=0:age>=(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE+30000))){proxyBusy=true;
+  if(runner===me&&!proxyBusy&&tip.id!==sentTip&&!tip.pred&&!animating()&&(isCpu?age>=0:age>=(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE+30000))){proxyBusy=true;
     takeTurn('cpu'+seat+':'+myId,seat,st=>new Promise(r=>setTimeout(()=>r(cpuDecide(st)),SET.fast?80:180))).catch(()=>{}).finally(()=>{proxyBusy=false})}
   render()}
 
