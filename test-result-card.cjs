@@ -11,14 +11,14 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
     try{const s2=applyTurn(st,{type:'roll',route:[k],buy,reward:'coin',shopDone:true},meta.seed,{noForce:true});if(s2.players[seat].pos!==k)continue;const mv=(s2.ev||[]).find(e=>e.k==='move');const r=resultInfo(s2,st,seat,mv?mv.t:'',NODES[k]);return {r,html:resultHTML(r)}}catch(e){}}return null}`);
   // プラスマス：増減を大きく1つ・倍率の行（ゴールデン×晴れ）・文章に倍率の（）を残さない
   const plus=w.eval("land('plus',false,20,0)");assert(plus,'プラスマスに止まれない');
-  assert.equal(plus.r.main[0],'応援');assert(plus.r.mult&&plus.r.mult.tz==='ゴールデン'&&plus.r.mult.a===w.eval('PLUSM.tz[2]')&&plus.r.mult.b===w.eval('PLUSM.wx[0]'),'倍率の行');
+  assert.equal(plus.r.main[0],'ゴールド');assert(plus.r.mult&&plus.r.mult.tz==='ゴールデン'&&plus.r.mult.a===w.eval('PLUSM.tz[2]')&&plus.r.mult.b===w.eval('PLUSM.wx[0]'),'倍率の行');
   assert(!/ゴールデン／/.test(plus.html)&&plus.html.includes('rc-mult')&&plus.html.includes('has-main'),'倍率の（）が文章に残っている');
-  // エールマス：主な結果はエール
-  const yell=w.eval("land('yell',false,2,3)");assert.equal(yell.r.main[0],'エール');assert.equal(yell.r.mult.tz,'深夜');
-  // 駅でコアファン獲得：減りは「支払い」・獲得の行は1行にまとまる・駅の状況は補足に
+  // コアファンマス：主な結果はコアファン
+  const yell=w.eval("land('yell',false,2,3)");assert.equal(yell.r.main[0],'コアファン');assert.equal(yell.r.mult.tz,'深夜');
+  // 駅で物件獲得：減りは「支払い」・獲得の行は1行にまとまる・駅の状況は補足に
   const st=w.eval("land('station',[0],18,0)");assert(st,'駅で獲得できない');
-  assert(st.r.pills.some(p=>p[0]==='支払い'&&p[2]==='pay'),'獲得の支払いが「応援−」（損）に見える');assert(!st.r.pills.some(p=>p[0]==='応援'),'支払いと応援が両方出ている');
-  assert(st.r.lines.some(x=>x.startsWith('コアファン獲得：')),'獲得の行がまとまっていない：'+st.r.lines);assert(st.r.note.includes('この駅'),'駅の状況の補足');
+  assert(st.r.pills.some(p=>p[0]==='支払い'&&p[2]==='pay'),'獲得の支払いが「ゴールド−」（損）に見える');assert(!st.r.pills.some(p=>p[0]==='ゴールド'),'支払いとゴールドが両方出ている');
+  assert(st.r.lines.some(x=>x.startsWith('物件獲得：')),'獲得の行がまとまっていない：'+st.r.lines);assert(st.r.note.includes('この駅'),'駅の状況の補足');
   // カードマス：カードの枚数の丸
   const card=w.eval("land('card',false,12,1)");assert(card.r.pills.some(p=>p[0]==='カード'),'カードの丸');
   // ランクの丸は class "rk"（右上に固定される別スタイル）を使わない

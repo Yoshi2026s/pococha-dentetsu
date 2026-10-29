@@ -2,7 +2,7 @@
 // 1) 端末内モードの自分の番は時間切れの代行がないので「残り◯秒」を出さない（以前は60秒のまま止まって見えた）
 // 2) 増減の吹き出し（chipdelta）は演出カード（#ov）より下に表示する
 // 3) メニューボタンは高さ44px以上の指定
-// 4) コアファンの選択ボタン：「1日＋◯」を独立した行に。買えないファンは「応援がたりない」で薄く
+// 4) 物件の選択ボタン：「1日＋◯G」を独立した行に。買えない物件は「ゴールドがたりない」で薄く
 const {JSDOM,VirtualConsole}=require('jsdom');const fs=require('fs'),assert=require('assert');
 const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>{if(!e.message.includes('Not implemented'))errors.push(e.message)});
 const html=fs.readFileSync('index.html','utf8'),s=html.replace(/<script[^>]+src=[^>]+><\/script>/g,'');
@@ -16,14 +16,14 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   // 2)・3) CSSの指定
   const z=html.match(/\.chipdelta\{position:fixed;z-index:(\d+)/),zo=html.match(/\.overlay\{position:fixed;inset:0;z-index:(\d+)/);assert(+z[1]<+zo[1],'増減の吹き出しが演出カードより上');
   assert(/\.menubtn\{min-height:44px!important/.test(html),'メニューボタンの高さ');
-  // 4) コアファン獲得の画面（応援ポイントを少なくして、買えないファンを作る）
+  // 4) 物件獲得の画面（ゴールドを少なくして、買えない物件を作る）
   const ok=E(`(()=>{const st=JSON.parse(JSON.stringify(curTip().state)),seat=curSeat(st),k=NODES.findIndex((n,i)=>n.type==='station'&&n.bases&&n.bases.length>=3&&ADJ[i]&&ADJ[i].length);
     st.players[seat].pos=ADJ[k][0];st.players[seat].coin=Math.min(...NODES[k].bases.map(b=>b.price))+10;
     const coin=Math.min(...NODES[k].bases.map(b=>b.price))+10;pending={st,res:()=>{},stage:'buy',base:{type:'roll'},sel:new Set(),pv:{pos:k,nd:NODES[k],own:NODES[k].bases.map(()=>null),coin,seat,hand:[]}};drawBaseList();return true})()`);
   assert(ok,'駅に止まる手番を作れない');
   const btns=[...d.querySelectorAll('#baseList .fanbtn')];assert(btns.length>=3);
-  assert(btns.every(b=>/^1日＋[\d,]+$/.test(b.querySelector('.fb-d').textContent)),'「1日＋◯」が独立していない');
-  assert(btns.some(b=>b.classList.contains('short')&&b.textContent.includes('応援がたりない')),'買えないファンが分からない');
+  assert(btns.every(b=>/^1日＋[\d,]+G$/.test(b.querySelector('.fb-d').textContent)),'「1日＋◯」が独立していない');
+  assert(btns.some(b=>b.classList.contains('short')&&b.textContent.includes('ゴールドがたりない')),'買えないファンが分からない');
   assert(!btns.some(b=>b.textContent.includes('タップで選ぶ')),'各ボタンに「タップで選ぶ」が残っている');
   btns.find(b=>!b.classList.contains('short')).click();await wait(50);assert(d.querySelector('#baseList .fanbtn.on .fb-s').textContent.includes('獲得する'),'選んだファンの表示');
   if(errors.length)throw Error(errors.join('\n'));
