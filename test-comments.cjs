@@ -26,6 +26,13 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   E('document.querySelector("#cmts").innerHTML="";comments("minus",1)');await wait(30);const txt=[...d.querySelectorAll('#cmts .cmt')].pop().childNodes[1].textContent.trim();assert(E('CMT.minus').includes(txt),'場面に合わない：'+txt);
   // 一度に出るのは最大4件
   E('comments("good",8)');let mx=0;for(let i=0;i<30;i++){await wait(200);mx=Math.max(mx,d.querySelectorAll('#cmts .cmt').length)}assert(mx<=4,'同時に4件を超えた：'+mx);
+  // 結果カードと重ならない：カードの下からサイコロの上までに入る件数だけ出し、空きがなければカードが消えるまで待つ
+  E('document.querySelector("#cmts").innerHTML="";const mb=document.querySelector("#mapbox");Object.defineProperty(mb,"clientHeight",{value:300,configurable:true});Object.defineProperty(mb,"clientWidth",{value:390,configurable:true});window.__rp=fxEl("respop","<b>試験カード</b>",null,null,5600);Object.defineProperty(__rp,"offsetTop",{value:44});Object.defineProperty(__rp,"offsetHeight",{value:150,configurable:true})');
+  assert.equal(E('cmtRoom(document.querySelector("#mapbox"),document.querySelector("#cmts"))'),1,'カードの下の空きで出せる件数が違う');
+  E('Object.defineProperty(__rp,"offsetHeight",{value:200})');assert.equal(E('cmtRoom(document.querySelector("#mapbox"),document.querySelector("#cmts"))'),0,'空きがないのに出せる扱い');
+  E('CMT.__x=["試験X"];comments("__x",1)');await wait(300);assert.equal(d.querySelectorAll('#cmts .cmt').length,0,'空きがないのにカードに重ねて出した');
+  E('__rp.remove()');await wait(900);assert([...d.querySelectorAll('#cmts .cmt')].some(c=>/試験X/.test(c.textContent)),'カードが消えた後に出ない');
+  E('Object.defineProperty(document.querySelector("#mapbox"),"clientHeight",{value:0,configurable:true})');
   if(errors.length)throw Error(errors.join('\n'));
-  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・地図の上・ずらして表示・約5秒で消える）`);dom.window.close();
+  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・地図の上・結果カードと重ならない・ずらして表示・約5秒で消える）`);dom.window.close();
 }catch(e){console.error(e);dom.window.close();process.exitCode=1;}},100);
