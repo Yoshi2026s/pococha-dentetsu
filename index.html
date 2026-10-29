@@ -280,7 +280,7 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 .fnum{transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:800;font-size:20px;text-shadow:0 2px 0 var(--panel),0 0 6px var(--panel);animation:fnum 1.6s ease-out forwards;white-space:nowrap}
 @keyframes fnum{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}15%{transform:translate(-50%,-60%) scale(1.25);opacity:1}30%{transform:translate(-50%,-70%) scale(1)}100%{transform:translate(-50%,-180%);opacity:0}}
 #cmts{position:absolute;right:8px;bottom:66px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;gap:4px;z-index:9;pointer-events:none;max-width:min(54%,240px)}
-.cmt{background:rgba(20,14,30,.6);color:#fff;font-size:12px;border-radius:999px;padding:4px 11px;animation:cmtin .35s ease-out,cmtout .7s ease-in 4.3s forwards;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.cmt{background:rgba(20,14,30,.82);color:#fff;font-size:12px;border-radius:999px;padding:4px 11px;animation:cmtin .35s ease-out,cmtout .7s ease-in 4.3s forwards;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
 .cmt b{color:#ffcf3a;font-weight:700}.cmt.troll{background:rgba(70,70,70,.8)}.cmt.troll b{color:#bbb}
 @keyframes cmtin{from{transform:translateX(20px);opacity:0}}@keyframes cmtout{to{opacity:0;transform:translateY(-6px)}}
 .banner{inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:7}
@@ -1915,7 +1915,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();aw
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
 function resetGame(){document.body.classList.remove('ingame');{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
-  animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML=''}}
+  animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[]}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
 const seatOnline=i=>grp?peers.some(p=>p.presence&&p.presence.seat===i):!!seats[i];
@@ -2520,7 +2520,7 @@ function fitMap(){const m=$('#mapbox');if(!m||!document.body.classList.contains(
   const VHt=Math.min(window.innerHeight,(window.visualViewport&&visualViewport.height)||1e9),avail=VHt-top-bh-tt-10,pw=m.parentElement.clientWidth,h0=Math.max(220,avail),w=pw,hh=Math.min(h0,w*1.75);if(!(w>0))return;/* 地図が非表示（幅0）のときは測らない（VHがNaNになり地図が壊れるため） */VH=400*hh/w;const key=Math.round(w)+'x'+Math.round(hh);if(m.dataset.fit===key)return;m.dataset.fit=key;m.style.width=w+'px';m.style.height=hh+'px';if(typeof camHome==='function'&&built)setTimeout(()=>camHome(0),0)}
 addEventListener('resize',()=>setTimeout(fitMap,60));
 function mapPt(n){const svg=$('#map'),box=$('#mapbox').getBoundingClientRect();try{const p=svg.createSVGPoint();p.x=n.x;p.y=n.y;const q=p.matrixTransform(svg.getScreenCTM());return{x:q.x-box.left,y:q.y-box.top}}catch{return{x:n.x/400*box.width,y:n.y/560*box.height}}}
-function fxEl(cls,html,x,y,ms){if(reduce&&!/fnum|banner|cmt|respop|stinfo|speech|roul/.test(cls))return null;const e=document.createElement('div');e.className='fx '+cls;if(html)e.innerHTML=html;if(x!=null){e.style.left=x+'px';e.style.top=y+'px'}$('#mapbox').appendChild(e);setTimeout(()=>e.remove(),SET.fast?ms/2:ms);return e}
+function fxEl(cls,html,x,y,ms){if(reduce&&!/fnum|banner|cmt|respop|stinfo|speech|roul/.test(cls))return null;const e=document.createElement('div');e.className='fx '+cls;if(html)e.innerHTML=html;if(x!=null){e.style.left=x+'px';e.style.top=y+'px'}e.dataset.t=Date.now();$('#mapbox').appendChild(e);setTimeout(()=>e.remove(),SET.fast?ms/2:ms);if(/respop|stinfo|speech/.test(cls))cmtFit();return e}
 // 数字が浮かぶ（＋1,200 など）
 function floatNum(n,t,color){const p=mapPt(n);const e=fxEl('fnum','',p.x,p.y-10,1600);if(e){e.textContent=t;e.style.color=color}}
 // ===== リスナーコメント（第35版）：場面に合ったコメントを画面右上に、少しずつずらして出し、約5秒でフェードアウト =====
@@ -2594,10 +2594,24 @@ for(const k in CMT_POCO)CMT[k]=[...new Set((CMT[k]||[]).concat(CMT_POCO[k]))];/*
 let cmtRecent=[];// 同じコメントが続けて出ないように最近の分を覚える
 function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!document.body.classList.contains('ingame'))return;const mb=$('#mapbox');if(!mb)return;let box=$('#cmts');if(!box||box.parentNode!==mb){if(box)box.remove();box=document.createElement('div');box.id='cmts';box.setAttribute('aria-hidden','true');mb.appendChild(box)}/* 地図（MAP表示欄）の上、右下のサイコロの上に重ねて出す */
   const L=CMT[kind]||CMT.good,troll=kind==='troll';let at=0;
-  for(let i=0;i<count;i++){at+=i?(SET.fast?260:420)+Math.random()*(SET.fast?320:560):0;setTimeout(()=>{if(!document.body.classList.contains('ingame'))return;
+  for(let i=0;i<count;i++){at+=i?(SET.fast?260:420)+Math.random()*(SET.fast?320:560):0;const show=tries=>{if(!document.body.classList.contains('ingame'))return;
+    if(cmtRoom(mb,box)<1){if(tries<12)setTimeout(()=>show(tries+1),400);return}/* 結果カードで空きがないときは、カードが消えるまで待つ（約5秒で諦める） */
     let t,k=0;do{t=L[Math.floor(Math.random()*L.length)];k++}while(cmtRecent.includes(t)&&k<8);cmtRecent.push(t);if(cmtRecent.length>14)cmtRecent.shift();
     const c=document.createElement('div');c.className='cmt'+(troll?' troll':'');const who=document.createElement('b');const N=troll?CMT_TROLL_NAME:CMT_NAME;who.textContent=N[Math.floor(Math.random()*N.length)];
-    c.append(who,document.createTextNode(' '+t));box.appendChild(c);const cap=mb.clientHeight&&mb.clientHeight<340?3:4;while(box.children.length>cap)box.firstChild.remove();/* 地図を隠しすぎないよう最大4件（地図が低い画面では3件） */setTimeout(()=>c.remove(),5000)},at)}}
+    c.append(who,document.createTextNode(' '+t));box.appendChild(c);c._k=setTimeout(()=>c.remove(),5000);cmtFit()};setTimeout(()=>show(0),at)}}
+// コメントを出せる行数：地図の上の時刻欄より下、サイコロより上で、結果カード・駅の持ち主表示（消え始めるまで）と重ならない範囲
+// CPUの吹き出しが右側まで広がっているときは、コメント欄の下端を吹き出しの上に上げる（位置は登場アニメの拡大縮小に左右されない offsetTop で測る）
+function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4;let top=56,bot=66;
+  mb.querySelectorAll('.fx.respop,.fx.stinfo').forEach(e=>{if(Date.now()-(+e.dataset.t||0)>4200||!e.offsetHeight)return;top=Math.max(top,e.offsetTop+e.offsetHeight+6)});
+  mb.querySelectorAll('.fx.speech').forEach(e=>{if(e.offsetHeight&&e.offsetLeft+e.offsetWidth>W*.44)bot=Math.max(bot,H-e.offsetTop+4)});
+  box.style.bottom=bot+'px';const row=((box.lastElementChild&&box.lastElementChild.offsetHeight)||24)+4;return Math.max(0,Math.min(H<340?3:4,Math.floor((H-bot-top+4)/row)))}
+// 入りきらない古いコメントから一時的に下げ、結果カードが消えて空きができたら出し直す（最大4件・地図が低い画面では3件、5秒待っても出せなければ消す）
+let cmtWait=[],cmtWT=0;
+function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box)return;const n=cmtRoom(mb,box);
+  while(box.children.length>n){const c=box.firstChild;clearTimeout(c._k);c._wait=Date.now();c.remove();cmtWait.push(c)}cmtWait=cmtWait.slice(-4);if(cmtWait.length&&!cmtWT)cmtWT=setTimeout(cmtFlush,400)}
+function cmtFlush(){cmtWT=0;const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!document.body.classList.contains('ingame')){cmtWait=[];return}
+  cmtWait=cmtWait.filter(c=>Date.now()-c._wait<5000);if(cmtWait.length&&cmtRoom(mb,box)>box.children.length){/* 出し直しも1件ずつずらす */const c=cmtWait.shift();c._wait=0;box.appendChild(c);c._k=setTimeout(()=>c.remove(),5000)}
+  if(cmtWait.length)cmtWT=setTimeout(cmtFlush,400)}
 // 手番のあとに、時間帯・天気・出目に合わせたひとことを少しだけ（毎回ではない）
 function ambientComments(s){if(!s)return;const tz=TZ(s.hour),wx=s.weather||0,r=Math.random();
   if(s.lastDice>=10&&r<.7)return comments('bigdice',2);if(s.lastDice===1&&r<.6)return comments('smalldice',1);
