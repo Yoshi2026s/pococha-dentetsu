@@ -2202,7 +2202,8 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   cpuTalk(s,prev,seat,t);
   // 場面のコメント：ポコチャレ・ショップ・空港・港・天気の変化・売却・ふだんのひとこと
   {const nt=NODES[s.players[seat]?.pos]||{};if(evs.some(e=>e.k==='mission'))comments('mission',3);if(nt.type==='shop')comments('shop',2);else if(nt.type==='airport')comments('air',2);else if(nt.type==='port')comments('sea',2);
-   const we=evs.find(e=>e.k==='weather');if(we)comments(['sunny','good','rain','storm'][we.v|0]||'good',2);if(evs.some(e=>e.k==='fsell'||e.k==='sold'))comments('sell',2);ambientComments(s)}
+   const we=evs.find(e=>e.k==='weather');if(we)comments(['sunny','good','rain','storm'][we.v|0]||'good',2);if(evs.some(e=>e.k==='fsell'||e.k==='sold'))comments('sell',2);
+   {const q=s.players[seat],o=prev&&prev.players&&prev.players[seat];if(q&&o&&q.rank===o.rank&&(q.pt||0)>(o.pt||0)&&!evs.some(e=>e.k==='monthend'))comments('meter',1)}ambientComments(s)}
   const gc=evs.find(e=>e.k==='getcard');if(gc){comments('card',2);const r=CARDR[gc.v]||'N';floatNum(pNode,'「'+CARDN[gc.v]+'」GET'+(RARLV[r]>=2?'　'+r:''),RARLV[r]>=1?RARC[r]:'var(--card)');if(RARLV[r]>=2)rarFx(r,pNode);else{sfx(RARLV[r]?'rarR':'card');burst('star',pNode)}}
   const ee=evs.find(e=>e.k==='event');if(ee){const r=EVR[ee.v]||'N',bad=evBad(ee.v),lv=RARLV[r];if(lv<3)vib([40,30,40]);const bn=banner((!bad&&lv>=4?'★ ':'')+EVN[ee.v].replace(/[！…]$/,'')+(bad?'…':'！'),bad?(lv>=3?'linear-gradient(90deg,#14061a,#5a0f2a,#14061a)':'linear-gradient(90deg,#5b4a78,#8a3a5a)'):RARBG[r],`${(EVGENRES.find(g=>g[0]===EVG[ee.v])||['',''])[1]}${EVG[ee.v]}・${r}　`+t.replace(/^.*・/,''));if(bn)bn.classList.add('rar-'+r,bad?'bad':'good');if(!bad){burst('confetti',pNode)}rarFx(r,pNode,bad);
     if(EVG[ee.v]==='お仕事'||ee.v==='tip'||ee.v==='jackpot'||ee.v==='lottery')coinsFly(pNode,seat,10);else if(ee.v==='photo'){fxEl('flash','',null,null,500);sfx('stamp')}else if(ee.v==='collabreq')shock(pNode,'var(--yell)');else if(ee.v==='buzz'||ee.v==='regular'){burst('heart',pNode);comments('event',6)}else if(evBad(ee.v)){sfx('anti');shake();staticNoise(500);comments('bad',3);comments('troll',2)}else{pillar(pNode,'#ffcf3a');comments('event',5)}}
@@ -2558,6 +2559,38 @@ const CMT={
  sell:['売却つらい…','また買い戻そ','背に腹はかえられぬ','立て直そ','マイナス脱出！'],
  final:['おつかれさまでした！','楽しかった！','また遊ぼう','神ゲームだった','優勝おめでとう！','いい勝負だった','次も見に来る','最後までありがとう','名勝負','アーカイブ見る'],
 };
+// ===== リスナーコメント追加（第36版）：Pocochaの配信らしい言葉（ライバー・リスナー・枠・ランクメーター・時間ダイヤ・イベントポイント・アイテム・いいね など）=====
+CMT_NAME.push('枠常連','ランカー','イベ勢','ランク上げ隊','いいね職人','アイテム職人','見守りリスナー','深夜枠民','朝枠民','昼枠民','応援隊長','推し一筋','古参リスナー','初見リスナー','ROMリスナー','通知勢','枠おじ','枠ねえさん','ギフト係','盛り上げ隊','拍手係','タイマー係','ランクメーター係','イベポ集め隊','九州ポコ民','福岡リスナー','大牟田リスナー','鉄オタ','乗り鉄','撮り鉄','駅弁好き','旅リスナー','ご当地好き','推しの推し','皆勤賞','滑り込み勢','ラスト1分勢','おかえり係','おはよう係','おやすみ係');
+CMT_TROLL_NAME.push('冷やかし','ひやかし勢','辛口リスナー','アンチ見習い','暇人','荒らし（仮）');
+const CMT_POCO={
+ good:['いいね連打！','いいね押した👍','いいね止まらん','この枠楽しい','神枠','ライバーさん最高','リスナー全員見てる','コメント追いつかん','盛り上がってる〜','初見です！楽しい','常連になります','また来ます','推しが輝いてる','今日も来たよ','枠に来てよかった','通知きて飛んできた','滑り込みセーフ','見に来た〜','この配信すき','ずっと見てたい'],
+ plus:['時間ダイヤ感ある','稼ぎ上手ライバー','応援ポイントうまい','ランクメーターにも効く？','いいね押しとく','財布うるおう枠','今のうちに貯めよ','ボーナスきた','いいね👍','ギフト級の収入'],
+ minus:['まだ枠は続く！','リスナーついてる','みんなで取り返そ','いいね押して応援','ここから巻き返し枠','泣かないでライバーさん','次でランクメーター取り返そ','切り替え切り替え','応援してるよ','ドンマイ枠'],
+ yell:['エール投げた！','エール職人参上','エールで支える','ランクメーター押し上げ','エールの嵐','📣いいね連打','リスナー団結','声援アイテム投げたい','エール集め隊','応援ランク上げたい'],
+ card:['アイテムゲット感','いいカード引いた枠','切り札きた','使いどころ見てる','作戦会議しよ','カード職人'],
+ rare:['ガチャ神ライバー','スクショ案件','切り抜き決定','神引き枠','伝説の配信','アーカイブ残したい','鳥肌リスナー続出','トレンド入り不可避'],
+ event:['イベントポイント入った？','イベ枠きた','イベント走ろう','ランキング上がるかも','イベポ稼ご','イベント神引き','イベ勢歓喜','順位上がれ〜'],
+ bad:['ライバーさん頑張れ','リスナーで支える','負けるなライバー','ここで踏ん張り','イベポで取り返そ','枠は続くよ'],
+ buy:['推しの地元！','ご当地推し','その名物好き','ファン仲間ふえた','推しマーク増えた気分','コアファン入り記念','聖地巡礼したい','ご当地グルメ食べたい','そこ地元です！','現地組おる？'],
+ mono:['駅ジャック！','ライバー独占枠','完全制覇','推し駅コンプ','ランカーの貫禄','独占はロマン'],
+ goal:['1番乗りライバー！','神ルート配信','イベント1位みたい','ランクメーター爆上がり','切り抜き確定','記念枠','この枠伝説','リスナー総立ち','いいね爆撃👍👍','歴史的瞬間'],
+ troll:['この枠つまらん','はよ進め','ランク下がれｗ','ラグ王の味方','いいね押さんｗ','枠移動しよかな','冷やかしに来た','見てるだけｗ'],
+ trollgone:['リスナー大勝利','平和な枠に戻った','荒らし退散！','ブロック神','みんなで守った','いい枠になった'],
+ rankup:['ランクメーター満タン！','ランク上がった枠','昇格おめでとう','次のランク帯へ','ランカー街道','時間ダイヤ上がる？','Sランク目指そ','ランクアップ記念','いいね押す👍','ランク上げ隊歓喜'],
+ rankdown:['ランクメーターまた貯めよ','次の締めで戻そ','リスナーついてる','焦らず行こ','ここから再スタート','みんなで支える'],
+ settle:['締めの時間だ','締めおつかれさま','ランクメーターどうなる？','締め前ラストスパート','滑り込み間に合った？','今日の枠もありがとう','明日の枠も来るね','締めドキドキ','ランク判定きた','締めのいいね押しとく'],
+ mission:['ポコチャレ達成！','ミッション枠','お題クリア','次のお題もいける','ポコチャレ職人','達成おめでとう'],
+ shop:['アイテム買う？','ショップ枠','お買い物配信','限定カードある？','財布と相談枠'],
+ golden:['ゴールデン枠！','リスナー増えてきた','人が集まる時間','ゴールデンは盛り上がる','この時間の枠すき'],
+ night:['深夜枠民集合','夜の枠すき','おやすみ前の枠','深夜テンション枠','寝落ちしそう'],
+ morning:['朝枠ありがとう','朝からライバーさん','おはよう枠','朝活リスナー','通勤しながら見てる'],
+ myturn:['ライバーさんの番！','いい出目こい','みんな見てる','ドキドキの瞬間','運命のサイコロ枠','いいね押して待機'],
+ final:['今日の枠おつかれさま','最高の枠でした','また枠来ます','次の枠も楽しみ','神枠ありがとう','フォローしました','リスナー一同感謝','また明日も','アンコール！','おつポコ〜'],
+ meter:['ランクメーター伸びた','ランクpt入った','メーター上がってる','ランクアップ近い？','あと少しで昇格','メーターいい感じ','コツコツ大事','いいね👍','メーター見てる','この調子でランク上げ'],
+ liver:['ライバーさんがんばれ','推しが楽しそう','声かわいい','トーク上手','リスナー想い','ずっと推します','笑顔すき','今日も最高','配信ありがとう','見てて癒される','元気もらえる','一生推す','いつも楽しい枠','優しいライバーさん','推しが尊い']
+};
+for(const k in CMT_POCO)CMT[k]=[...new Set((CMT[k]||[]).concat(CMT_POCO[k]))];/* 同じ文の重複は1つに */
+{const u=[...new Set(CMT_NAME)];CMT_NAME.length=0;CMT_NAME.push(...u)}
 let cmtRecent=[];// 同じコメントが続けて出ないように最近の分を覚える
 function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!document.body.classList.contains('ingame'))return;let box=$('#cmts');if(!box){box=document.createElement('div');box.id='cmts';box.setAttribute('aria-hidden','true');document.body.appendChild(box)}
   const L=CMT[kind]||CMT.good,troll=kind==='troll';let at=0;
@@ -2568,7 +2601,7 @@ function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!do
 // 手番のあとに、時間帯・天気・出目に合わせたひとことを少しだけ（毎回ではない）
 function ambientComments(s){if(!s)return;const tz=TZ(s.hour),wx=s.weather||0,r=Math.random();
   if(s.lastDice>=10&&r<.7)return comments('bigdice',2);if(s.lastDice===1&&r<.6)return comments('smalldice',1);
-  if(r<.22)return comments(['morning','good','golden','night'][tz],1);if(r<.32)return comments(['sunny','good','rain','storm'][wx],1);if(r<.5)comments('good',1)}
+  if(r<.22)return comments(['morning','good','golden','night'][tz],1);if(r<.32)return comments(['sunny','good','rain','storm'][wx],1);if(r<.42)return comments('liver',1);if(r<.55)comments('good',1)}
 // 画面を横切る帯（GOAL！ 拠点ゲット！ など）
 function banner(t,color,sub){const e=fxEl('banner',`<div class="bn" style="--c:${color}"><span>${esc(t)}</span>${sub?`<small>${esc(sub)}</small>`:''}</div>`,null,null,1900);return e}
 
