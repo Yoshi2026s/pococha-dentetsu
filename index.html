@@ -397,7 +397,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .rp-who{flex-shrink:0;color:#fff;font-weight:800;font-size:12px;padding:2px 8px;border-radius:999px;border:2px solid var(--outline,#2b2236)}
 .rp-i{font-size:22px;line-height:1}.rp-t{display:flex;flex-direction:column;min-width:0}.rp-t b{font-family:var(--f-display);font-size:16px;line-height:1.25;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rp-t small{font-size:12px;font-weight:800;color:var(--ink)}
 @keyframes rpop{0%{opacity:0;transform:translate(-50%,-20px) scale(.8)}8%{opacity:1;transform:translate(-50%,-4px) scale(1.04)}14%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,10px)}}
-.chipdelta{position:fixed;z-index:26;transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:800;font-size:16px;pointer-events:none;padding:1px 8px;border-radius:999px;border:2px solid var(--outline,#2b2236);background:#fff;animation:cdel 2.2s ease-out forwards}
+.chipdelta{position:fixed;z-index:19;transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:800;font-size:16px;pointer-events:none;padding:1px 8px;border-radius:999px;border:2px solid var(--outline,#2b2236);background:#fff;animation:cdel 2.2s ease-out forwards}
 .chipdelta.up{color:#13a659}.chipdelta.down{color:#e5363d}
 @keyframes cdel{0%{opacity:0;transform:translate(-50%,0) scale(.6)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}30%{transform:translate(-50%,-70%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-140%)}}
 @media (prefers-reduced-motion:reduce){.fx.respop,.chipdelta{animation:none}}
@@ -452,7 +452,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .sl-r{display:flex;align-items:center;gap:6px;padding:3px 0;border-top:1px dashed var(--line);font-size:12.5px}.sl-n{flex:1;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sl-p{font-variant-numeric:tabular-nums;color:var(--muted);font-size:11.5px}
 .sl-o{min-width:46px;text-align:center;font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;border:1.5px solid var(--outline,#2b2236);background:var(--panel)}
 .mr-sl{width:100%;margin-top:6px;text-align:left}
-.fanbtn{gap:0}.fb-i{font-style:normal;font-size:18px;line-height:1}.fb-t{font-size:9.5px!important;opacity:.8}.fanbtn b{font-size:12.5px;line-height:1.2}
+.fanbtn{gap:0}.fb-i{font-style:normal;font-size:18px;line-height:1}.fb-t{font-size:10.5px!important;opacity:.8}.fanbtn .fb-d{font-size:11.5px!important;font-weight:700}.fanbtn .fb-s{font-size:11px!important;font-weight:800}.fanbtn.on .fb-s{color:var(--pink)}.fanbtn.short{opacity:.55}.fanbtn b{font-size:12.5px;line-height:1.2}
 .sl-i{font-size:16px;flex-shrink:0}.sl-p em,.sl-n em{font-style:normal;font-size:10px;color:var(--pink);font-weight:800}.sl-p{text-align:right;line-height:1.2}
 .fan-sum{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.fan-sum span{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:12px;border:2px solid var(--outline,#2b2236);font-size:11px;font-weight:800}
 .fan-sum b{font-family:var(--f-display);font-size:17px;color:var(--pink)}.fan-sum small{font-size:9.5px;color:var(--muted)}
@@ -636,7 +636,7 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 .ingame .misbar .mis{scroll-snap-align:start;min-height:30px}
 .mis-h{font-size:11px}
 /* メニュー・全体を見る：押しやすい大きさに */
-.menubtn{min-height:38px!important;padding:2px 12px!important}
+.menubtn{min-height:44px!important;padding:2px 12px!important}
 .menubtn small{font-size:12.5px!important}
 .mapbtn{min-height:40px!important;padding:4px 14px!important;font-size:13px!important}
 #turnText{font-size:12.5px!important;line-height:1.5}
@@ -2737,7 +2737,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   drawTurnBar(ds,ts);
   const me=mySeat();$('#goalName').textContent=NODES[ds.goal]?NODES[ds.goal].name:'–';$('#goalLeft').textContent=me>=0?`あなたはあと${D(ds.goal)[ds.players[me].pos]}マス`:'';
   const cs=curSeat(st),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),left=Math.max(0,Math.ceil(((db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)-age)/1000)),isCpu=(meta.cpu||[]).includes(cs);
-  $('#turnText').textContent=st.finished?'ゲーム終了':`${st.month}日目 ${st.hour}:00・第${st.turn+1}手番（${st.maxTurn?'全'+st.maxTurn+'手':'無制限'}）`+(cs===me?'あなたの番です':`${cs+1}P ${seatName(cs)}の番`+(isCpu?'':'（考え中…）'))+(isCpu||st.finished?'':`　残\u2060り\u2060${left}\u2060秒`);
+  $('#turnText').textContent=st.finished?'ゲーム終了':`${st.month}日目 ${st.hour}:00・第${st.turn+1}手番（${st.maxTurn?'全'+st.maxTurn+'手':'無制限'}）`+(cs===me?'あなたの番です':`${cs+1}P ${seatName(cs)}の番`+(isCpu?'':'（考え中…）'))+(isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`);
   LAYER.drums=cs===me&&!st.finished;LAYER.tempo=st.month===st.days&&st.hour>=21?1.05:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos];if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':isNight(ds.hour)?'night':regionSong(st.players[cs].pos));
   const fs=pending&&pending.stage==='fsell',act=pending&&pending.stage==='act',buy=pending&&pending.stage==='buy',shp=pending&&pending.stage==='shop',rt=pending&&pending.stage==='route',rw=pending&&pending.stage==='reward';$('#actMain').hidden=buy||rt||rw||shp||fs;$('#actFsell').hidden=!fs;$('#actShop').hidden=!shp;$('#bar').classList.toggle('routing',!!rt);$('#actReward').hidden=!rw;$('#actBuy').hidden=!buy;$('#actRoute').hidden=!rt;document.body.classList.toggle('routeview',!!rt);
   $('#bRoll').disabled=!act;$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
@@ -2897,7 +2897,8 @@ function drawBaseList(){const pv=pending.pv,B=pv.nd.bases;let tot=0;for(const j 
         <div class="row" style="justify-content:center"><button id="cfOk">この内容で獲得する</button><button class="ghost" id="cfNo">やめる</button></div></div>`;o.hidden=false;
       $('#cfNo').onclick=()=>{o.hidden=true;o.innerHTML=''};$('#cfOk').onclick=()=>{o.hidden=true;o.innerHTML='';if(pending&&pending.stage==='buy')commitAction({...(pending.base||{type:'roll'}),buy:sel})}}}
   const box=$('#baseList');box.innerHTML=B.map((b,j)=>{const o=pv.own[j],on=pending.sel.has(j),mine=o===pv.seat;
-    const st=o!=null?(mine?'あなたのファン':`${o+1}Pのファン`):on?'獲得する':'タップで選ぶ';const nm=fanName(pending.st,pv.pos,j).split(' ');return`<button type="button" class="basebtn fanbtn${on?' on':''}" data-j="${j}" ${o!=null?'disabled':''} style="${o!=null?`--c:${SEATC[o]}`:''}"><i class="fb-i">${fanIcon(pending.st,pv.pos,j)}</i><small class="fb-t">${esc(nm[0])}</small><b>${esc(nm.slice(1).join(' '))}</b><span>♥${b.price.toLocaleString()}</span><small>1日＋${Math.round(b.price*b.rate).toLocaleString()}／${st}</small></button>`}).join('')+
+    // 状態は短く（選ぶ前は空欄：見出しに「タップでえらぶ」）。残りの応援ポイントで買えないファンは薄く「たりない」
+    const short=o==null&&!on&&b.price>pv.coin-tot,st=o!=null?(mine?'あなたのファン':`${o+1}Pのファン`):on?'✓ 獲得する':short?'応援がたりない':'';const nm=fanName(pending.st,pv.pos,j).split(' ');return`<button type="button" class="basebtn fanbtn${on?' on':''}${short?' short':''}" data-j="${j}" ${o!=null?'disabled':''} style="${o!=null?`--c:${SEATC[o]}`:''}"><i class="fb-i">${fanIcon(pending.st,pv.pos,j)}</i><small class="fb-t">${esc(nm[0])}</small><b>${esc(nm.slice(1).join(' '))}</b><span>♥${b.price.toLocaleString()}</span><small class="fb-d">1日＋${Math.round(b.price*b.rate).toLocaleString()}</small>${st?`<small class="fb-s">${st}</small>`:''}</button>`}).join('')+
     (pv.own.every(x=>x==null||x===pv.seat)?`<div class="bl-n">${B.length}人全員をコアファンにすると<b>独占</b>：この駅の決算が${pv.nd.mono}倍</div>`:'');
   box.querySelectorAll('.basebtn').forEach(e=>e.onclick=()=>{const j=+e.dataset.j;if(pending.sel.has(j))pending.sel.delete(j);else pending.sel.add(j);sfx('step',1);drawBaseList()});
   const ok=pending.sel.size&&tot<=pv.coin;$('#bBuy').disabled=!ok;$('#bBuy').textContent=pending.sel.size?(tot<=pv.coin?`えらんだ${pending.sel.size}人を獲得（♥${tot.toLocaleString()}）`:'応援ポイントが足りません'):'下からえらんで獲得'}
