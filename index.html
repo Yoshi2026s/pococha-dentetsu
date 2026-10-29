@@ -1874,7 +1874,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();aw
   await db.doc('games/'+old).update({next:c});$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();return enter(c)}}catch(e){toast(errText(e))}}
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
-function resetGame(){records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;lastCoins.length=0;
+function resetGame(){document.body.classList.remove('ingame');{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;lastCoins.length=0;
   animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove())}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
@@ -2432,7 +2432,7 @@ function updateGoalArrow(){const a=$('#goalArrow'),s=dispState;if(!a||!s||s.goal
   let panEnd=0;box.addEventListener('click',ev=>{if(performance.now()-panEnd<350&&!ev.target.closest('button')){ev.stopPropagation();ev.preventDefault()}},{capture:true});const end=()=>{if(st&&moved)panEnd=performance.now();st=null};box.addEventListener('pointerup',end);box.addEventListener('pointercancel',()=>{st=null})})();
 function viewBtn(){$('#bView').textContent=SET.view==='all'?'現在地を見る':(panned?'現在地にもどる':'全体を見る')}
 $('#bView').onclick=e=>{e.stopPropagation();if(SET.view==='near'&&panned){camHome(400);viewBtn();return}SET.view=SET.view==='all'?'near':'all';try{localStorage.setItem('poco-set',JSON.stringify(SET))}catch{}camHome(500);viewBtn()};
-function tween(to,ms){cancelAnimationFrame(camAnim);if(!(ms>0)){setVB(to);return}const from=vb.slice(),t0=performance.now();(function f(now){const k=Math.min(1,(now-t0)/ms),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;setVB(from.map((v,i)=>v+(to[i]-v)*e));if(k<1)camAnim=requestAnimationFrame(f)})(t0)}
+function tween(to,ms){cancelAnimationFrame(camAnim);if(!(ms>0)){setVB(to);return}const from=vb.slice(),t0=performance.now();(function f(now){const k=Math.max(0,Math.min(1,(now-t0)/ms)),/* 描画フレームの時刻が開始時刻より前のとき、負の値で地図の表示範囲が飛ばないよう0〜1に収める */e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;setVB(from.map((v,i)=>v+(to[i]-v)*e));if(k<1)camAnim=requestAnimationFrame(f)})(t0)}
 
 // 顔（オリジナル図形キャラ）
 function faceSvg(expr,hair){const eyes={ふつう:'<circle cx="32" cy="40" r="3"/><circle cx="48" cy="40" r="3"/>',うれしい:'<path d="M28 41 q4-5 8 0 M44 41 q4-5 8 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',かなしい:'<path d="M28 38 q4 4 8 0 M44 38 q4 4 8 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',びっくり:'<circle cx="32" cy="40" r="4.5"/><circle cx="48" cy="40" r="4.5"/>'}[expr]||'';
@@ -2462,7 +2462,7 @@ function frame(){cx.clearRect(0,0,WW,WH);cx.globalAlpha=.45;
 // 地図上の点 → 地図の枠の中の画面位置（カメラで拡大中でも正しく出す）
 // 地図の大きさを画面に合わせる：上の情報と下の操作ボタンの間にぴったり収める（縦にスクロールしなくても全体が見える）
 function fitMap(){const m=$('#mapbox');if(!m||!document.body.classList.contains('ingame'))return;const sy=window.scrollY,top=m.getBoundingClientRect().top+sy,bar=$('#bar'),bh=bar&&!bar.hidden?bar.offsetHeight:0,tt=($('#turnText')||{}).offsetHeight||14;
-  const VHt=Math.min(window.innerHeight,(window.visualViewport&&visualViewport.height)||1e9),avail=VHt-top-bh-tt-10,pw=m.parentElement.clientWidth,h0=Math.max(220,avail),w=pw,hh=Math.min(h0,w*1.75);VH=400*hh/w;const key=Math.round(w)+'x'+Math.round(hh);if(m.dataset.fit===key)return;m.dataset.fit=key;m.style.width=w+'px';m.style.height=hh+'px';if(typeof camHome==='function'&&built)setTimeout(()=>camHome(0),0)}
+  const VHt=Math.min(window.innerHeight,(window.visualViewport&&visualViewport.height)||1e9),avail=VHt-top-bh-tt-10,pw=m.parentElement.clientWidth,h0=Math.max(220,avail),w=pw,hh=Math.min(h0,w*1.75);if(!(w>0))return;/* 地図が非表示（幅0）のときは測らない（VHがNaNになり地図が壊れるため） */VH=400*hh/w;const key=Math.round(w)+'x'+Math.round(hh);if(m.dataset.fit===key)return;m.dataset.fit=key;m.style.width=w+'px';m.style.height=hh+'px';if(typeof camHome==='function'&&built)setTimeout(()=>camHome(0),0)}
 addEventListener('resize',()=>setTimeout(fitMap,60));
 function mapPt(n){const svg=$('#map'),box=$('#mapbox').getBoundingClientRect();try{const p=svg.createSVGPoint();p.x=n.x;p.y=n.y;const q=p.matrixTransform(svg.getScreenCTM());return{x:q.x-box.left,y:q.y-box.top}}catch{return{x:n.x/400*box.width,y:n.y/560*box.height}}}
 function fxEl(cls,html,x,y,ms){if(reduce&&!/fnum|banner|cmt|respop|stinfo|speech|roul/.test(cls))return null;const e=document.createElement('div');e.className='fx '+cls;if(html)e.innerHTML=html;if(x!=null){e.style.left=x+'px';e.style.top=y+'px'}$('#mapbox').appendChild(e);setTimeout(()=>e.remove(),SET.fast?ms/2:ms);return e}
@@ -2650,7 +2650,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
     const as=ds.players.map((_,i)=>assets(ds,i)),order=[0,1,2,3].filter(i=>ds.players[i]).sort((a,b)=>as[b]-as[a]||a-b),place={},moved=order.join()!==lastOrder;lastOrder=order.join();order.forEach((i,k)=>{place[i]=k===0||as[i]<as[order[k-1]]?k+1:place[order[k-1]]});
     box.innerHTML='';drawMis(ds);
     {const me=mySeat(),ng=pending&&pending.pv&&pending.pv.goal&&ts===me?pending.pv.goal.next:ds.goal,gn=NODES[ng],h=document.createElement('div');h.className='st-head';
-      h.innerHTML=`<span class="sh-goal">🏁 目的地 <b>${gn?esc(gn.name):'—'}</b></span><span class="sh-turn">いまの番：<b style="color:${SEATC[ts]}">${ts===me?'あなた':esc((ts+1)+'P '+seatName(ts))}</b></span>`;box.appendChild(h);box.__ng=ng}
+      h.innerHTML=`<span class="sh-goal">🏁 目的地 <b>${gn?esc(gn.name):'—'}</b></span><span class="sh-turn">${ts<0?'<b>ゲーム終了</b>':`いまの番：<b style="color:${SEATC[ts]}">${ts===me?'あなた':esc((ts+1)+'P '+seatName(ts))}</b>`}</span>`;box.appendChild(h);box.__ng=ng}
     order.forEach(i=>{const p=ds.players[i],d=document.createElement('div');d.className='pl'+(i===ts?' turn':'');d.dataset.seat=i;d.style.setProperty('--c',SEATC[i]);
     const nb=baseCount(ds,i),mo=monoList(ds,i).length;d.title=`コアファン${nb}人${mo?'・独占'+mo:''}・カード${(p.hand||[]).length}`;d.onclick=()=>showPlayer(ds,i);
     const ng=box.__ng,gl=NODES[ng]?D(ng)[i===ts&&pending&&pending.pv&&pending.pv.goal&&ts===mySeat()?pending.pv.pos:p.pos]:null,rk=place[i],prevRk=lastPlace[i];
