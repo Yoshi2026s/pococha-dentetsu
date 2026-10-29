@@ -538,7 +538,21 @@ button.small,.chip{box-shadow:none}
 .rc-pills{display:flex;flex-wrap:wrap;gap:6px}
 .rc-pill{display:inline-flex;align-items:baseline;gap:3px;padding:4px 11px;border-radius:999px;font-weight:900;font-size:15px;border:2px solid currentColor;background:var(--panel)}
 .rc-pill small{font-size:11.5px;font-weight:700;opacity:.85}
-.rc-pill{color:var(--muted)}.rc-pill.up{color:#14935a}.rc-pill.down{color:#d6304b}.rc-pill.rk{color:#7a48e6}.rc-pill.yl{color:#1a86d8}.rc-pill.fan{color:#e2337a}
+.rc-pill{color:var(--muted)}.rc-pill.up{color:#14935a}.rc-pill.down{color:#d6304b}.rc-pill.rkp{color:#7a48e6}.rc-pill.pay{color:#6b5d7b}.rc-pill.cd{color:#a86f00}
+/* 止まったマスの結果（見やすさ改善）：見出しの色は文字色と混ぜて読みやすく／主な増減は右上に大きく／内訳は1行ずつ／倍率は1行にまとめる */
+.rc-ttl{flex:1}.rc-ttl b{color:color-mix(in srgb,var(--c) 72%,var(--ink))!important}
+.rc-main{flex:none;display:flex;flex-direction:column;align-items:flex-end;font-family:var(--f-display);font-weight:900;font-size:26px;line-height:1.05;font-variant-numeric:tabular-nums}.rc-main small{font-family:inherit;font-size:11.5px;font-weight:800;color:var(--muted)}
+.rc-main.up{color:#14935a}.rc-main.down{color:#d6304b}.rc-main.yl{color:#1a86d8}
+.rc-lines{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}.rc-lines li{position:relative;padding-left:14px;font-size:14.5px;line-height:1.45;font-weight:700;color:var(--ink)}.rc-lines li::before{content:'';position:absolute;left:3px;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--c)}
+.rc-mult{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12.5px;font-weight:700;color:var(--muted);padding:4px 8px;border-radius:10px;background:color-mix(in srgb,var(--c) 10%,transparent)}.rc-mult b{color:var(--ink)}.rc-mult .rc-mx{margin-left:auto}.rc-mult .rc-mx b{color:var(--c);font-size:14px}
+.rc-note{font-size:12px;font-weight:700;color:var(--muted)}
+.rc-pill{align-items:baseline}.rc-pill small{margin-right:1px}
+.respop .rc-main{font-size:21px}
+/* 自分の結果（中央の大きいカード）では、.mr-card b / span の大きな文字指定が中の部品に効かないようにする */
+.mr-card .rc-main{font-size:30px;color:inherit}.mr-card .rc-main.up{color:#14935a}.mr-card .rc-main.down{color:#d6304b}.mr-card .rc-main.yl{color:#1a86d8}.mr-card .rc-main small{font-size:12px}
+.mr-card .rc-mult span{font-size:13px;font-weight:700}.mr-card .rc-mult b{font-family:inherit;font-size:13.5px;line-height:1.2;color:var(--ink)}.mr-card .rc-mult .rc-mx b{color:var(--c);font-size:16px}
+.mr-card .rc-pill{font-size:15px}.mr-card .rc-ttl b{font-size:22px}
+/* 増減を右に大きく出すときは、見出し（プラスマスなど）を1行に収める */.has-main .rc-ttl b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mr-card .has-main .rc-ttl b{font-size:20px}.respop .rc-lines li{font-size:13px}.respop .rc-mult{font-size:11.5px}.rc-pill.yl{color:#1a86d8}.rc-pill.fan{color:#e2337a}
 .mr-card{max-width:360px;width:min(92vw,360px);padding:14px 16px;text-align:left;align-items:stretch}
 .mr-card>small{text-align:center}
 .respop{flex-direction:column;align-items:stretch;gap:6px;padding:10px 14px;width:min(94%,380px)}
@@ -2617,14 +2631,34 @@ function resultInfo(s,prev,seat,t,n){const parts=t.split('・').slice(1).filter(
   msg=msg.replace(/^(エールマス|プラスマス|マイナスマス|スポンサー案件|コラボ依頼|大型イベント|バズった！|炎上…|投げ銭ラッシュ|機材トラブル|ランキング入り|地方テレビ出演|ラジオにゲスト出演|生誕祭|雨で客足ダウン|案件キャンセル|切り抜き動画がバズ|グッズ完売|雑誌に掲載|宝くじ当選！|財布を落とした|電車が遅延|初見さん大量|ライバル急上昇|差し入れ|公式イベント入賞！|フォロワー急増) ?/,'');
   const P=s.players[seat],Q=prev&&prev.players?prev.players[seat]:null,pills=[];
   if(Q){const dc=P.coin-Q.coin,dy=(P.ye||0)-(Q.ye||0),df=baseCount(s,seat)-baseCount(prev,seat);
-    if(dc)pills.push(['応援',(dc>0?'＋':'−')+shortNum(Math.abs(dc)),dc>0?'up':'down']);
+    // 駅でコアファンを獲得したときの減りは「支払い」（損ではない）として出す
+    if(dc)pills.push([dc<0&&df>0?'支払い':'応援',(dc>0?'＋':'−')+shortNum(Math.abs(dc)),dc<0&&df>0?'pay':dc>0?'up':'down']);
     if(dy&&!(s.ev||[]).some(e=>e.k==='yellreset'))pills.push(['エール',(dy>0?'＋':'−')+Math.abs(dy)+'K','yl']);
-    if(P.rank!==Q.rank)pills.push(['ランク',Q.rank+'→'+P.rank,'rk']);else if(P.pt!==Q.pt)pills.push(['ランク',(P.pt>Q.pt?'＋':'−')+Math.abs(P.pt-Q.pt)+'pt','rk']);
+    // ランクの丸（rkp）：クラス名rkは順位表示の別スタイル（右上に固定）と重なるため使わない
+    if(P.rank!==Q.rank)pills.push(['ランク',Q.rank+'→'+P.rank,'rkp']);else if(P.pt!==Q.pt)pills.push(['ランク',(P.pt>Q.pt?'＋':'−')+Math.abs(P.pt-Q.pt)+'pt','rkp']);
     if(df>0)pills.push(['コアファン','＋'+df+'人','fan']);
-    if(n.type==='station'&&n.bases){const k=s.players[seat].pos,o=own(s,k),free=o.filter(x=>x==null).length,m=o.every(x=>x!=null&&x===o[0]);pills.push(['この駅',m?`${o[0]+1}Pが独占中`:`フリー${free}／${o.length}人`,'']);}
+    {const dh=(P.hand||[]).length-(Q.hand||[]).length;if(dh>0&&!df)pills.push(['カード','＋'+dh+'枚','cd'])}
     if(dc)chipDelta(seat,dc)}
-  const c=n.type==='station'?'var(--station)':SQC[n.type]||'var(--pink)';return{title,msg,pills,c,icon:ee?'🎉':goal?'🏁':RESI[n.type]||'✨',kind:goal?'目的地':ee?'イベント':n.type==='station'?'駅':n.hub?KIND[n.type]:KIND[n.type]||''}}
-function resultHTML(r,who){return`<div class="rescard" style="--c:${r.c}"><div class="rc-top"><span class="rc-ico">${r.icon}</span><span class="rc-ttl"><small>${who||''}${r.kind?(who?'・':'')+esc(r.kind):''}</small><b>${esc(r.title)}</b></span></div>${r.msg?`<div class="rc-msg">${esc(r.msg)}</div>`:''}${r.pills.length?`<div class="rc-pills">${r.pills.map(([k,v,c])=>`<span class="rc-pill ${c}"><small>${k}</small>${v}</span>`).join('')}</div>`:''}</div>`}
+  let note='';if(n.type==='station'&&n.bases){const k=s.players[seat].pos,o=own(s,k),free=o.filter(x=>x==null).length,m=o.every(x=>x!=null&&x===o[0]);note=m?`この駅は${o[0]+1}Pが独占中（決算${n.mono}倍）`:`この駅のコアファン：フリー${free}人／全${o.length}人`}
+  // 時間帯・天気の倍率（プラス・マイナス・エールマス）：文章から外して、倍率の行にまとめる
+  let mult=null;{const mt=t.match(/（(朝|昼|ゴールデン|深夜)・(晴れ|くもり|雨|嵐)）/),M={plus:PLUSM,minus:MINUSM,yell:YELLM}[n.type];
+    if(mt&&M){const tz=TZN.indexOf(mt[1]),wx=WEATHER.findIndex(w=>w[1]===mt[2]);if(tz>=0&&wx>=0)mult={tz:mt[1],wx:WEATHER[wx][0]+' '+mt[2],a:M.tz[tz],b:M.wx[wx]}}
+    msg=msg.replace(/（(朝|昼|ゴールデン|深夜)／(晴れ|くもり|雨|嵐)）/g,'')}
+  // 文章：見出しと同じ言葉を外し、「／」ごとに1行。1行だけのときは丸（pills）と同じ数値も外す
+  // 駅でのコアファン獲得：「◯◯で A・B がコアファンに」と途中で切れないよう1行にまとめる
+  if(n.type==='station'){const a=parts.findIndex(x=>x.startsWith(n.name+'で')),b=parts.findIndex((x,i)=>i>=a&&/がコアファンに$/.test(x));if(a>=0&&b>=0){const seg=parts.slice(a,b+1);msg=msg.replace(seg.join('／'),'コアファン獲得：'+seg.join('・').slice(n.name.length+1).replace(/がコアファンに$/,''))}}
+  let lines=msg.split('／').map(x=>x.replace(/^[✈⚓]/,'').trim()).map(x=>x.startsWith(title)?x.slice(title.length).trim():x).filter(Boolean);
+  lines=lines.map(x=>x.replace(/^（(.+)）$/,'$1'));if(pills.length)lines=lines.filter(x=>!/^([＋−+\-][\d,]+|エール[＋−]\d+K|ランク[＋−]\d+pt|[＋−]\d+pt|\s)+$/.test(x));/* 数値だけの行は丸（pills）と重なるので外す */
+  if(lines.length===1&&pills.length){const x=lines[0].replace(/(^|\s)(エール[＋−]\d+K|ランク[＋−]\d+pt|[＋−]\d+pt|[＋−+−-][\d,]+)(?=$|\s)/g,'').replace(/\s+/g,' ').trim();lines=x&&!/^[・／\s]*$/.test(x)?[x]:[]}
+  // 主な結果：プラス・マイナス・エールマスは、増減を大きく1つ出す
+  let main=null;if(['plus','minus','yell'].includes(n.type)&&!ee&&!goal){const i=pills.findIndex(x=>x[0]===(n.type==='yell'?'エール':'応援'));if(i>=0)main=pills.splice(i,1)[0]}
+  const c=n.type==='station'?'var(--station)':SQC[n.type]||'var(--pink)';return{title,msg,lines,main,mult,note,pills,c,icon:ee?'🎉':goal?'🏁':RESI[n.type]||'✨',kind:goal?'目的地':ee?'イベント':n.type==='station'?'駅':n.hub?KIND[n.type]:KIND[n.type]||''}}
+function resultHTML(r,who){const kind=r.kind&&r.kind!==r.title?r.kind:'',lines=r.lines||(r.msg?[r.msg]:[]);
+  return`<div class="rescard${r.main?' has-main':''}" style="--c:${r.c}"><div class="rc-top"><span class="rc-ico">${r.icon}</span><span class="rc-ttl"><small>${who||''}${kind?(who?'・':'')+esc(kind):''}</small><b>${esc(r.title)}</b></span>${r.main?`<span class="rc-main ${r.main[2]}"><small>${r.main[0]}</small>${r.main[1]}</span>`:''}</div>`
+  +(lines.length?`<ul class="rc-lines">${lines.slice(0,4).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'')
+  +(r.mult?`<div class="rc-mult"><span>🕒 ${esc(r.mult.tz)} <b>${xf(r.mult.a)}</b></span><span>${esc(r.mult.wx)} <b>${xf(r.mult.b)}</b></span><span class="rc-mx">倍率 <b>${xf(r.mult.a*r.mult.b)}</b></span></div>`:'')
+  +(r.pills.length?`<div class="rc-pills">${r.pills.map(([k,v,c])=>`<span class="rc-pill ${c}"><small>${k}</small>${v}</span>`).join('')}</div>`:'')
+  +(r.note?`<div class="rc-note">${esc(r.note)}</div>`:'')+`</div>`}
 function resultPop(s,prev,seat,t,n){if(seat==null||!s.lastPath)return;const r=resultInfo(s,prev,seat,t,n);if(!r.title&&!r.msg)return;
   if(seat===mySeat()){myResult(r,n,s);return}
   const e=fxEl('respop',resultHTML(r,`<span class="rp-who" style="background:${SEATC[seat]}">${seat+1}P</span> `),null,null,5600);if(e)e.style.setProperty('--c',r.c);
