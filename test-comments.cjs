@@ -8,8 +8,11 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   d.querySelector('#bCreate').click();await wait(150);d.querySelector('#bStart').click();await wait(400);
   // 種類とバリエーション
   const kinds=E('Object.keys(CMT)'),total=E('Object.values(CMT).reduce((a,b)=>a+b.length,0)');
-  for(const k of ['plus','minus','yell','card','rare','event','bad','buy','mono','goal','troll','rankup','rankdown','settle','mission','shop','air','sea','golden','night','morning','storm','rain','sunny','bigdice','smalldice','myturn','sell','final'])assert(kinds.includes(k),'場面がない：'+k);
-  assert(total>=300,'コメントの数が少ない：'+total);assert(E('CMT_NAME.length')>=30,'リスナー名が少ない');
+  for(const k of ['plus','minus','yell','card','rare','event','bad','buy','mono','goal','troll','rankup','rankdown','settle','mission','shop','air','sea','golden','night','morning','storm','rain','sunny','bigdice','smalldice','myturn','sell','final','meter','liver'])assert(kinds.includes(k),'場面がない：'+k);
+  assert(total>=500,'コメントの数が少ない：'+total);assert(E('CMT_NAME.length')>=80,'リスナー名が少ない');assert(E('new Set(CMT_NAME).size===CMT_NAME.length'),'リスナー名が重複');
+  for(const k of kinds)assert(E(`new Set(CMT["${k}"]).size===CMT["${k}"].length`),'同じ場面に同じ文が重複：'+k);
+  // Pocochaらしい言葉が入っている
+  const all=E('Object.values(CMT).flat().join("／")');for(const w of ['ライバー','リスナー','枠','ランクメーター','時間ダイヤ','イベントポイント','いいね'])assert(all.includes(w),'Pocochaの言葉がない：'+w);
   // 画面右上（fixed・top・right）
   assert(/#cmts\{position:fixed;top:[^;]+;right:8px;/.test(html),'表示位置が画面右上ではない');
   // 少しずつずらして出る・約5秒で消える
