@@ -22,7 +22,7 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
   const SYS=w.eval('SYS'),tab=k=>SYS.find(x=>x[0].includes(k))[2];
   assert(tab('決算').includes('＋'+w.eval('CONDS')[0][2])&&tab('決算').includes('新人応援'),'決算タブ');
   assert(tab('ランク').includes(w.eval('BASEPT').S6.toLocaleString())&&tab('ランク').includes(w.eval('BONUS').S6.toLocaleString()),'ランク表がBASEPT・BONUSと違う');
-  assert(tab('ファン').includes('＋'+Math.round(w.eval('TB')[0]*100)+'%')&&tab('ファン').includes('1.4〜2.0倍'),'コアファン人数ボーナス・独占');
+  assert(tab('物件').includes('＋'+Math.round(w.eval('TB')[0]*100)+'%')&&tab('物件').includes('1.4〜2.0倍'),'物件数ボーナス・独占');
   assert(tab('時間').includes(f(P.tz[2]*P.wx[0])),'時間タブの例（ゴールデン×晴れ）');
   if(errors.length)throw Error(errors.join('\n'));
   console.log('PASS システム説明（時刻・天気タップの倍率・強調・次の天気・くわしい説明・数字入りタブ5種）');dom.window.close();
