@@ -13,12 +13,12 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   for(const k of kinds)assert(E(`new Set(CMT["${k}"]).size===CMT["${k}"].length`),'同じ場面に同じ文が重複：'+k);
   // Pocochaらしい言葉が入っている
   const all=E('Object.values(CMT).flat().join("／")');for(const w of ['ライバー','リスナー','枠','ランクメーター','時間ダイヤ','イベントポイント','いいね'])assert(all.includes(w),'Pocochaの言葉がない：'+w);
-  // 画面右上（fixed・top・right）
-  assert(/#cmts\{position:fixed;top:[^;]+;right:8px;/.test(html),'表示位置が画面右上ではない');
+  // 地図（MAP表示欄）の上・右下寄り（サイコロの上）に重ねて表示
+  assert(/#cmts\{position:absolute;right:8px;bottom:66px;/.test(html),'表示位置が地図の上ではない');
   // 少しずつずらして出る・約5秒で消える
   // 進行中のゲームのコメントと区別するため、試験用の場面を追加して数える
   E('SET.fast=false;CMT.__test=["試験A","試験B","試験C","試験D"];window.__t=[];new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains("cmt")&&/試験/.test(n.textContent))window.__t.push(performance.now())}))).observe(document.body,{subtree:true,childList:true});comments("__test",3)');
-  await wait(100);assert.equal(E('window.__t.length'),1,'最初の1件');
+  await wait(100);assert.equal(E('window.__t.length'),1,'最初の1件');assert.equal(d.querySelector('#cmts').parentNode.id,'mapbox','コメントが地図の中にない');
   await wait(2200);const t=E('window.__t');assert.equal(t.length,3,'3件出ない：'+t.length);assert(t[1]-t[0]>=300&&t[2]-t[1]>=300,'ずらして出ていない');
   const first=[...d.querySelectorAll('#cmts .cmt')].find(c=>/試験/.test(c.textContent));await wait(2600);assert(first.isConnected,'5秒より前に消えた');await wait(1600);assert(!first.isConnected,'約5秒で消えない');
   assert(/cmtout \.7s ease-in 4\.3s/.test(html),'フェードアウトの指定（4.3秒から0.7秒）');
@@ -27,5 +27,5 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   // 一度に出るのは最大4件
   E('comments("good",8)');let mx=0;for(let i=0;i<30;i++){await wait(200);mx=Math.max(mx,d.querySelectorAll('#cmts .cmt').length)}assert(mx<=4,'同時に4件を超えた：'+mx);
   if(errors.length)throw Error(errors.join('\n'));
-  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・画面右上・ずらして表示・約5秒で消える）`);dom.window.close();
+  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・地図の上・ずらして表示・約5秒で消える）`);dom.window.close();
 }catch(e){console.error(e);dom.window.close();process.exitCode=1;}},100);
