@@ -279,10 +279,10 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 .fx{position:absolute;pointer-events:none;z-index:5}
 .fnum{transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:800;font-size:20px;text-shadow:0 2px 0 var(--panel),0 0 6px var(--panel);animation:fnum 1.6s ease-out forwards;white-space:nowrap}
 @keyframes fnum{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}15%{transform:translate(-50%,-60%) scale(1.25);opacity:1}30%{transform:translate(-50%,-70%) scale(1)}100%{transform:translate(-50%,-180%);opacity:0}}
-#cmts{position:absolute;left:8px;bottom:64px;display:flex;flex-direction:column;gap:4px;z-index:6;pointer-events:none;max-width:72%}
-.cmt{background:rgba(20,14,30,.66);color:#fff;font-size:12px;border-radius:999px;padding:3px 10px;animation:cmtin .35s ease-out,cmtout .4s ease-in 2.8s forwards;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cmts{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:8px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;z-index:25;pointer-events:none;max-width:min(62vw,280px)}
+.cmt{background:rgba(20,14,30,.6);color:#fff;font-size:12px;border-radius:999px;padding:4px 11px;animation:cmtin .35s ease-out,cmtout .7s ease-in 4.3s forwards;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
 .cmt b{color:#ffcf3a;font-weight:700}.cmt.troll{background:rgba(70,70,70,.8)}.cmt.troll b{color:#bbb}
-@keyframes cmtin{from{transform:translateX(-20px);opacity:0}}@keyframes cmtout{to{opacity:0;transform:translateY(-6px)}}
+@keyframes cmtin{from{transform:translateX(20px);opacity:0}}@keyframes cmtout{to{opacity:0;transform:translateY(-6px)}}
 .banner{inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:7}
 .bn{background:var(--c);color:#fff;font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.2;padding:8px 20px;width:100%;display:flex;flex-direction:column;align-items:center;box-shadow:0 6px 0 rgba(0,0,0,.18);text-shadow:0 2px 0 rgba(0,0,0,.25);animation:bnin 1.9s cubic-bezier(.2,.9,.3,1.2) forwards}
 .bn small{font-size:13px;font-weight:700}
@@ -1915,7 +1915,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();aw
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
 function resetGame(){document.body.classList.remove('ingame');{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
-  animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove())}
+  animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML=''}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
 const seatOnline=i=>grp?peers.some(p=>p.presence&&p.presence.seat===i):!!seats[i];
@@ -1969,7 +1969,7 @@ async function relay(small){if(db.online)return;if(!small||!meta||records.has(sm
   const rec={...small,state};records.set(rec.id,rec);onRecords();try{await db.doc('games/'+code+'/turns/'+rec.id).set(rec)}catch{}}
 // 自分の手番：サイコロの結果は種から決まるので、先に結果を見てから「買う／買わない」を選べる
 let pending=null;
-function myDecide(st){return new Promise(res=>{pending={st,res,stage:'act'};sfx('myturn');vib(30);banner('あなたの番！','var(--pink)');render();setTimeout(spotlight,50);
+function myDecide(st){return new Promise(res=>{pending={st,res,stage:'act'};sfx('myturn');vib(30);banner('あなたの番！','var(--pink)');comments('myturn',2);render();setTimeout(spotlight,50);
   const me=curSeat(st);if(st.players[me].coin<0&&ownedFans(st,me).length)setTimeout(()=>{if(pending&&pending.stage==='act'&&pending.st===st)startFsell(st,me,'pre',list=>{pending.preSell=list;pending.stage='act';render()})},SET.fast?500:1200)})}
 function preview(st,base={type:'roll'}){const s=applyTurn(st,{...base,buy:false},meta.seed,{noForce:true});const seat=curSeat(st),pos=s.players[seat].pos,nd=NODES[pos];
   const bc=s.buyCtx||{coin:s.players[seat].coin,own:[]},ow=nd.type==='station'?bc.own:[],coin=bc.coin;
@@ -2196,13 +2196,16 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   const evs=s.ev||[];const m=evs.find(e=>e.k==='move');const t=m?m.t:'';const pNode=NODES[s.players[seat].pos],n0=pNode;
   if(seat!=null&&s.lastPath&&s.lastPath.length)camAt(pNode,ZN+.3,300);resultPop(s,prev,seat,t,pNode);
   const amt=re=>{const mm=t.match(re);return mm?mm[1]:''};
-  if(/プラスマス ＋/.test(t)){sfx('buy');burst('coin',pNode);coinsFly(pNode,seat,5);floatNum(pNode,'＋'+amt(/プラスマス ＋([\d,]+)/),'var(--plus)');comments('good',3)}
-  else if(/マイナスマス −/.test(t)){sfx('anti');vib(120);bolt(pNode);shake();brokenHearts(pNode);floatNum(pNode,'−'+amt(/マイナスマス −([\d,]+)/),'var(--anti)')}
-  else if(/エールマス/.test(t)){sfx('yell');burst('heart',pNode);floatNum(pNode,'📣＋'+amt(/エール＋(\d+)K/)+'K','var(--yell)');comments('good',4)}
+  if(/プラスマス ＋/.test(t)){sfx('buy');burst('coin',pNode);coinsFly(pNode,seat,5);floatNum(pNode,'＋'+amt(/プラスマス ＋([\d,]+)/),'var(--plus)');comments('plus',4)}
+  else if(/マイナスマス −/.test(t)){sfx('anti');vib(120);bolt(pNode);shake();brokenHearts(pNode);floatNum(pNode,'−'+amt(/マイナスマス −([\d,]+)/),'var(--anti)');comments('minus',3)}
+  else if(/エールマス/.test(t)){sfx('yell');burst('heart',pNode);floatNum(pNode,'📣＋'+amt(/エール＋(\d+)K/)+'K','var(--yell)');comments('yell',4)}
   cpuTalk(s,prev,seat,t);
-  const gc=evs.find(e=>e.k==='getcard');if(gc){const r=CARDR[gc.v]||'N';floatNum(pNode,'「'+CARDN[gc.v]+'」GET'+(RARLV[r]>=2?'　'+r:''),RARLV[r]>=1?RARC[r]:'var(--card)');if(RARLV[r]>=2)rarFx(r,pNode);else{sfx(RARLV[r]?'rarR':'card');burst('star',pNode)}}
+  // 場面のコメント：ポコチャレ・ショップ・空港・港・天気の変化・売却・ふだんのひとこと
+  {const nt=NODES[s.players[seat]?.pos]||{};if(evs.some(e=>e.k==='mission'))comments('mission',3);if(nt.type==='shop')comments('shop',2);else if(nt.type==='airport')comments('air',2);else if(nt.type==='port')comments('sea',2);
+   const we=evs.find(e=>e.k==='weather');if(we)comments(['sunny','good','rain','storm'][we.v|0]||'good',2);if(evs.some(e=>e.k==='fsell'||e.k==='sold'))comments('sell',2);ambientComments(s)}
+  const gc=evs.find(e=>e.k==='getcard');if(gc){comments('card',2);const r=CARDR[gc.v]||'N';floatNum(pNode,'「'+CARDN[gc.v]+'」GET'+(RARLV[r]>=2?'　'+r:''),RARLV[r]>=1?RARC[r]:'var(--card)');if(RARLV[r]>=2)rarFx(r,pNode);else{sfx(RARLV[r]?'rarR':'card');burst('star',pNode)}}
   const ee=evs.find(e=>e.k==='event');if(ee){const r=EVR[ee.v]||'N',bad=evBad(ee.v),lv=RARLV[r];if(lv<3)vib([40,30,40]);const bn=banner((!bad&&lv>=4?'★ ':'')+EVN[ee.v].replace(/[！…]$/,'')+(bad?'…':'！'),bad?(lv>=3?'linear-gradient(90deg,#14061a,#5a0f2a,#14061a)':'linear-gradient(90deg,#5b4a78,#8a3a5a)'):RARBG[r],`${(EVGENRES.find(g=>g[0]===EVG[ee.v])||['',''])[1]}${EVG[ee.v]}・${r}　`+t.replace(/^.*・/,''));if(bn)bn.classList.add('rar-'+r,bad?'bad':'good');if(!bad){burst('confetti',pNode)}rarFx(r,pNode,bad);
-    if(EVG[ee.v]==='お仕事'||ee.v==='tip'||ee.v==='jackpot'||ee.v==='lottery')coinsFly(pNode,seat,10);else if(ee.v==='photo'){fxEl('flash','',null,null,500);sfx('stamp')}else if(ee.v==='collabreq')shock(pNode,'var(--yell)');else if(ee.v==='buzz'||ee.v==='regular'){burst('heart',pNode);comments('good',6)}else if(evBad(ee.v)){sfx('anti');shake();staticNoise(500);comments('troll',4)}else{pillar(pNode,'#ffcf3a');comments('good',5)}}
+    if(EVG[ee.v]==='お仕事'||ee.v==='tip'||ee.v==='jackpot'||ee.v==='lottery')coinsFly(pNode,seat,10);else if(ee.v==='photo'){fxEl('flash','',null,null,500);sfx('stamp')}else if(ee.v==='collabreq')shock(pNode,'var(--yell)');else if(ee.v==='buzz'||ee.v==='regular'){burst('heart',pNode);comments('event',6)}else if(evBad(ee.v)){sfx('anti');shake();staticNoise(500);comments('bad',3);comments('troll',2)}else{pillar(pNode,'#ffcf3a');comments('event',5)}}
   if(evs.some(e=>e.k==='bigyell')){burst('heart',pNode);floatNum(pNode,'大型エール！','var(--yell)')}
   {const cx=evs.filter(e=>e.k==='bonuscard'||e.k==='attack'||e.k==='defend'||e.k==='getcard2');cx.forEach((e,i)=>setTimeout(()=>{toast(e.t);if(e.k==='attack'){sfx('anti');shake()}else{sfx('card');burst('star',pNode)}},(SET.fast?200:500)+i*600))}
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
@@ -2211,20 +2214,20 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   if(evs.some(e=>e.k==='newmis'))setTimeout(()=>toast(`${s.hour}:00 新しいポコチャレが出ました`),SET.fast?500:1200);
   const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('rankup');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`コアファン${ft.v}人！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントの応援が＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
-  const ru=evs.filter(e=>e.k==='rankup');if(ru.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{sfx('rankup');fireworks(2);pillar(pNode,'var(--rank)');banner('ランクアップ！','var(--rank)',ru.map(e=>`${e.v.seat+1}P ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?800:1900);
-  const rd=evs.filter(e=>e.k==='rankdown');if(rd.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{sfx('anti');shake();brokenHearts(pNode);banner('ランクダウン…','linear-gradient(90deg,#5d5470,#e5363d)',rd.map(e=>`${e.v.seat+1}P ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?900:2100);
+  const ru=evs.filter(e=>e.k==='rankup');if(ru.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankup',3);sfx('rankup');fireworks(2);pillar(pNode,'var(--rank)');banner('ランクアップ！','var(--rank)',ru.map(e=>`${e.v.seat+1}P ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?800:1900);
+  const rd=evs.filter(e=>e.k==='rankdown');if(rd.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankdown',2);sfx('anti');shake();brokenHearts(pNode);banner('ランクダウン…','linear-gradient(90deg,#5d5470,#e5363d)',rd.map(e=>`${e.v.seat+1}P ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?900:2100);
   {const yr=evs.find(e=>e.k==='yellreset');if(yr)setTimeout(()=>toast('📣 '+yr.t),SET.fast?700:1700)}
   {const we=evs.find(e=>e.k==='weather');if(we)setTimeout(()=>toast(we.t),SET.fast?600:1500)}
   const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('yell');toast(e.t);chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
   {const g=evs.find(e=>e.k==='goal');if(g){if(localGoal===s.turn){localGoal=null;await wait(300)}else await goalShow(seat,pNode,g.v,s.goal)}}
-  if(evs.some(e=>e.k==='mono'))setTimeout(()=>{sfx('rankup');pillar(pNode,'#ffcf3a');banner('独占！','#ffcf3a',(pNode.name||'')+' 決算'+(pNode.mono||2)+'倍');fireworks(2)},SET.fast?500:1100);
-  if(evs.some(e=>e.k==='buy')){sfx('buy');houseRise(pNode,SEATC[seat]);burst('coin',pNode);banner('コアファン獲得！','var(--station)',pNode.name||'');coinsFly(pNode,seat,6,true)}
-  const tr=evs.find(e=>e.k==='troll');if(tr){sfx('troll');vib([40,30,40,30,40]);glitch();staticNoise(1100);comments('troll',5);const big=lateGame(s);
+  if(evs.some(e=>e.k==='mono'))setTimeout(()=>{comments('mono',6);sfx('rankup');pillar(pNode,'#ffcf3a');banner('独占！','#ffcf3a',(pNode.name||'')+' 決算'+(pNode.mono||2)+'倍');fireworks(2)},SET.fast?500:1100);
+  if(evs.some(e=>e.k==='buy')){comments('buy',3);sfx('buy');houseRise(pNode,SEATC[seat]);burst('coin',pNode);banner('コアファン獲得！','var(--station)',pNode.name||'');coinsFly(pNode,seat,6,true)}
+  const tr=evs.find(e=>e.k==='troll');if(tr){sfx('troll');vib([40,30,40,30,40]);glitch();staticNoise(1100);comments('troll',6);const big=lateGame(s);
     await showOverlay(`<div class="trollbig glitchy">${trollSvg(big)}</div><h3>${big?'超・':''}荒らしラグ王 参上</h3><p>${esc(tr.t)}</p>`,2400,'troll')}
   const mi=evs.find(e=>e.k==='mischief');if(mi){sfx('troll');glitch();toast(mi.t);
     if(/浪費/.test(mi.t)){coinsFly(pNode,seat,8,true);floatNum(pNode,mi.t.replace(/.*−/,'−'),'var(--anti)')}else if(/荒らしコメント/.test(mi.t)){comments('troll',6);staticNoise(500)}
-    else if(/売られた/.test(mi.t)){brokenHearts(pNode)}else if(/改心/.test(mi.t)){pillar(pNode,'#ffcf3a');burst('heart',pNode);comments('good',3)}}
-  if(evs.some(e=>e.k==='monthend')&&s.report){music('closing');sfx('clock');
+    else if(/売られた/.test(mi.t)){brokenHearts(pNode)}else if(/改心/.test(mi.t)){pillar(pNode,'#ffcf3a');burst('heart',pNode);comments('trollgone',3)}}
+  if(evs.some(e=>e.k==='monthend')&&s.report){music('closing');sfx('clock');comments('settle',6);
     const rows=s.report.map(x=>`<tr><td>${x.seat+1}P ${esc(seatName(x.seat))}</td><td>＋${x.inc.toLocaleString()}${x.mono?`<small class="mono">独占${x.mono}</small>`:''}</td><td>＋${(x.pay||0).toLocaleString()}</td><td>${x.before}${x.after!==x.before?' → <b>'+x.after+'</b>':''}<small class="mono">${x.gain?'＋'+x.gain+'pt':'ランクダウン'}</small></td></tr>`).join('');
     const cl=s.report.filter(x=>x.conds&&x.conds.length).map(x=>`${x.seat+1}P：${x.conds.join('・')}`).join('<br>');
     for(const x of s.report)if(x.inc>0)coinsFly(NODES[s.goal],x.seat,4);
@@ -2239,7 +2242,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   if(!s.finished){camHome(450);await wait(350)}
   if(s.finished){saveRoom(code,{done:true});music('ending');fireworks(8);cannon();setTimeout(cannon,1500);const rows=s.final.map((f,i)=>`<tr><td>${['1位','2位','3位','4位'][i]} ${f.seat+1}P ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}</td></tr>`).join('');
     const earn=[0,1,2,3].sort((a,b)=>s.players[b].earned-s.players[a].earned)[0];const rk=[0,1,2,3].sort((a,b)=>RANKS.indexOf(s.players[b].rank)-RANKS.indexOf(s.players[a].rank))[0];
-    await showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">全国編</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
+    comments('final',10);await showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">全国編</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
   }finally{if(gen===animGen){animN--;animIdleAt=Date.now();tipSeenAt.set(r.id,Date.now());setTimeout(tick,SET.fast?140:270)}}})}
 function showOverlay(html,ms,kind){return new Promise(res=>{const o=$('#ov');o.innerHTML=`<div class="card${kind?' '+kind:''}">${html}<button class="ghost" id="ovClose">${ms?'とじる':'OK'}</button></div>`;o.hidden=false;const rb=$('#bRematch');if(rb)rb.onclick=()=>{rematch()};
   o.querySelectorAll('[data-count]').forEach(el=>countUp(el,0,+el.dataset.count,'＋'));
@@ -2519,11 +2522,53 @@ function mapPt(n){const svg=$('#map'),box=$('#mapbox').getBoundingClientRect();t
 function fxEl(cls,html,x,y,ms){if(reduce&&!/fnum|banner|cmt|respop|stinfo|speech|roul/.test(cls))return null;const e=document.createElement('div');e.className='fx '+cls;if(html)e.innerHTML=html;if(x!=null){e.style.left=x+'px';e.style.top=y+'px'}$('#mapbox').appendChild(e);setTimeout(()=>e.remove(),SET.fast?ms/2:ms);return e}
 // 数字が浮かぶ（＋1,200 など）
 function floatNum(n,t,color){const p=mapPt(n);const e=fxEl('fnum','',p.x,p.y-10,1600);if(e){e.textContent=t;e.style.color=color}}
-// 配信らしいリスナーコメントが左下に流れる
-const CMT_GOOD=['ナイス！','88888','エールありがとう！','かわいい','すごい！','神引き','おめでとう','いいね！','がんばれ〜'],CMT_TROLL=['ｗｗｗｗ','ラグい…','荒らし来た','回線落ちろ','つまらん','ｗｗ'];
-function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));let box=$('#cmts');if(!box){box=document.createElement('div');box.id='cmts';$('#mapbox').appendChild(box)}const L=kind==='troll'?CMT_TROLL:CMT_GOOD;
-  for(let i=0;i<count;i++)setTimeout(()=>{const c=document.createElement('div');c.className='cmt'+(kind==='troll'?' troll':'');const who=document.createElement('b');who.textContent=kind==='troll'?'？？？':['リスナーA','リスナーB','常連さん','初見さん','古参'][Math.floor(Math.random()*5)];
-    c.append(who,document.createTextNode(' '+L[Math.floor(Math.random()*L.length)]));box.appendChild(c);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>c.remove(),SET.fast?1600:3200)},i*(SET.fast?120:260))}
+// ===== リスナーコメント（第35版）：場面に合ったコメントを画面右上に、少しずつずらして出し、約5秒でフェードアウト =====
+const CMT_NAME=['リスナーA','リスナーB','常連さん','初見さん','古参','ポコ民','箱推し','夜ふかし勢','通りすがり','九州リスナー','博多っ子','鉄道ファン','旅好き','ROM専','新規さん','推し活中','おやつ担当','応援団長','スタンプ職人','朝活勢','残業中','学生リスナー','ママリスナー','地元民','遠征組','コメント係','ギフト職人','ねこ好き','ゲーム好き','ラーメン派','温泉好き','すごろく名人','記念日勢','ゆる勢','最古参','ヘビーリスナー','たまに来る人','お茶担当','実況勢','見守り隊'];
+const CMT_TROLL_NAME=['？？？','名無し','荒らし','通りすがり（？）','ラグ王の手下','匿名さん','謎の人'];
+const CMT={
+ good:['ナイス！','88888','すごい！','いいね！','がんばれ〜','神展開','うまい！','さすが！','その調子！','最高！','ナイスプレイ','かっこいい','かわいい','天才か？','流れきてる','今日ツイてるね','ええやん！','よかよか！','ばり上手い','ワクワクする','見てて楽しい','いい流れ〜','神回の予感','推せる','拍手👏'],
+ plus:['お金入った！','ナイスプラス！','応援ありがとう〜','💰きたー','いい稼ぎ！','チャリーン','財布うるおう','ありがてぇ','その調子で稼ご','プラスマスうまい','がっぽり！','黒字やん','いいところ止まった','うれしい臨時収入','もっと増やそ','貯金できるね','景気いいね','やったね！','わーい','よき〜'],
+ minus:['あちゃー','どんまい！','いたた…','切り替えていこ','次があるよ','まだ取り返せる','ドンマイドンマイ','つらい…','泣かないで','今のは仕方ない','ここ踏むか〜','財布が…','しょんぼり','気にしない！','ここから巻き返し','運が悪かっただけ','痛いけど大丈夫','次はプラスに止まろ','ファイト！','元気だして'],
+ yell:['エール送るね📣','応援してる！','📣📣📣','がんばれー！','エールいっぱい','声援とどけ〜','推しにエール','いけいけー！','みんなで応援！','パワー送る','エール職人参上','フレーフレー','負けるな〜','📣ありがと','エール10K目指そ','応援の輪','届け〜','ぶち上げ！','盛り上がってる','声出していこ'],
+ card:['カードきた！','何のカード？','いいカード？','使いどころ大事','カード運いいね','手札ふえた','温存しとこ','使う？使う？','作戦たてよ','カードゲット！','引き強い','いい引き','カードコレクター','役に立ちそう','タイミング次第'],
+ rare:['レアきたーー！','神引き！！','え、すご','虹色！？','✨✨✨','引き強すぎ','うらやましい','スクショした','伝説の瞬間','鳥肌たった','これは強い','まさかのレア','運使い切った？','ガチャ神','やばいやばい','光ってる！','今日の主役','保存版','歴史に残る','おめでとう！！'],
+ event:['イベントきた！','何が起きる？','ドキドキ','いいイベント！','ラッキー','面白い展開','わくわく','おお〜','やったじゃん','ナイス引き','話題になりそう','トレンド入り？','配信映えする','いい思い出','楽しい〜'],
+ bad:['うわぁ…','それはつらい','災難だ…','負けないで','運営さん…','今日は厄日？','やめてあげて','どんまい！','かわいそう','次は良いことある','耐えて','がまんがまん','笑うしかない','まだまだこれから','切り替え大事'],
+ buy:['ファン獲得おめでとう！','💖ふえた','名物ゲット','そこ推せる','いい買い物','その駅いいよね','地元民です！','私もファンです','ファン仲間〜','コアファン入り！','集めていこ','コンプ目指そ','いいセンス','決算が楽しみ','ファンが増えると強い'],
+ mono:['独占！！','独占きた！','駅ごと推し','さすがの財力','決算ウハウハ','この駅はもらった','独占おめでとう！','全員ファン！？','コンプリート','強すぎる','もう誰も買えない','王者の風格'],
+ goal:['1番乗りおめでとう！','GOAL!!','やったー！','すごい！！','ぴったり止まった！','計算通り？','さすがすぎる','おめでとうーー','🎉🎉🎉','神ルート','優勝あるで','見事！','拍手喝采','記念スクショ','次の目的地も狙お','旅の達人','かっこよすぎ','泣ける','感動した','最高の瞬間'],
+ troll:['ｗｗｗｗ','ラグい…','荒らし来た','つまらん','ｗｗ','重くない？','はよ','まだ？','おそっ','草','ふーん','知らんけど','それ悪手','へたくそｗ','回線よわ'],
+ trollgone:['荒らし帰った？','平和がもどった','ナイス撃退！','もう来ないで〜','ブロック最強','ふぅ…よかった'],
+ rankup:['ランクアップおめでとう！','⬆️⬆️','昇格！','どんどん上がるね','次はSランク？','実力だね','ランカーの風格','上がった！','成長してる','すごい伸び'],
+ rankdown:['ランクダウン…','また上げよ！','ここから再出発','気にしない！','一時的なやつ','すぐ戻れる','応援してるよ','みんなついてる'],
+ settle:['決算きた！','0時だ〜','今日もお疲れさま','いくら入った？','決算たのしみ','日付変わった','ファン決算ありがたい','明日もがんばろ','締めの時間','おつかれ〜','お給料日！','ランクどうなる？'],
+ mission:['ポコチャレ達成！','ミッションクリア','さすが！','報酬なに？','次のお題も','クリアおめでとう','有言実行','コツコツ大事'],
+ shop:['ショップだ','何買う？','ショッピングタイム','いいカードある？','節約も大事','お買い物たのしい','その県限定ある？','財布と相談'],
+ air:['空港！','✈️旅行気分','空の旅〜','遠くへ行こ','フライト中','空港グルメ食べたい'],
+ sea:['港だ⚓','船旅いいね','海きれい','フェリー乗りたい','潮風〜','カモメいた'],
+ golden:['ゴールデンタイム！','今がかせぎどき','人増えてきた','夜の部はじまり','盛り上がる時間','エール2倍タイム'],
+ night:['夜ふかし組集合','深夜テンション','眠くない？','夜の配信すき','こんな時間まで','おやすみ前に見てる'],
+ morning:['おはよう〜','朝活えらい','朝からありがと','通勤中に見てる','朝ごはん食べた？','いい朝だね'],
+ storm:['嵐だ…','傘必須','荒れてるね','マイナス注意','嵐こわい','エールは2倍！'],
+ rain:['雨だね☔','雨の日も楽しも','しっとり','エール増える天気','足元気をつけて'],
+ sunny:['いい天気☀️','晴れたー','プラス日和','お出かけ日和','ポカポカ'],
+ bigdice:['大きい目！','ぶっとび','進む進む！','ワープ並み','いい出目','新幹線か？'],
+ smalldice:['1マス…','ちょびっと','のんびり行こ','慎重派','止まるマス次第'],
+ myturn:['あなたの番！','どこ行く？','いい目出して','見てるよ〜','慎重にね','楽しみ','がんばって！','運命のサイコロ'],
+ sell:['売却つらい…','また買い戻そ','背に腹はかえられぬ','立て直そ','マイナス脱出！'],
+ final:['おつかれさまでした！','楽しかった！','また遊ぼう','神ゲームだった','優勝おめでとう！','いい勝負だった','次も見に来る','最後までありがとう','名勝負','アーカイブ見る'],
+};
+let cmtRecent=[];// 同じコメントが続けて出ないように最近の分を覚える
+function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!document.body.classList.contains('ingame'))return;let box=$('#cmts');if(!box){box=document.createElement('div');box.id='cmts';box.setAttribute('aria-hidden','true');document.body.appendChild(box)}
+  const L=CMT[kind]||CMT.good,troll=kind==='troll';let at=0;
+  for(let i=0;i<count;i++){at+=i?(SET.fast?260:420)+Math.random()*(SET.fast?320:560):0;setTimeout(()=>{if(!document.body.classList.contains('ingame'))return;
+    let t,k=0;do{t=L[Math.floor(Math.random()*L.length)];k++}while(cmtRecent.includes(t)&&k<8);cmtRecent.push(t);if(cmtRecent.length>14)cmtRecent.shift();
+    const c=document.createElement('div');c.className='cmt'+(troll?' troll':'');const who=document.createElement('b');const N=troll?CMT_TROLL_NAME:CMT_NAME;who.textContent=N[Math.floor(Math.random()*N.length)];
+    c.append(who,document.createTextNode(' '+t));box.appendChild(c);while(box.children.length>4)box.firstChild.remove();/* プレイヤー欄を隠しすぎないよう最大4件 */setTimeout(()=>c.remove(),5000)},at)}}
+// 手番のあとに、時間帯・天気・出目に合わせたひとことを少しだけ（毎回ではない）
+function ambientComments(s){if(!s)return;const tz=TZ(s.hour),wx=s.weather||0,r=Math.random();
+  if(s.lastDice>=10&&r<.7)return comments('bigdice',2);if(s.lastDice===1&&r<.6)return comments('smalldice',1);
+  if(r<.22)return comments(['morning','good','golden','night'][tz],1);if(r<.32)return comments(['sunny','good','rain','storm'][wx],1);if(r<.5)comments('good',1)}
 // 画面を横切る帯（GOAL！ 拠点ゲット！ など）
 function banner(t,color,sub){const e=fxEl('banner',`<div class="bn" style="--c:${color}"><span>${esc(t)}</span>${sub?`<small>${esc(sub)}</small>`:''}</div>`,null,null,1900);return e}
 
@@ -2572,7 +2617,7 @@ function goalScreen(seat,n){return new Promise(res=>{const F=SET.fast?.5:1,old=d
 // ===== 目的地1番乗りの演出（第29版）：お祝い→特典→次の目的地ルーレット =====
 let localGoal=null;
 async function goalShow(seat,n,prize,next){duckBgm(SET.fast?4:9.5);sfx('goalBig');vib([80,40,80,40,220]);const F=SET.fast?.5:1;
-  shock(n,'#ffd23f');pillar(n,'#ffd23f');fxEl('rarfx l4','',null,null,2600);cannon();fireworks(6);burst('confetti',n);burst('star',n);comments('good',12);
+  shock(n,'#ffd23f');pillar(n,'#ffd23f');fxEl('rarfx l4','',null,null,2600);cannon();fireworks(6);burst('confetti',n);burst('star',n);comments('goal',12);
   await goalScreen(seat,n);coinsFly(n,seat,12);setTimeout(()=>{fireworks(4);shock(n,'#ff4fb8')},300);
   await showOverlayFx('rgba(255,207,58,.45)',`<p class="eyebrow">🏆 目的地 1番乗り特典</p><div class="prizefx"><svg viewBox="0 0 100 110"><g class="spark"><path d="M12 20l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#ffd23f"/></g><g class="spark s2"><path d="M88 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#ff5fa8"/></g><g class="beat gl"><path d="M24 14h52v22c0 18-12 30-26 30S24 54 24 36z" fill="#ffd23f" stroke="#5a1e00" stroke-width="4"/><path d="M24 22H10c0 16 8 24 18 24M76 22h14c0 16-8 24-18 24" fill="none" stroke="#5a1e00" stroke-width="5"/><rect x="44" y="64" width="12" height="16" fill="#ffb21c" stroke="#5a1e00" stroke-width="4"/><rect x="28" y="80" width="44" height="14" rx="3" fill="#ff7a1c" stroke="#5a1e00" stroke-width="4"/></g></svg></div><h3>${esc(n.name||'')}駅に1番乗り！</h3><div class="big" data-count="${prize}">＋0</div><div class="prz-chips"><span style="--c:#e0a400">💰 賞金</span><span style="--c:#1a8fe8">📣 エール＋5K</span><span style="--c:#7b3fe4">⭐ ランク＋50pt</span></div>`,SET.fast?1800:3200);
   if(next!=null)await goalRoulette(next)}
@@ -2589,7 +2634,7 @@ function rarFx(r,n,bad){const lv=RARLV[r]||0;if(!n)return;
   sfx(['rarN','rarR','rarSR','rarSSR','rarUR'][lv]);
   if(lv>=1)burst('star',n);
   if(lv>=2){pillar(n,RARC[r]);fxEl('rarfx l'+lv,'',null,null,lv>=4?2600:1400)}
-  if(lv>=3){duckBgm(lv>=4?3.4:1.8);fireworks(lv>=4?6:2);burst('confetti',n);comments('good',lv>=4?10:6);vib(lv>=4?[60,40,60,40,200]:[40,30,40])}
+  if(lv>=3){duckBgm(lv>=4?3.4:1.8);fireworks(lv>=4?6:2);burst('confetti',n);comments('rare',lv>=4?10:6);vib(lv>=4?[60,40,60,40,200]:[40,30,40])}
   if(lv>=4){setTimeout(()=>fireworks(4),1000);fxEl('urtxt','<span>ULTRA RARE</span>',null,null,2600)}}
 // 着地の衝撃波
 function shock(n,color){const p=mapPt(n);const e=fxEl('shock','',p.x,p.y,700);if(e)e.style.borderColor=color}
