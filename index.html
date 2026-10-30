@@ -3163,9 +3163,9 @@ const HAIR=['#6b3fa0','#d9467a','#2f7fd1','#c9871b'];
 const lastPlace=[];let lastOrder='';
 const seatName=i=>{const pn=meta&&meta.pname&&meta.pname[i];if(!seats[i]){if(meta&&meta.phase==='playing'){if(pn)return pn;const c=cpuChar(i);return c?c.name:'CPU'}return'空席'}const un=meta&&meta.uname&&meta.uname[seats[i].uid];if(un)return un;const n=names[seats[i].uid];return i===mySeat()?'あなた':(n||'参加者')};
 // 盤面の記録の文（「2Pに…」「3Pの物件」など）は、表示するときにプレイヤーの名前へ置きかえる。記録そのものは変えない（全手番の検算・保存データとの互換のため）
-// 地図上の電車の札：名前の頭文字（空白は除く）。頭文字がほかの人と同じなら2文字、それでも同じなら頭文字＋席の番号
-function pawnLabels(){const n=[0,1,2,3].map(i=>Array.from(String(seatName(i)||'').replace(/\s/g,''))),L=n.map(a=>a[0]||'?'),dup=(arr,i)=>arr.some((x,j)=>j!==i&&x===arr[i]),L2=L.map((x,i)=>dup(L,i)?n[i].slice(0,2).join('')||x:x);
-  return L2.map((x,i)=>dup(L2,i)?L[i]+(i+1):x)}
+// 地図上の電車の札：名前の最初の2文字（空白は除く）。ほかの人と同じになるときは、1文字目＋席の番号
+function pawnLabels(){const n=[0,1,2,3].map(i=>Array.from(String(seatName(i)||'').replace(/\s/g,''))),L=n.map(a=>a.slice(0,2).join('')||'?'),dup=(arr,i)=>arr.some((x,j)=>j!==i&&x===arr[i]);
+  return L.map((x,i)=>dup(L,i)?(n[i][0]||'?')+(i+1):x)}
 function drawPawnLabels(){if(!built)return;const L=pawnLabels();L.forEach((t,i)=>{const e=document.querySelector('#pw'+i+' .pwl');if(e&&e.textContent!==t){e.textContent=t;e.setAttribute('font-size',Array.from(t).length>1?'4.3':'5.4');e.setAttribute('y',Array.from(t).length>1?'3.6':'3.9')}})}
 const nameize=t=>{t=t==null?'':String(t);if(!meta||meta.phase!=='playing')return t;return t.replace(/(^|[^0-9A-Za-z])([1-4])P(?![A-Za-z])/g,(m,a,d)=>a+seatName(+d-1))};
 let built=false;const lastCoins=[];
