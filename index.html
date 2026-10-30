@@ -304,7 +304,7 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 .rgb{filter:drop-shadow(3px 0 0 rgba(255,0,60,.7)) drop-shadow(-3px 0 0 rgba(0,220,255,.7))}
 .pl.spot{animation:spot 1.6s ease-out}@keyframes spot{0%{box-shadow:0 0 0 0 rgba(255,95,168,.9)}100%{box-shadow:0 0 0 18px rgba(255,95,168,0)}}
 .overlay{overflow-x:hidden;overflow-y:auto;align-items:flex-start;padding-block:max(12px,env(safe-area-inset-top,0px)) 12px;box-sizing:border-box}.overlay .card{position:relative;z-index:1;margin-block:auto}
-.rays{position:absolute;width:160vmax;height:160vmax;left:50%;top:50%;margin:-80vmax 0 0 -80vmax;background:repeating-conic-gradient(var(--c) 0 9deg,transparent 9deg 18deg);animation:rays 10s linear infinite;pointer-events:none;-webkit-mask:radial-gradient(closest-side,#000 25%,transparent 70%);mask:radial-gradient(closest-side,#000 25%,transparent 70%)}
+/* 光線は画面より大きいので、はみ出しを切り取る枠に入れる（#ovが横・縦にスクロールしてカードがずれるのを防ぐ） */.raysbox{position:absolute;inset:0;overflow:hidden;pointer-events:none}.rays{position:absolute;width:160vmax;height:160vmax;left:50%;top:50%;margin:-80vmax 0 0 -80vmax;background:repeating-conic-gradient(var(--c) 0 9deg,transparent 9deg 18deg);animation:rays 10s linear infinite;pointer-events:none;-webkit-mask:radial-gradient(closest-side,#000 25%,transparent 70%);mask:radial-gradient(closest-side,#000 25%,transparent 70%)}
 @keyframes rays{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.fnum,.cmt,.bn,.rays,.pl.spot{animation:none}.bn{opacity:1}}
 .cardbtn{display:flex;flex-direction:column;align-items:flex-start;gap:0;text-align:left;background:linear-gradient(135deg,color-mix(in srgb,var(--card) 25%,var(--panel)),var(--panel));color:var(--ink);border:2px solid var(--card);border-radius:14px;padding:10px 14px}
@@ -3072,7 +3072,7 @@ function dust(n){if(reduce)return;for(let i=0;i<6;i++)bursts.push({x:n.x+(Math.r
 // 割れたハート
 function brokenHearts(n){if(reduce)return;for(let i=0;i<10;i++)bursts.push({x:n.x,y:n.y,vx:(Math.random()-.5)*4,vy:-1.5-Math.random()*2,g:.18,life:50,kind:'broken',c:'#ff5a5f',a:Math.random()})}
 // 回転する光の放射（演出カードの後ろ）
-function raysBehind(color){const o=$('#ov');if(!o||reduce)return;const r=document.createElement('div');r.className='rays';r.style.setProperty('--c',color||'rgba(255,207,58,.35)');o.prepend(r)}
+function raysBehind(color){const o=$('#ov');if(!o||reduce)return;const box=document.createElement('div');box.className='raysbox';const r=document.createElement('div');r.className='rays';r.style.setProperty('--c',color||'rgba(255,207,58,.35)');box.append(r);o.prepend(box)}
 // 演出の見本（設定から呼ぶ）
 function demoFx(k){const s=dispState;if(!s)return;const me=Math.max(0,mySeat()),n=NODES[s.players[me].pos],st=NODES[s.goal]||n;camHome();
   ({yell:()=>{sfx('yell');burst('heart',n);floatNum(n,'💖＋3人','var(--yell)');comments('good',5);shock(n,'var(--yell)')},
