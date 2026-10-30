@@ -683,6 +683,18 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
  .ingame #status.rankview .st-head{padding-block:0!important;min-height:0!important}
 }
 .ingame:not(.stream) .wrap{padding-bottom:var(--barh,119px)!important}
+/* 横持ち（低くて横に広い画面）：左に順位と操作欄、右に地図を並べる。縦に積むと操作欄が地図に重なって隠れるため */
+@media (orientation:landscape) and (max-height:600px) and (min-width:540px){
+ .ingame:not(.stream){--lc:min(46vw,440px);--lp:max(8px,env(safe-area-inset-left))}
+ .ingame:not(.stream) .wrap{max-width:none!important;padding:max(4px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 4px var(--lp)!important;box-sizing:border-box}
+ .ingame:not(.stream) #vGame{display:grid!important;grid-template-columns:var(--lc) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:10px!important;row-gap:4px!important;align-items:start;height:calc(100dvh - 8px);overflow:hidden}
+ .ingame:not(.stream) #vGame>*{grid-column:1;min-width:0}
+ .ingame:not(.stream) #vGame>.mapbox{grid-column:2;grid-row:1/-1;min-height:0}
+ .ingame:not(.stream) #status{max-height:calc(100dvh - var(--barh,167px) - 34px);overflow-y:auto}
+ .ingame:not(.stream) #status>*{flex-shrink:0}
+ .ingame:not(.stream) .bar{right:auto;width:calc(var(--lc) + var(--lp) + 4px);max-height:100dvh;overflow-y:auto;border-radius:0 22px 0 0;padding-left:var(--lp)!important;box-sizing:border-box}
+ .ingame:not(.stream) .bar .inner{max-width:none;margin:0}
+}
 /* お知らせ：画面幅いっぱいまで広げて、3行に折れないように */
 .toast{width:max-content!important;max-width:calc(100vw - 32px)!important;box-sizing:border-box;border-radius:16px!important;text-align:center;line-height:1.45;font-size:13.5px!important}
 /* 決算表：見出しを1行に、名前は折り返しても読めるように */
@@ -837,11 +849,11 @@ button.ghost:not(.cardbtn),.mapbtn{background-image:linear-gradient(180deg,var(-
 #mapbox[data-tp="morning"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(165deg,#ffd9e2,#fff3e6 45%,#fbfdff)}
 #mapbox[data-tp="night"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(180deg,#8f9ee0,#aab6ea)}
 #mapbox[data-tp="late"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(180deg,#7482c8,#8e9ad8)}
-#mapbox[data-tp="evening"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(170deg,#ffb98a,#ffd6b4 50%,#efd0e4)}
+#mapbox[data-tp="evening"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(170deg,#ffd4b0,#ffe8d6 50%,#f7e6ee)}
 #mapbox[data-wx="1"] .atmo.wx{opacity:var(--atA,1);background:#d6dae4}
 #mapbox[data-wx="2"] .atmo.wx{opacity:var(--atA,1);background:#c6cedb}
-#mapbox[data-wx="3"] .atmo.wx{opacity:var(--atA,1);background:#a3a8bd}
-#mapbox[data-tp="morning"]{--sunC:rgba(255,236,190,.38)}#mapbox[data-tp="evening"]{--sunC:rgba(255,140,70,.28)}#mapbox[data-tp="night"],#mapbox[data-tp="late"]{--sunC:transparent}
+#mapbox[data-wx="3"] .atmo.wx{opacity:var(--atA,1);background:linear-gradient(180deg,#7d829c,#9499b0)}
+#mapbox[data-tp="morning"]{--sunC:rgba(255,236,190,.38)}#mapbox[data-tp="evening"]{--sunC:rgba(255,160,90,.18)}#mapbox[data-tp="night"],#mapbox[data-tp="late"]{--sunC:transparent}
 #mapbox[data-wx="1"]{--sunC:rgba(255,244,214,.06)}#mapbox[data-wx="2"],#mapbox[data-wx="3"]{--sunC:transparent}
 .stream .atmo{display:none}
 #map{background:linear-gradient(180deg,var(--sea),var(--seaDeep))}
@@ -2768,17 +2780,17 @@ let fxLast=0,fxAvg=16,fxSlow=0,fxTick=0,fxSz=null,fxRO=null;const fxLow=()=>docu
 function fxMeter(now){const dt=now-fxLast;fxLast=now;if(dt<=0||dt>250||document.hidden||SET.fxq==='lite'||fxLow())return;fxAvg=fxAvg*.95+dt*.05;
   if(fxAvg>28&&document.body.classList.contains('ingame')){if(++fxSlow>240){document.body.classList.add('lowfx');bursts.length=Math.min(bursts.length,120);parts.length=Math.min(parts.length,4)}}else fxSlow=Math.max(0,fxSlow-2)}
 // 時間帯と天気の雰囲気（見た目だけ。ゲームの計算には関係しない）：朝焼け・夕焼け・夜・深夜の色、くもりの雲の影、雨すじ、嵐の稲光
-let wxp=[],wxCl=[],wxk=-1,wxFl=0,wxNext=0;
+let wxp=[],wxCl=[],wxk=-1,wxFl=0,wxNext=0,wxBolt=null;
 function setAtmo(h,wx){const m=$('#mapbox');if(!m)return;const tp=h>=5&&h<10?'morning':h>=10&&h<16?'day':h>=16&&h<19?'evening':h>=1&&h<5?'late':'night';
   if(m.dataset.tp!==tp)m.dataset.tp=tp;if(m.dataset.wx!==String(wx))m.dataset.wx=String(wx);const nl=$('#nightLayer');if(nl&&(tp==='night'||tp==='late'))nl.setAttribute('opacity',tp==='late'?.3:.2);setWx(wx)}
 function setWx(wx){if(wx===wxk)return;wxk=wx;wxFl=0;const q=reduce||wx<0?0:FXQ(),W=fxW||400,H=fxH||560;
-  wxp=wx>=2?Array.from({length:Math.round((wx===3?90:55)*q)},()=>({x:Math.random()*(W+80),y:Math.random()*H,v:9+Math.random()*5,l:8+Math.random()*10})):[];
-  wxCl=q?Array.from({length:[1,3,3,3][wx]||0},(_,i)=>({x:Math.random()*W,y:(i+.5)*H/3+(Math.random()-.5)*60,r:.45+Math.random()*.3,v:.12+Math.random()*.1})):[];wxNext=performance.now()+4000;fxDirty=true}
-// 稲光は弱い光を6〜14秒に1回だけ（点滅が苦手な人への配慮。動きを減らす設定では出さない）
+  wxp=wx>=2?Array.from({length:Math.round((wx===3?150:55)*q)},()=>({x:Math.random()*(W+160),y:Math.random()*H,v:(wx===3?13:9)+Math.random()*5,l:(wx===3?14:8)+Math.random()*12})):[];
+  wxCl=q?Array.from({length:[1,3,3,3][wx]||0},(_,i)=>({x:Math.random()*W,y:(i+.5)*H/3+(Math.random()-.5)*60,r:.45+Math.random()*.3,v:(wx===3?.5:.12)+Math.random()*.1})):[];wxNext=performance.now()+(wx===3?1500:4000);wxBolt=null;fxDirty=true}
+// 嵐の稲光：遠くの空に稲妻が走り、2段に光る。5〜11秒に1回だけで、画面全体の光は弱め（点滅が苦手な人への配慮。動きを減らす設定では出さない）
 function drawWx(W,H,sp){if(!document.body.classList.contains('ingame'))return;
   if(wxCl.length){const im=shadeSpr();if(im){cx.globalAlpha=[.1,.15,.2,.24][wxk]||.15;for(const c of wxCl){c.x+=c.v*sp;const r=W*c.r;if(c.x-r>W)c.x=-r;cx.drawImage(im,c.x-r,c.y-r*.6,r*2,r*1.2)}}}
-  if(wxp.length){const wind=wxk===3?.45:.18;cx.globalAlpha=wxk===3?.5:.4;cx.strokeStyle='#dce9ff';cx.lineWidth=1;cx.beginPath();for(const d of wxp){d.y+=d.v*sp;d.x-=d.v*wind*sp;if(d.y>H+20){d.y=-20;d.x=Math.random()*(W+80)}if(d.x<-40)d.x+=W+80;cx.moveTo(d.x,d.y);cx.lineTo(d.x+d.l*wind,d.y-d.l)}cx.stroke()}
-  if(wxk===3&&!reduce){const now=performance.now();if(now>wxNext){wxFl=1;wxNext=now+6000+Math.random()*8000}if(wxFl>0){cx.globalAlpha=wxFl*(wxFl>.6&&wxFl<.8?.06:.24);cx.fillStyle='#eef2ff';cx.fillRect(0,0,W,H);wxFl-=.05*sp}}
+  if(wxp.length){const wind=wxk===3?.62:.18;cx.globalAlpha=wxk===3?.55:.4;cx.strokeStyle='#dce9ff';cx.lineWidth=1;cx.beginPath();for(const d of wxp){d.y+=d.v*sp;d.x-=d.v*wind*sp;if(d.y>H+20){d.y=-20;d.x=Math.random()*(W+160)}if(d.x<-80)d.x+=W+160;cx.moveTo(d.x,d.y);cx.lineTo(d.x+d.l*wind,d.y-d.l)}cx.stroke()}
+  if(wxk===3&&!reduce){const now=performance.now();if(now>wxNext){wxFl=1;wxNext=now+5000+Math.random()*6000;const pts=[];let x=W*(.15+Math.random()*.7),y=-5;while(y<H*(.45+Math.random()*.25)){pts.push([x,y]);x+=(Math.random()-.5)*34;y+=10+Math.random()*16}const br=pts.length>3?pts.slice(2+Math.floor(Math.random()*(pts.length-3))).slice(0,1).map(([bx,by])=>{const q=[[bx,by]];for(let i=0;i<4;i++){bx+=8+Math.random()*16;by+=10+Math.random()*12;q.push([bx,by])}return q}):[];wxBolt={pts,br}}if(wxFl>0){const on=wxFl>.82||(wxFl>.5&&wxFl<.66);cx.globalAlpha=on?.3*wxFl:.05;cx.fillStyle='#e8eeff';cx.fillRect(0,0,W,H);if(wxBolt&&on){cx.globalCompositeOperation='lighter';cx.lineJoin='round';cx.lineCap='round';for(const [lw,al] of [[7,.25],[2.2,.95]]){cx.globalAlpha=al*wxFl;cx.strokeStyle=lw>3?'#9fb4ff':'#ffffff';cx.lineWidth=lw;for(const ln of [wxBolt.pts,...wxBolt.br]){cx.beginPath();ln.forEach(([px,py],i)=>i?cx.lineTo(px,py):cx.moveTo(px,py));cx.stroke()}}cx.globalCompositeOperation='source-over'}wxFl-=.035*sp}}
   cx.globalAlpha=1}
 function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.splice(0,bursts.length-500);if(flashes.length>24)flashes.splice(0,flashes.length-24);
   const onlyAmb=!bursts.length&&!flashes.length&&!(performance.now()<staticUntil),hasVeh=VEH.length&&!fxLow();fxTick++;if(onlyAmb&&!fxDirty&&(fxTick&1)){if(!reduce)requestAnimationFrame(frame);return}
@@ -2808,7 +2820,7 @@ function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.
 // 地図上の点 → 地図の枠の中の画面位置（カメラで拡大中でも正しく出す）
 // 地図の大きさを画面に合わせる：上の情報と下の操作ボタンの間にぴったり収める（縦にスクロールしなくても全体が見える）
 function fitMap(){const m=$('#mapbox');if(!m||!document.body.classList.contains('ingame'))return;const sy=window.scrollY,top=m.getBoundingClientRect().top+sy,bar=$('#bar'),bh=bar&&!bar.hidden?bar.offsetHeight:0,tt=($('#turnText')||{}).offsetHeight||14;
-  const VHt=Math.min(window.innerHeight,(window.visualViewport&&visualViewport.height)||1e9),avail=VHt-top-bh-tt-10,pw=m.parentElement.clientWidth,h0=Math.max(220,avail),w=pw,hh=Math.min(h0,w*1.75);if(!(w>0))return;/* 地図が非表示（幅0）のときは測らない（VHがNaNになり地図が壊れるため） */VH=400*hh/w;const key=Math.round(w)+'x'+Math.round(hh);if(m.dataset.fit===key)return;m.dataset.fit=key;m.style.width=w+'px';m.style.height=hh+'px';if(typeof camHome==='function'&&built)setTimeout(()=>camHome(0),0)}
+  const side=getComputedStyle(m).gridColumnStart==='2',/* 横持ちの2列表示 */VHt=Math.min(window.innerHeight,(window.visualViewport&&visualViewport.height)||1e9),avail=side?VHt-top-8:VHt-top-bh-tt-10,pw=side?m.parentElement.getBoundingClientRect().right-m.getBoundingClientRect().left:m.parentElement.clientWidth,h0=Math.max(220,avail),w=pw,hh=Math.min(h0,w*1.75);if(!(w>0))return;/* 地図が非表示（幅0）のときは測らない（VHがNaNになり地図が壊れるため） */VH=400*hh/w;const key=Math.round(w)+'x'+Math.round(hh);if(m.dataset.fit===key)return;m.dataset.fit=key;m.style.width=w+'px';m.style.height=hh+'px';if(typeof camHome==='function'&&built)setTimeout(()=>camHome(0),0)}
 addEventListener('resize',()=>setTimeout(fitMap,60));
 function mapPt(n){const svg=$('#map'),box=$('#mapbox').getBoundingClientRect();try{const p=svg.createSVGPoint();p.x=n.x;p.y=n.y;const q=p.matrixTransform(svg.getScreenCTM());return{x:q.x-box.left,y:q.y-box.top}}catch{return{x:n.x/400*box.width,y:n.y/560*box.height}}}
 function fxEl(cls,html,x,y,ms){if(reduce&&!/fnum|banner|cmt|respop|stinfo|speech|roul/.test(cls))return null;const e=document.createElement('div');e.className='fx '+cls;if(html)e.innerHTML=html;if(x!=null){e.style.left=x+'px';e.style.top=y+'px'}e.dataset.t=Date.now();$('#mapbox').appendChild(e);setTimeout(()=>e.remove(),SET.fast?ms/2:ms);if(/respop|stinfo|speech/.test(cls))cmtFit();return e}
