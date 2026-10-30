@@ -170,11 +170,11 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#17111f; --outline:#7a68a0; --pop:#000; --bgDot:#2a1d36; --bgDot2:#1d2338; --panel:#221a2d; --ink:#f6f0fa; --muted:#b5a8c6; --line:#382d46;
-  --pink:#ff5fa8; --yell:#3fb6ff; --anti:#ff5a5f; --plus:#33d17a; --card:#ffcc33; --rank:#9d7bff; --collab:#33d17a; --station:#ff8a3d; --sea:#1d3557; --shallow:#2c5d86; --snow:#5d6a86; --snow2:#48536e; --air:#a99cff; --forest:#3f8a52; --seaDeep:#16294a; --land:#4a3d5e; --landEdge:#7a68a0; --plain:#5a4f6b; --land2:#3d3150; --mount:#5b4d6e; --rail:#6a5c7e; --texMac:.25;
+  --pink:#ff5fa8; --yell:#3fb6ff; --anti:#ff5a5f; --plus:#33d17a; --card:#ffcc33; --rank:#9d7bff; --collab:#33d17a; --station:#ff8a3d; --sea:#1d3557; --shallow:#2c5d86; --snow:#5d6a86; --snow2:#48536e; --air:#a99cff; --forest:#3f8a52; --seaDeep:#16294a; --land:#4a3d5e; --landEdge:#7a68a0; --plain:#5a4f6b; --land2:#3d3150; --mount:#5b4d6e; --rail:#6a5c7e; --texMac:.25; --atA:.6;
   --s0:#ff5fa8; --s1:#3fb6ff; --s2:#ffcc33; --s3:#33d17a; --good:#46c995; --warn:#f0a63a; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#17111f; --outline:#7a68a0; --pop:#000; --bgDot:#2a1d36; --bgDot2:#1d2338; --panel:#221a2d; --ink:#f6f0fa; --muted:#b5a8c6; --line:#382d46;
-  --pink:#ff5fa8; --yell:#3fb6ff; --anti:#ff5a5f; --plus:#33d17a; --card:#ffcc33; --rank:#9d7bff; --collab:#33d17a; --station:#ff8a3d; --sea:#1d3557; --shallow:#2c5d86; --snow:#5d6a86; --snow2:#48536e; --air:#a99cff; --forest:#3f8a52; --seaDeep:#16294a; --land:#4a3d5e; --landEdge:#7a68a0; --plain:#5a4f6b; --land2:#3d3150; --mount:#5b4d6e; --rail:#6a5c7e; --texMac:.25;
+  --pink:#ff5fa8; --yell:#3fb6ff; --anti:#ff5a5f; --plus:#33d17a; --card:#ffcc33; --rank:#9d7bff; --collab:#33d17a; --station:#ff8a3d; --sea:#1d3557; --shallow:#2c5d86; --snow:#5d6a86; --snow2:#48536e; --air:#a99cff; --forest:#3f8a52; --seaDeep:#16294a; --land:#4a3d5e; --landEdge:#7a68a0; --plain:#5a4f6b; --land2:#3d3150; --mount:#5b4d6e; --rail:#6a5c7e; --texMac:.25; --atA:.6;
   --s0:#ff5fa8; --s1:#3fb6ff; --s2:#ffcc33; --s3:#33d17a; --good:#46c995; --warn:#f0a63a; color-scheme:dark}
 [hidden]{display:none!important}
 html,body{height:100%}
@@ -729,6 +729,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
     <div class="turnbar" id="turnBar"></div>
     <div class="mapbox" id="mapbox">
       <div id="mapwrap"><svg id="map" viewBox="0 0 400 560" role="img" aria-label="西日本のすごろく地図"></svg></div>
+      <div class="atmo tp" aria-hidden="true"></div><div class="atmo wx" aria-hidden="true"></div>
       <div class="sky" id="sky"></div><div class="skylabel" id="skyLabel"></div>
       <canvas id="fx" width="900" height="700"></canvas>
       <button type="button" class="mapbtn" id="bView">全体を見る</button><div class="goalarrow" id="goalArrow" hidden></div>
@@ -829,8 +830,20 @@ button.ghost:not(.cardbtn),.mapbtn{background-image:linear-gradient(180deg,var(-
 .bar #bRoll:not(:disabled){background-image:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 50%),linear-gradient(180deg,#ff6aa8,var(--pink))}
 .optbtn,.basebtn,.ytbtn,.yabtn{background-image:linear-gradient(180deg,var(--gloss),rgba(255,255,255,0) 50%)}
 /* 地図：ふちの内側にうっすら影を入れて奥行きを出す */
-.mapbox::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(110% 80% at 15% 0%,rgba(255,240,205,.18),rgba(255,240,205,0) 50%),radial-gradient(150% 120% at 50% 45%,rgba(20,10,30,0) 60%,rgba(20,10,30,.14) 100%);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 10px 22px -10px rgba(0,0,0,.35),inset 0 -14px 26px -14px rgba(0,0,0,.3);z-index:3}
+.mapbox::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(110% 80% at 15% 0%,var(--sunC,rgba(255,240,205,.18)),transparent 50%),radial-gradient(150% 120% at 50% 45%,rgba(20,10,30,0) 60%,rgba(20,10,30,.14) 100%);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 10px 22px -10px rgba(0,0,0,.35),inset 0 -14px 26px -14px rgba(0,0,0,.3);z-index:3}
 .stream .mapbox::after{display:none}
+/* 時間帯と天気の雰囲気：地図に色を重ねる（掛け合わせなので明るい所は明るいまま）。演出の粒・空の帯・ボタンより下 */
+.atmo{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:0;transition:opacity 1.5s}
+#mapbox[data-tp="morning"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(165deg,#ffd9e2,#fff3e6 45%,#fbfdff)}
+#mapbox[data-tp="night"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(180deg,#8f9ee0,#aab6ea)}
+#mapbox[data-tp="late"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(180deg,#7482c8,#8e9ad8)}
+#mapbox[data-tp="evening"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(170deg,#ffb98a,#ffd6b4 50%,#efd0e4)}
+#mapbox[data-wx="1"] .atmo.wx{opacity:var(--atA,1);background:#d6dae4}
+#mapbox[data-wx="2"] .atmo.wx{opacity:var(--atA,1);background:#c6cedb}
+#mapbox[data-wx="3"] .atmo.wx{opacity:var(--atA,1);background:#a3a8bd}
+#mapbox[data-tp="morning"]{--sunC:rgba(255,236,190,.38)}#mapbox[data-tp="evening"]{--sunC:rgba(255,140,70,.28)}#mapbox[data-tp="night"],#mapbox[data-tp="late"]{--sunC:transparent}
+#mapbox[data-wx="1"]{--sunC:rgba(255,244,214,.06)}#mapbox[data-wx="2"],#mapbox[data-wx="3"]{--sunC:transparent}
+.stream .atmo{display:none}
 #map{background:linear-gradient(180deg,var(--sea),var(--seaDeep))}
 /* サイコロ：角の丸い立体の目 */
 .face{background:radial-gradient(120% 120% at 30% 20%,#fff 0,#fff 45%,#f3eef8 100%);box-shadow:inset 0 -4px 0 #ffe0ee,inset 0 2px 0 #fff,inset 0 0 0 1px rgba(0,0,0,.04)}
@@ -2068,7 +2081,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();aw
   await db.doc('games/'+old).update({next:c});$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();return enter(c)}}catch(e){toast(errText(e))}}
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
-function resetGame(){document.body.classList.remove('ingame');{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
+function resetGame(){document.body.classList.remove('ingame');setWx(-1);{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
   animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[]}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
@@ -2716,6 +2729,7 @@ function fireworks(n){if(reduce)return;n=Math.max(1,Math.round(n*FXQ()));for(let
 // 光のにじみ・金貨・煙の絵は、最初に1回だけ小さなキャンバスに描いて使い回す（粒ごとにグラデーションを作るより軽い）。作れない環境では従来の描き方
 const SPR={};function spr(key,mk){if(key in SPR)return SPR[key];let c=null;try{c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');if(g){g.translate(32,32);mk(g)}else c=null}catch(e){c=null}return SPR[key]=c}
 const glowSpr=col=>spr('g'+col,g=>{const t=/^#[0-9a-f]{6}$/i.test(col)?col:'#ffffff',r=g.createRadialGradient(0,0,0,0,0,32);r.addColorStop(0,'#ffffff');r.addColorStop(.18,t);r.addColorStop(.45,t+'55');r.addColorStop(1,t+'00');g.fillStyle=r;g.fillRect(-32,-32,64,64)});
+const shadeSpr=()=>spr('shade',g=>{const r=g.createRadialGradient(0,0,0,0,0,32);r.addColorStop(0,'rgba(20,28,48,.6)');r.addColorStop(.55,'rgba(20,28,48,.3)');r.addColorStop(1,'rgba(20,28,48,0)');g.fillStyle=r;g.fillRect(-32,-32,64,64)});
 const smokeSpr=()=>spr('smoke',g=>{const r=g.createRadialGradient(0,0,0,0,0,32);r.addColorStop(0,'rgba(210,210,220,.9)');r.addColorStop(.5,'rgba(190,190,205,.45)');r.addColorStop(1,'rgba(180,180,195,0)');g.fillStyle=r;g.fillRect(-32,-32,64,64)});
 // 金貨：ふちの厚み・金属の照り返し・刻印のくぼみ・光沢（裏面は少し暗い）
 const coinSpr=back=>spr('coin'+(back?1:0),g=>{const R=28;let gr=g.createLinearGradient(-R,-R,R,R);gr.addColorStop(0,'#fff1a8');gr.addColorStop(.45,back?'#d99a12':'#f2b51a');gr.addColorStop(1,'#7a4c00');g.fillStyle=gr;g.beginPath();g.arc(0,0,R,0,7);g.fill();
@@ -2753,19 +2767,33 @@ function drawVeh(now){if(!VEH.length||fxLow())return;if(!VEHP.plane){try{VEHP.pl
 let fxLast=0,fxAvg=16,fxSlow=0,fxTick=0,fxSz=null,fxRO=null;const fxLow=()=>document.body.classList.contains('lowfx');
 function fxMeter(now){const dt=now-fxLast;fxLast=now;if(dt<=0||dt>250||document.hidden||SET.fxq==='lite'||fxLow())return;fxAvg=fxAvg*.95+dt*.05;
   if(fxAvg>28&&document.body.classList.contains('ingame')){if(++fxSlow>240){document.body.classList.add('lowfx');bursts.length=Math.min(bursts.length,120);parts.length=Math.min(parts.length,4)}}else fxSlow=Math.max(0,fxSlow-2)}
+// 時間帯と天気の雰囲気（見た目だけ。ゲームの計算には関係しない）：朝焼け・夕焼け・夜・深夜の色、くもりの雲の影、雨すじ、嵐の稲光
+let wxp=[],wxCl=[],wxk=-1,wxFl=0,wxNext=0;
+function setAtmo(h,wx){const m=$('#mapbox');if(!m)return;const tp=h>=5&&h<10?'morning':h>=10&&h<16?'day':h>=16&&h<19?'evening':h>=1&&h<5?'late':'night';
+  if(m.dataset.tp!==tp)m.dataset.tp=tp;if(m.dataset.wx!==String(wx))m.dataset.wx=String(wx);const nl=$('#nightLayer');if(nl&&(tp==='night'||tp==='late'))nl.setAttribute('opacity',tp==='late'?.3:.2);setWx(wx)}
+function setWx(wx){if(wx===wxk)return;wxk=wx;wxFl=0;const q=reduce||wx<0?0:FXQ(),W=fxW||400,H=fxH||560;
+  wxp=wx>=2?Array.from({length:Math.round((wx===3?90:55)*q)},()=>({x:Math.random()*(W+80),y:Math.random()*H,v:9+Math.random()*5,l:8+Math.random()*10})):[];
+  wxCl=q?Array.from({length:[1,3,3,3][wx]||0},(_,i)=>({x:Math.random()*W,y:(i+.5)*H/3+(Math.random()-.5)*60,r:.45+Math.random()*.3,v:.12+Math.random()*.1})):[];wxNext=performance.now()+4000;fxDirty=true}
+// 稲光は弱い光を6〜14秒に1回だけ（点滅が苦手な人への配慮。動きを減らす設定では出さない）
+function drawWx(W,H,sp){if(!document.body.classList.contains('ingame'))return;
+  if(wxCl.length){const im=shadeSpr();if(im){cx.globalAlpha=[.1,.15,.2,.24][wxk]||.15;for(const c of wxCl){c.x+=c.v*sp;const r=W*c.r;if(c.x-r>W)c.x=-r;cx.drawImage(im,c.x-r,c.y-r*.6,r*2,r*1.2)}}}
+  if(wxp.length){const wind=wxk===3?.45:.18;cx.globalAlpha=wxk===3?.5:.4;cx.strokeStyle='#dce9ff';cx.lineWidth=1;cx.beginPath();for(const d of wxp){d.y+=d.v*sp;d.x-=d.v*wind*sp;if(d.y>H+20){d.y=-20;d.x=Math.random()*(W+80)}if(d.x<-40)d.x+=W+80;cx.moveTo(d.x,d.y);cx.lineTo(d.x+d.l*wind,d.y-d.l)}cx.stroke()}
+  if(wxk===3&&!reduce){const now=performance.now();if(now>wxNext){wxFl=1;wxNext=now+6000+Math.random()*8000}if(wxFl>0){cx.globalAlpha=wxFl*(wxFl>.6&&wxFl<.8?.06:.24);cx.fillStyle='#eef2ff';cx.fillRect(0,0,W,H);wxFl-=.05*sp}}
+  cx.globalAlpha=1}
 function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.splice(0,bursts.length-500);if(flashes.length>24)flashes.splice(0,flashes.length-24);
   const onlyAmb=!bursts.length&&!flashes.length&&!(performance.now()<staticUntil),hasVeh=VEH.length&&!fxLow();fxTick++;if(onlyAmb&&!fxDirty&&(fxTick&1)){if(!reduce)requestAnimationFrame(frame);return}
   // 枠の大きさは、変わったとき（ResizeObserver）か約0.5秒ごとにだけ測る（毎コマ測ると画面の再計算が起きて重い）
   if(!fxRO&&window.ResizeObserver&&cv.parentElement){fxRO=new ResizeObserver(()=>{fxSz=null});fxRO.observe(cv.parentElement)}if(!fxSz||!(fxTick%30)){const m=cv.parentElement;fxSz=[m?m.clientWidth:0,m?m.clientHeight:0];if(!camLive)fxSvg=null}
   const w=fxSz[0],h=fxSz[1],d=Math.min(2,devicePixelRatio||1);
   if(w&&h&&(w!==fxW||h!==fxH||d!==fxD)){fxW=w;fxH=h;fxD=d;cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.style.width=w+'px';cv.style.height=h+'px';fxDirty=true}
-  const busy=parts.length||bursts.length||flashes.length||hasVeh||performance.now()<staticUntil;
+  const busy=parts.length||bursts.length||flashes.length||hasVeh||wxp.length||wxCl.length||performance.now()<staticUntil;
   if(busy||fxDirty){cx.setTransform(1,0,0,1,0,0);cx.globalAlpha=1;cx.clearRect(0,0,cv.width,cv.height);fxDirty=!!busy}
   if(busy){// まわりを舞う葉・雪（画面の座標）
     cx.setTransform(d,0,0,d,0,0);const W=fxW||400,H=fxH||560;
     const sp=onlyAmb?2:1;for(const p of parts){p.y+=p.v*sp;p.x+=Math.sin(p.a+=.02*sp)*.5*sp;if(p.y>H+8){p.y=-8;p.x=Math.random()*W}if(p.x>W+8)p.x=-8;if(p.x<-8)p.x=W+8;
       if(pkind==='snow'){cx.globalAlpha=.35;cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y,p.r*1.3,0,7);cx.fill();cx.globalAlpha=.8;cx.beginPath();cx.arc(p.x,p.y,p.r*.6,0,7);cx.fill()}
       else{cx.globalAlpha=.55;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.scale(1,Math.cos(p.a*1.3)*.5+.6);cx.fillStyle=p.c;cx.beginPath();cx.moveTo(-p.r*1.6,0);cx.quadraticCurveTo(0,-p.r*1.1,p.r*1.6,0);cx.quadraticCurveTo(0,p.r*1.1,-p.r*1.6,0);cx.fill();cx.strokeStyle='rgba(120,50,0,.35)';cx.lineWidth=.6;cx.beginPath();cx.moveTo(-p.r*1.3,0);cx.lineTo(p.r*1.3,0);cx.stroke();cx.restore()}}
+    drawWx(W,H,sp);
     if(bursts.length||flashes.length||hasVeh){const T=fxMap(d);cx.setTransform(T[0],0,0,T[1],T[2],T[3]);if(hasVeh)drawVeh(now||performance.now());
       flashes=flashes.filter(f=>f.life-->0);for(const f of flashes){const t=1-f.life/f.max;cx.globalCompositeOperation='lighter';
         if(f.full){cx.save();cx.setTransform(1,0,0,1,0,0);cx.globalAlpha=(1-t)*.09;cx.fillStyle=f.c;cx.fillRect(0,0,cv.width,cv.height);cx.restore()}
@@ -3132,7 +3160,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   if(!built){buildMap();built=true;requestAnimationFrame(frame);drawPawns(dispState)}
   const{chain,broken}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip){$('#turnText').textContent='盤面を読み込み中…';return}
   const st=tip.state,ds=dispState||st;if(!dispState){dispState=st;drawPawns(st);camHome(0)}
-  setSeason(1);const night=isNight(ds.hour),hh=ds.hour,sk=night?3:hh<10?0:hh<16?1:2;$('#sky').style.background=SKY[sk];{const w=WEATHER[ds.weather||0];$('#skyLabel').innerHTML=`${ds.month}日目 ${ds.hour}:00　決算まで${(24-ds.hour)%24||24}時間<small class="wx">${w[0]} ${w[1]}・${TZN[TZ(ds.hour)]}<span class="wxi">ⓘ 倍率</span></small>`};$('#mapbox').classList.toggle('isnight',night);const nl=$('#nightLayer');if(nl)nl.setAttribute('opacity',night?.38:0);
+  setSeason(1);const night=isNight(ds.hour),hh=ds.hour,sk=night?3:hh<10?0:hh<16?1:2;$('#sky').style.background=SKY[sk];{const w=WEATHER[ds.weather||0];$('#skyLabel').innerHTML=`${ds.month}日目 ${ds.hour}:00　決算まで${(24-ds.hour)%24||24}時間<small class="wx">${w[0]} ${w[1]}・${TZN[TZ(ds.hour)]}<span class="wxi">ⓘ 倍率</span></small>`};$('#mapbox').classList.toggle('isnight',night);const nl=$('#nightLayer');if(nl)nl.setAttribute('opacity',night?.38:0);setAtmo(hh,ds.weather||0);
   const ts=st.finished?-1:curSeat(ds);document.body.classList.add('ingame');if(!render.fitQ){render.fitQ=1;requestAnimationFrame(()=>{render.fitQ=0;fitMap()})}
   // プレイヤー欄（第30版）：総Gの多い順に1人1段・4段で表示。順位が入れかわったら、なめらかに並びかえる
   // 自分の手番で目的地の賞金・止まったマスの結果が出たら、獲得・ショップの画面を待たずに表示へ反映する（表示用の写し pending.view）
