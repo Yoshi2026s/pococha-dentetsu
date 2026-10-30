@@ -154,7 +154,8 @@
 </style></head><body>
 <title>ポコチャ電鉄 対戦テスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=Noto+Sans+JP:wght@400;600&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Zen+Maru+Gothic:wght@500;700&display=swap">
 <style>
 /* Layout: phone column — player strip, Kyushu-Okinawa map with sky band and particles, goal line, log; thumb bar pinned at the bottom */
 :root{
@@ -164,7 +165,8 @@
   --s0:#e8357f; --s1:#1d8fe0; --s2:#d99a00; --s3:#159a55;
   --good:#159a55; --warn:#c77700;
   --f-display:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",system-ui,sans-serif;
-  --f-body:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;
+  --f-body:"Zen Maru Gothic","M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP","Hiragino Sans",system-ui,sans-serif;
+  --f-pop:"Mochiy Pop One","M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Noto Sans JP",system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#17111f; --outline:#7a68a0; --pop:#000; --bgDot:#2a1d36; --bgDot2:#1d2338; --panel:#221a2d; --ink:#f6f0fa; --muted:#b5a8c6; --line:#382d46;
@@ -678,7 +680,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 </style>
 
 <div class="wrap">
-  <h1 id="ttl">ポコチャ電鉄 対戦テスト<small>全国編 試験版（24時間制・0:00決算）</small></h1>
+  <h1 id="ttl" aria-label="ポコチャ電鉄 対戦テスト"><span class="logo" aria-hidden="true"><span class="lg-a" data-t="ポコチャ">ポコチャ</span><span class="lg-b" data-t="電鉄">電鉄</span><span class="lg-c" data-t="対戦テスト">対戦テスト</span></span><small>全国編 試験版（24時間制・0:00決算）</small></h1>
   <div id="toast" class="toast" hidden></div>
 
   <section id="resumeBox" class="panel resumebox" hidden>
@@ -838,6 +840,33 @@ button.ghost:not(.cardbtn),.mapbtn{background-image:linear-gradient(180deg,var(-
 .lowfx #map .beat,.lowfx #map .burstspin,.lowfx #map .rise,.lowfx #map .tilt,.lowfx #map .spin,.lowfx #map .spark,.lowfx #map .pop,.lowfx #map .wv,.lowfx #map .cl,.lowfx .pl.turn,.lowfx .bar #bRoll::after{animation:none!important}
 .lowfx #map .vehicles,.lowfx .mapbox::after{display:none}
 @media (prefers-reduced-motion:reduce){.bar #bRoll:not(:disabled)::after{display:none}}
+/* ===== 文字の見た目（第37版）：本文＝Zen Maru Gothic（丸ゴシック）、見出し・ボタン＝M PLUS Rounded 1c、ロゴ・帯・大見出し＝Mochiy Pop One ===== */
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;font-weight:500}
+/* 見出し・ボタンは日本語の詰め（palt）で引き締める */
+h1,h2,h3,button,.bn,.code,.gc-n,.gfs-top,.gfs-ribbon,.gfs-who,.chip,.mis-h,.pl b{font-feature-settings:"palt";letter-spacing:.02em}
+/* タイトルロゴ：ポップ体＋グラデーション＋白いふち＋立体の影 */
+h1#ttl{font-family:var(--f-pop);font-weight:400;line-height:1.05;text-shadow:none;-webkit-text-stroke:0}
+h1#ttl::first-letter{color:inherit}
+h1#ttl .logo{display:flex;align-items:baseline;gap:.12em;white-space:nowrap}
+/* 下の層＝白い太ふち＋立体の影、上の層（::after）＝グラデーションの文字 */
+h1#ttl .logo>span,h1#ttl .logo>span::before,h1#ttl .logo>span::after{text-shadow:none!important}
+h1#ttl .logo>span{position:relative;display:inline-block;color:#fff;-webkit-text-stroke:8px #fff;filter:drop-shadow(0 3px 0 var(--pop)) drop-shadow(0 6px 8px rgba(43,34,54,.25))}
+h1#ttl .logo>span::after{content:attr(data-t);position:absolute;left:0;top:0;-webkit-text-stroke:0;background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1#ttl .logo>span::before{content:attr(data-t);position:absolute;left:0;top:0;-webkit-text-stroke:2.5px var(--pop);color:transparent}
+h1#ttl .lg-a{font-size:clamp(30px,9.4vw,42px);--g:linear-gradient(180deg,#ff8cc4 0%,#f0287e 55%,#c8105f 100%)}
+h1#ttl .lg-b{font-size:clamp(32px,10vw,45px);--g:linear-gradient(180deg,#ffe36a 0%,#ffb000 55%,#f27a00 100%);transform:rotate(3deg) translateY(-2px)}
+h1#ttl .lg-c{font-size:clamp(17px,5vw,22px);--g:linear-gradient(180deg,#7fd0ff 0%,#1a8fe8 60%,#1263b8 100%);-webkit-text-stroke:4px #fff;margin-left:.2em}
+h1#ttl small{font-family:var(--f-display);font-weight:800;margin-top:10px}
+/* 見出しと大きな文字はポップ体 */
+h2{font-family:var(--f-pop);font-weight:400;letter-spacing:.03em}
+.card h3,.code,.gc-n,.bn,.gfs-top,.gfs-ribbon,.gfs-who,.fx.urtxt span{font-family:var(--f-pop);font-weight:400}
+.code{letter-spacing:.22em}
+.bn{letter-spacing:.04em}
+/* 主なボタン（部屋を作る・開始・サイコロ）もポップ体で大きく */
+#bCreate,#bStart,.bar #bRoll{font-family:var(--f-pop);font-weight:400;font-size:17px;letter-spacing:.06em}
+/* 数字：桁がそろう等幅数字＋太字 */
+.pl-coin,.pl-tot b,.card .big,.rl-in b,.fnum,.gc-l b{font-variant-numeric:tabular-nums;font-weight:900}
+.card .big{font-family:var(--f-display)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .face{background:radial-gradient(120% 120% at 30% 20%,#fff 0,#f4eff9 55%,#ddd3ea 100%)}}
 </style>
 <script src="firebase-config.js"></script>
