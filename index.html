@@ -81,7 +81,7 @@
 .sp-bub{position:relative;background:#fff;color:#2b2236;border:2.5px solid var(--c);border-radius:14px 14px 14px 4px;padding:5px 10px 6px;font-size:13.5px;font-weight:700;line-height:1.4;box-shadow:2px 2px 0 rgba(0,0,0,.35)}
 .sp-bub b{display:block;font-size:10.5px;color:var(--c);margin-bottom:1px}
 @keyframes spin{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}@keyframes spout{to{opacity:0;transform:translateY(-6px)}}
-.namerow input{flex:1;min-width:0}
+.namerow input{flex:1;min-width:0}.namerow input,.namerow button{min-height:48px;box-sizing:border-box}/* 名前の入力と変更ボタンを押しやすく（48px以上） */
 .prof{text-align:left;border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0}.prof-h{display:flex;align-items:center;gap:8px;margin-bottom:4px}.prof-h b{font-size:17px}
 .prof dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:13px}.prof dt{color:var(--muted);font-weight:700;white-space:nowrap}.prof dd{margin:0}
 .prof-say{margin:8px 0 0;font-weight:700;color:var(--pink)}
@@ -2450,10 +2450,15 @@ function drawTurnRing(ds,ts){const g=$('#turnRing');if(!g)return;if(ts<0||!ds){g
 // プレイヤー表示をタップ：その人の物件一覧・物件数ボーナス・コアファン数・決算見込み
 // ===== プレイヤー情報（名前の変更・CPUキャラのプロフィール）=====
 const NAMEMAX=10;
+// 自分の名前はこの端末に覚えておき（poco-myname）、次の対戦でも席に座ったときに自動で入れる。名前を変えると覚えた名前も変わり、空にすると消える
+const MYNAME_KEY='poco-myname';
+function savedName(){try{return String(localStorage.getItem(MYNAME_KEY)||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,NAMEMAX)}catch{return''}}
+function rememberName(v){try{if(v)localStorage.setItem(MYNAME_KEY,v);else localStorage.removeItem(MYNAME_KEY)}catch{}}
+const autoNamed=new Set();
 function canRename(i){if(!meta||!canWrite)return false;if(seats[i])return seats[i].uid===myId;return db.online?meta.host===myId:(meta.host===myId||mySeat()>=0)}
-async function setName(i,v){v=String(v||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,NAMEMAX);if(!canRename(i)){toast('この名前は変えられません');return false}
-  try{if(seats[i]){const u={...(meta.uname||{})};if(v)u[seats[i].uid]=v;else delete u[seats[i].uid];await db.doc('games/'+code).update({uname:u})}
-    else{const u={...(meta.pname||{})};if(v)u[i]=v;else delete u[i];await db.doc('games/'+code).update({pname:u})}toast(v?`名前を「${v}」にしました`:'名前を元に戻しました');return true}catch(e){toast(errText(e));return false}}
+async function setName(i,v,auto){v=String(v||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,NAMEMAX);if(!canRename(i)){if(!auto)toast('この名前は変えられません');return false}
+  try{if(seats[i]){const u={...(meta.uname||{})};if(v)u[seats[i].uid]=v;else delete u[seats[i].uid];await db.doc('games/'+code).update({uname:u});if(seats[i].uid===myId&&!auto)rememberName(v)}
+    else{const u={...(meta.pname||{})};if(v)u[i]=v;else delete u[i];await db.doc('games/'+code).update({pname:u})}toast(auto?`前回の名前「${v}」で参加しています（部屋の画面で変更できます）`:v?`名前を「${v}」にしました`:'名前を元に戻しました');return true}catch(e){toast(errText(e));return false}}
 async function setCpuChar(i,id){if(!meta||meta.host!==myId){toast('CPUの入れかえはホストだけができます');return}try{await db.doc('games/'+code).update({cpuChar:{...(meta.cpuChar||{}),[i]:id}})}catch(e){toast(errText(e))}}
 function profHTML(c){return`<div class="prof"><div class="prof-h"><b>${esc(c.name)}</b><span class="chip">${CHAR_LV[c.lv]}</span></div><dl>
   <dt>性別・年齢</dt><dd>${c.g}・${c.age}歳</dd><dt>職業</dt><dd>${esc(c.job)}</dd><dt>出身地</dt><dd>${esc(c.from)}</dd><dt>普段の性格</dt><dd>${esc(c.per)}</dd><dt>人柄</dt><dd>${esc(c.nat)}</dd><dt>家族構成</dt><dd>${esc(c.fam)}</dd><dt>話し方</dt><dd>${esc(c.talk)}</dd><dt>プレイの特徴</dt><dd>${esc(c.style)}</dd></dl><p class="prof-say">「${esc(c.L.turn)}」</p></div>`}
@@ -3168,6 +3173,8 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
     [0,1,2,3].forEach(i=>{const s=seats[i],d=document.createElement('button');d.type='button';d.className='seat'+(i===me?' mine':'');
       d.innerHTML=`<span class="who"><span class="dot" style="background:${SEATC[i]}"></span>${i+1}P</span>`;const w=document.createElement('span');w.className='who';if(s)w.textContent=seatName(i);else w.innerHTML='空席<br><small class="wsub">'+(db.online?'開始時にCPU':'タップで座る')+'</small>';d.appendChild(w);
       const c=document.createElement('span');c.className='chip '+(s?(seatOnline(i)?'on':''):'');c.textContent=s?(seatOnline(i)?(s.ready?'準備OK':'接続中'):'切断'):'—';d.appendChild(c);d.onclick=()=>takeSeat(i);$('#seats').appendChild(d)});
+    {const inp=$('#iMyName'),cur=me>=0&&seats[me]?(meta.uname||{})[seats[me].uid]:'',sv=savedName();if(inp&&document.activeElement!==inp)inp.value=cur||sv||'';
+     if(me>=0&&seats[me]&&seats[me].uid===myId&&canWrite&&sv&&!cur&&!autoNamed.has(code)){autoNamed.add(code);setName(me,sv,true)}}
     $('#bReady').hidden=me<0;$('#bReady').textContent=me>=0&&seats[me]&&seats[me].ready?'準備OKを取り消す':'準備OK';
     const host=meta.host===myId;$('#timeoutSettings').hidden=!db.online;$('#selDisconnect').value=String(meta.disconnectSec||45);$('#selCpuTimeout').value=String(meta.cpuTimeoutSec||90);$('#selDisconnect').disabled=!host;$('#selCpuTimeout').disabled=!host;const allReady=seats.filter(Boolean).every(s=>s.ready)&&seats.some(Boolean);$('#bStart').hidden=!host;$('#bStart').disabled=!allReady;$('#selLv').value=meta.cpuLv||'normal';$('#selLv').disabled=!host;$('#selDays').value=String(meta.days??2);$('#selDays').disabled=!host;
     $('#roomNote').textContent=!canWrite?'観戦モードです。':me<0?'参加処理を確認しています。':host?(allReady?'全員準備OKです。開始できます。':'全員の準備OKを待っています。'):'ホストの開始を待っています。';return}
