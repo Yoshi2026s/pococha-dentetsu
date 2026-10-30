@@ -641,6 +641,12 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 /* メニュー・全体を見る：押しやすい大きさに */
 .menubtn{min-height:44px!important;padding:2px 12px!important}
 .menubtn small{font-size:12.5px!important}
+/* メニュー・ポコチャレ欄はサイコロ・カードの下（下のバー内）。サイコロ・カードはメニューと同じ高さにそろえる */
+.bar .toprow{width:100%}
+.ingame .bar #actMain{gap:6px}
+.ingame .bar #actMain button,.bar #actMain button{min-height:44px!important;height:44px;padding-block:0;font-size:15px!important;border-width:2px}
+.bar #actMain button{box-shadow:2px 2px 0 var(--pop)!important}.bar #actMain button:disabled{box-shadow:none!important}
+.bar #actMain button#bRoll{flex:1.1;font-size:15px!important;letter-spacing:.04em}.bar #actMain button#bCard{flex:.9;font-size:14px!important}
 .mapbtn{min-height:40px!important;padding:4px 14px!important;font-size:13px!important}
 #turnText{font-size:12.5px!important;line-height:1.5}
 .goalarrow{font-size:12px!important;padding:4px 10px 4px 6px!important}
@@ -709,7 +715,6 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 
   <section id="vGame" hidden style="display:flex;flex-direction:column;gap:8px">
     <div class="status" id="status"></div>
-    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><div class="misbar" id="misBar"></div></div>
     <div class="goalcard" id="goalCard" hidden></div>
     <div class="turnbar" id="turnBar"></div>
     <div class="mapbox" id="mapbox">
@@ -727,6 +732,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 <div class="bar" id="bar" hidden>
   <div class="inner">
     <div class="main" id="actMain"><button id="bRoll" disabled>サイコロ</button><button id="bCard" class="ghost" disabled>カード</button></div>
+    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><div class="misbar" id="misBar"></div></div>
     <div id="actRoute" hidden><div class="routehead"><span class="routeinfo" id="routeInfo">進む方向をえらんでください</span><span class="routeleft" id="routeLeft"></span></div><div class="routeopts" id="routeOpts"></div><div class="main routectl"><button id="bUndo" class="ghost" disabled>↶ 1つ戻す</button><button id="bAuto" class="ghost">おまかせ（おすすめ）</button></div></div>
     <div id="actReward" hidden><div class="rwinfo" id="rwInfo"></div><div class="main"><button id="bRwCoin">ゴールド 3,000G</button><button id="bRwCard" class="ghost">カード1枚</button></div></div>
     <div id="actShop" hidden><div class="bl-h" id="shopHead">カードショップ</div><div class="baselist" id="shopList"></div><div class="main"><button id="bShopOk">何もせずに終了する</button><button id="bShopUndo" class="ghost" hidden>↶ 1つ戻す</button><button id="bShopSkip" class="ghost" hidden>全部取り消して終了</button></div></div>
