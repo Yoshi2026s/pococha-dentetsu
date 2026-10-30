@@ -2304,7 +2304,7 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
 
 // ================= 演出（v2：カメラ・跳ねる駒・足あと・夜景・花火・大きな演出カード） =================
 let shownTip=null,dispState=null;
-function onRecords(){metaWait=metaWait.filter(f=>!f());if(records.size>KEEP+40){let mx=0;for(const r of records.values())if(r.turn>mx)mx=r.turn;pruneOld(mx)}if(!meta||meta.phase!=='playing'){render();return}
+function onRecords(){metaWait=metaWait.filter(f=>!f());dropStalePending();if(records.size>KEEP+40){let mx=0;for(const r of records.values())if(r.turn>mx)mx=r.turn;pruneOld(mx)}if(!meta||meta.phase!=='playing'){render();return}
   const{chain}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip)return;
   if(!tipSeenAt.has(tip.id))tipSeenAt.set(tip.id,Date.now());
   if(shownTip&&shownTip!==tip.id){const prevOnChain=chain.some(r=>r.id===shownTip);if(!prevOnChain&&records.get(shownTip))toast('通信の遅れで盤面を直しました');
@@ -3119,7 +3119,11 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   const L=$('#log');L.innerHTML='';chain.slice(-8).reverse().forEach(r=>{if(!r.parent)return;const li=document.createElement('li');const n=document.createElement('span');n.className='n';n.textContent='#'+r.turn;
     const s=document.createElement('span');s.textContent=`${r.state.lastSeat+1}P `+(r.state.ev||[]).map(e=>e.t).filter(Boolean).join('／')+(String(r.by).startsWith('cpu')?'（CPU）':'');li.append(n,s);L.appendChild(li)});
   const orphans=[...records.values()].filter(r=>r.rulesVersion===RULES_VERSION&&!chain.includes(r));if(orphans.length){const li=document.createElement('li');li.className='muted';li.textContent=`遅れて届いた行動（無効）${orphans.length}件`;L.appendChild(li)}}
-function tick(){if(db&&db.online&&meta&&meta.phase==='playing'&&meta.host!==myId&&!peers.some(p=>p.id===meta.host)){if(pending){const res=pending.res;pending=null;res(null)}render();$('#turnText').textContent='ホストとの接続を確認中です。進行を止めています。ホストが同じブラウザで戻ると再開できます。';return}if(!meta||meta.phase!=='playing'||!canWrite)return render();if(meta.paused)return render();
+// 自分の操作待ちの間に、その手番がほかで確定した（時間切れでホストがCPU代行した など）ときは、操作待ちを終わらせる。
+// 以前はここで止まったままになり（busyが戻らない）、以後の自分の手番もずっとCPU代行になっていた。次の自分の手番から、また自分で操作できる
+function dropStalePending(){if(!pending||!pending.st)return;const t=curTip();if(!t||t.pred||t.state.turn===pending.st.turn)return;const r=pending.res;pending=null;try{r(null)}catch{}
+  toast('時間切れのため、この手番はCPUが代わりに進めました。次の手番から自分で操作できます');render()}
+function tick(){dropStalePending();if(db&&db.online&&meta&&meta.phase==='playing'&&meta.host!==myId&&!peers.some(p=>p.id===meta.host)){if(pending){const res=pending.res;pending=null;res(null)}render();$('#turnText').textContent='ホストとの接続を確認中です。進行を止めています。ホストが同じブラウザで戻ると再開できます。';return}if(!meta||meta.phase!=='playing'||!canWrite)return render();if(meta.paused)return render();
   for(const r of [...records.values()])if(r.pred&&Date.now()-r.pred>15000)dropPred(r.id);
   const{chain}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip||tip.state.finished)return render();
   const seat=curSeat(tip.state),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),me=mySeat();
