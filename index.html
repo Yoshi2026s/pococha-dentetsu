@@ -829,6 +829,15 @@ button.ghost:not(.cardbtn),.mapbtn{background-image:linear-gradient(180deg,var(-
 /* 結果カードの大きな数字に奥行き */
 .card .big{text-shadow:0 3px 0 rgba(0,0,0,.12),0 0 18px rgba(255,210,63,.35)}
 @media (prefers-reduced-motion:reduce){.bn::after{display:none}}
+/* 処理を軽くする（第36版）：サイコロボタンの点滅は色の再計算（filter）をやめ、光の板の透明度だけを動かす */
+.bar #bRoll:not(:disabled){animation:none;position:relative}
+.bar #bRoll:not(:disabled)::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 140% at 50% 0%,rgba(255,255,255,.45),rgba(255,255,255,0) 60%);opacity:0;animation:rollglow 1.6s ease-in-out infinite;pointer-events:none}
+@keyframes rollglow{50%{opacity:1}}
+.mapbox{contain:layout paint}
+/* 重い端末（自動判定 lowfx）：地図の飾りのアニメ・航路の乗り物・地図の内側の影を止める。ゲームの表示内容は同じ */
+.lowfx #map .beat,.lowfx #map .burstspin,.lowfx #map .rise,.lowfx #map .tilt,.lowfx #map .spin,.lowfx #map .spark,.lowfx #map .pop,.lowfx #map .wv,.lowfx #map .cl,.lowfx .pl.turn,.lowfx .bar #bRoll::after{animation:none!important}
+.lowfx #map .vehicles,.lowfx .mapbox::after{display:none}
+@media (prefers-reduced-motion:reduce){.bar #bRoll:not(:disabled)::after{display:none}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .face{background:radial-gradient(120% 120% at 30% 20%,#fff 0,#f4eff9 55%,#ddd3ea 100%)}}
 </style>
 <script src="firebase-config.js"></script>
@@ -1603,7 +1612,9 @@ function unlock(){try{if(navigator.audioSession)navigator.audioSession.type='pla
   try{const ac=new(window.AudioContext||window.webkitAudioContext)();AU.ac=ac;
   // 出口：グルー圧縮（全体をまとめる）→リミッター（音割れ防止）
   const glue=ac.createDynamicsCompressor();glue.threshold.value=-18;glue.knee.value=10;glue.ratio.value=3;glue.attack.value=.006;glue.release.value=.22;
-  const lim=ac.createDynamicsCompressor();lim.threshold.value=-2.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.08;glue.connect(lim);lim.connect(ac.destination);AU.out=glue;
+  const lim=ac.createDynamicsCompressor();lim.threshold.value=-2.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.08;// 出口の手前で軽く歪ませて（テープ風）音の角を丸め、まとまりを出す。小さい音の大きさは変えない
+  {let sat=null;try{sat=ac.createWaveShaper();const n=2048,cu=new Float32Array(n),k=.6;for(let i=0;i<n;i++){const x=i/(n-1)*2-1;cu[i]=Math.tanh(k*x)/k}sat.curve=cu;sat.oversample='2x'}catch{sat=null}
+   if(sat){glue.connect(sat);sat.connect(lim)}else glue.connect(lim)}lim.connect(ac.destination);AU.out=glue;
   // 曲バス：低音を少し太く・こもりを削る・高域に空気感。効果音が鳴る間はダッキングで少し下げる
   AU.bgm=ac.createGain();AU.duck=ac.createGain();
   {const lo=ac.createBiquadFilter();lo.type='lowshelf';lo.frequency.value=120;lo.gain.value=2.5;const mid=ac.createBiquadFilter();mid.type='peaking';mid.frequency.value=420;mid.Q.value=.9;mid.gain.value=-2;
@@ -1625,7 +1636,7 @@ function unlock(){try{if(navigator.audioSession)navigator.audioSession.type='pla
   const W=(fn,n=40)=>{const re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++){const v=fn(k);re[k]=v[0];im[k]=v[1]}return ac.createPeriodicWave(re,im)};
   AU.waves={pulse25:W(k=>[2/(k*Math.PI)*Math.sin(k*Math.PI*.25),0]),pulse12:W(k=>[2/(k*Math.PI)*Math.sin(k*Math.PI*.125),0]),
    organ:W(k=>[0,({1:1,2:.55,3:.4,4:.18,6:.12,8:.1,10:.04})[k]||0]),warm:W(k=>[0,Math.exp(-k/8)/k]),reed:W(k=>[0,(k%2?1:.3)/k*Math.exp(-k/14)])};
-  setVol()}catch{AU.ac=null}
+  setVol();dsWarm()}catch{AU.ac=null}
   wake()}
 function wake(){const ac=AU.ac;if(!ac)return;
   if(ac.state!=='running'){try{ac.resume().then(soundState,()=>{})}catch{}}
@@ -1645,7 +1656,7 @@ function setVol(){if(!AU.ac)return;AU.bgm.gain.value=SET.bgm/100*.3;AU.se.gain.v
 // 同時発音数の目安（演出の量の設定に合わせる）。超えたら曲の飾りの音（パッド・アルペジオ等）を省いて処理落ちを防ぐ
 // 発音中の数は「鳴り終わる予定時刻」で数える（onendedに頼らないので、切替や切断があっても数がずれない）
 function liveNow(){if(!AU.ac)return 0;const n=AU.ac.currentTime;if(AU.ends.length>64)AU.ends=AU.ends.filter(x=>x>n);let c=0;for(const x of AU.ends)if(x>n)c++;return c}
-const polyCap=()=>SET.fxq==='lite'?70:SET.fxq==='normal'?120:170;const auBusy=()=>liveNow()>polyCap();const rich=()=>SET.fxq!=='lite';
+const polyCap=()=>{const c=SET.fxq==='lite'?70:SET.fxq==='normal'?120:170;return document.body&&document.body.classList.contains('lowfx')?Math.min(c,90):c};const auBusy=()=>liveNow()>polyCap();const rich=()=>SET.fxq!=='lite';
 // ダッキング：効果音を聞きやすくするため、曲の音量を一時的に下げる（長い演出の指定を短い効果音で上書きしない）
 function duckTo(lv,hold,att=.04,rel=.5){if(!AU.ac||!AU.duck)return;const t=AU.ac.currentTime,end=t+att+hold;if(AU.duckEnd>end&&lv>=AU.duckLv)return;
   const g=AU.duck.gain;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(lv,t+att);g.setValueAtTime(lv,end);g.linearRampToValueAtTime(1,end+rel);AU.duckEnd=end;AU.duckLv=lv}
@@ -1680,19 +1691,67 @@ let NB=null;function noise(out,t,d,o={}){const ac=AU.ac;if(!NB){NB=ac.createBuff
   if(o.rev&&AU.rev&&rich()){const x=ac.createGain();x.gain.value=o.rev;n.connect(x);x.connect(AU.rev)}
   AU.ends.push(t+d+(o.a||0)+.02);s.onended=()=>{try{n.disconnect()}catch{}};s.start(t,Math.random()*1.4);s.stop(t+d+(o.a||0)+.02)}
 // ===== ドラム（打楽器）=====
-function kick(o,t,v=.5){const ac=AU.ac,os=ac.createOscillator(),g=ac.createGain();os.type='sine';os.frequency.setValueAtTime(165,t);os.frequency.exponentialRampToValueAtTime(50,t+.09);os.frequency.exponentialRampToValueAtTime(42,t+.3);
+function kick0(o,t,v=.5){const ac=AU.ac,os=ac.createOscillator(),g=ac.createGain();os.type='sine';os.frequency.setValueAtTime(165,t);os.frequency.exponentialRampToValueAtTime(50,t+.09);os.frequency.exponentialRampToValueAtTime(42,t+.3);
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.004);g.gain.exponentialRampToValueAtTime(v*.5,t+.08);g.gain.exponentialRampToValueAtTime(.0008,t+.36);os.connect(g);g.connect(o);AU.ends.push(t+.4);os.onended=()=>{try{g.disconnect()}catch{}};os.start(t);os.stop(t+.4);
   noise(o,t,.012,{hp:2800,v:v*.28})}
-const snare=(o,t,v=.12,pan=0)=>{voice(o,t,205,.11,{type:'triangle',v:v*.9,glide:.78,glideT:.06,pan});noise(o,t,.19,{bp:2100,q:.6,v,pan,rev:.12});noise(o,t,.07,{hp:6500,v:v*.55,pan})};
-const hat=(o,t,v=.04,pan=.3)=>noise(o,t,.034,{hp:7800,q:.9,v,pan});
-const ohat=(o,t,v=.04,pan=.3)=>noise(o,t,.24,{hp:6800,v,pan});
-const clap=(o,t,v=.1,pan=0)=>{for(let i=0;i<3;i++)noise(o,t+i*.011,.018,{bp:1300,q:1.1,v:v*.8,pan});noise(o,t+.033,.16,{bp:1300,q:.9,v,pan,rev:.2})};
-const rim=(o,t,v=.06,pan=-.2)=>{voice(o,t,1750,.022,{type:'triangle',v,pan});noise(o,t,.016,{bp:3600,q:2,v:v*.8,pan})};
-const tom=(o,t,f,v=.25,pan=0)=>{voice(o,t,f,.28,{type:'sine',v,bend:1.6,bendT:.05,pan});noise(o,t,.03,{bp:f*3,v:v*.35,pan})};
-const crash=(o,t,v=.09,pan=.35)=>{noise(o,t,1.7,{hp:4800,v,pan,rev:.25});noise(o,t,1.1,{bp:7200,q:1.6,v:v*.6,pan:-pan})};
-const taiko=(o,t,v=.38,pan=0)=>{voice(o,t,88,.5,{type:'sine',v,glide:.62,glideT:.3,pan});voice(o,t,176,.12,{type:'triangle',v:v*.25,glide:.7,pan});noise(o,t,.09,{lp:420,v:v*.45,pan,rev:.2});noise(o,t,.012,{bp:2400,v:v*.2,pan})};
-const kane=(o,t,v=.04,pan=.4)=>{[1580,2360,3340].forEach((f,i)=>voice(o,t,f,i?.09:.16,{type:'square',v:v*(i?.5:1),hp:1200,pan}))};
-const shaker=(o,t,v=.04,pan=.4)=>noise(o,t,.055,{bp:7200,q:.8,v,pan,a:.012});
+const snare0=(o,t,v=.12,pan=0)=>{voice(o,t,205,.11,{type:'triangle',v:v*.9,glide:.78,glideT:.06,pan});noise(o,t,.19,{bp:2100,q:.6,v,pan,rev:.12});noise(o,t,.07,{hp:6500,v:v*.55,pan})};
+const hat0=(o,t,v=.04,pan=.3)=>noise(o,t,.034,{hp:7800,q:.9,v,pan});
+const ohat0=(o,t,v=.04,pan=.3)=>noise(o,t,.24,{hp:6800,v,pan});
+const clap0=(o,t,v=.1,pan=0)=>{for(let i=0;i<3;i++)noise(o,t+i*.011,.018,{bp:1300,q:1.1,v:v*.8,pan});noise(o,t+.033,.16,{bp:1300,q:.9,v,pan,rev:.2})};
+const rim0=(o,t,v=.06,pan=-.2)=>{voice(o,t,1750,.022,{type:'triangle',v,pan});noise(o,t,.016,{bp:3600,q:2,v:v*.8,pan})};
+const tom0=(o,t,f,v=.25,pan=0)=>{voice(o,t,f,.28,{type:'sine',v,bend:1.6,bendT:.05,pan});noise(o,t,.03,{bp:f*3,v:v*.35,pan})};
+const crash0=(o,t,v=.09,pan=.35)=>{noise(o,t,1.7,{hp:4800,v,pan,rev:.25});noise(o,t,1.1,{bp:7200,q:1.6,v:v*.6,pan:-pan})};
+const taiko0=(o,t,v=.38,pan=0)=>{voice(o,t,88,.5,{type:'sine',v,glide:.62,glideT:.3,pan});voice(o,t,176,.12,{type:'triangle',v:v*.25,glide:.7,pan});noise(o,t,.09,{lp:420,v:v*.45,pan,rev:.2});noise(o,t,.012,{bp:2400,v:v*.2,pan})};
+const kane0=(o,t,v=.04,pan=.4)=>{[1580,2360,3340].forEach((f,i)=>voice(o,t,f,i?.09:.16,{type:'square',v:v*(i?.5:1),hp:1200,pan}))};
+const shaker0=(o,t,v=.04,pan=.4)=>noise(o,t,.055,{bp:7200,q:.8,v,pan,a:.012});
+// ===== 打楽器の事前合成（第36版）=====
+// 打楽器は1打ごとに発音部品を何個も作らず、最初に1回だけ波形を計算して使い回す（処理が軽くなり、そのぶん音を作り込める）。
+// 作れない環境では従来の合成（kick0など）で鳴らす。音の高さ・長さの設計は第34版と同じで、重ね・ステレオの広がり・軽い歪みで厚みを足した。
+const DS={ac:null};
+function dsOK(){try{const ac=AU.ac;if(!ac||typeof ac.createBuffer!=='function')return false;if(DS.ac!==ac){for(const k in DS)delete DS[k];DS.ac=ac}return true}catch{return false}}
+// 2次フィルター（RBJ）：lp・hp・bp
+function dsBQ(type,f,q,sr){const w=2*Math.PI*Math.min(f,sr*.45)/sr,cs=Math.cos(w),al=Math.sin(w)/(2*(q||.707));let b0,b1,b2;
+  if(type==='lp'){b0=(1-cs)/2;b1=1-cs;b2=b0}else if(type==='hp'){b0=(1+cs)/2;b1=-(1+cs);b2=b0}else{b0=al;b1=0;b2=-al}
+  const a0=1+al,a1=-2*cs,a2=1-al;let x1=0,x2=0,y1=0,y2=0;return x=>{const y=(b0*x+b1*x1+b2*x2-a1*y1-a2*y2)/a0;x2=x1;x1=x;y2=y1;y1=y;return y}}
+// 減衰：t秒でピークの1/1000まで下がる指数カーブ
+const dsEnv=(t,d,a=.002)=>t<a?t/a:Math.exp(-6.9*(t-a)/d);
+const dsSat=(x,k)=>Math.tanh(x*k)/Math.tanh(k);
+function dsMake(key,sec,ch,fn){if(DS[key])return DS[key];const ac=AU.ac,sr=ac.sampleRate,n=Math.max(1,Math.floor(sr*sec)),b=ac.createBuffer(ch,n,sr);for(let c=0;c<ch;c++)fn(b.getChannelData(c),sr,c);return DS[key]=b}
+function dsPlay(o,b,t,v,pan,rev){const ac=AU.ac,s=ac.createBufferSource(),g=ac.createGain();s.buffer=b;g.gain.value=v;s.connect(g);let n=g;
+  if(pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,pan));g.connect(p);n=p}n.connect(o);
+  if(rev&&AU.rev&&rich()){const x=ac.createGain();x.gain.value=rev;n.connect(x);x.connect(AU.rev)}
+  AU.ends.push(t+b.duration);s.onended=()=>{try{n.disconnect()}catch{}};s.start(t)}
+// キック：ピッチが下がる胴鳴り＋アタックのクリック＋低いサブ。軽く歪ませて芯を出す
+const dsKick=()=>dsMake('kick',.42,1,(d,sr)=>{const hp=dsBQ('hp',2800,.7,sr);let ph=0;for(let i=0;i<d.length;i++){const t=i/sr,f=t<.09?165*Math.pow(50/165,t/.09):50*Math.pow(42/50,Math.min(1,(t-.09)/.21));ph+=2*Math.PI*f/sr;
+  const body=Math.sin(ph)*(t<.004?t/.004:t<.08?Math.pow(.5,(t-.004)/.076):.5*Math.pow(.0016,(t-.08)/.28)),click=t<.012?hp(Math.random()*2-1)*.28*(1-t/.012):0,sub=Math.sin(ph*.5)*.12*dsEnv(t,.3,.01);d[i]=dsSat(body+click+sub,1.4)}});
+// スネア：胴鳴り（三角波が少し下がる）＋響き線（帯域ノイズ）＋高域のシャリ感
+const dsSnare=()=>dsMake('snare',.26,1,(d,sr)=>{const bp=dsBQ('bp',2100,.6,sr),hp=dsBQ('hp',6500,.7,sr),bp2=dsBQ('bp',3600,1.2,sr);let ph=0;for(let i=0;i<d.length;i++){const t=i/sr,f=205*Math.pow(.78,Math.min(1,t/.06));ph+=f/sr;const tri=1-4*Math.abs((ph%1)-.5);const r=Math.random()*2-1;
+  d[i]=dsSat(tri*.9*dsEnv(t,.11,.001)+bp(r)*1.6*dsEnv(t,.19,.001)+hp(r)*.55*dsEnv(t,.07,.001)+bp2(r)*.35*dsEnv(t,.05,.001),1.2)}});
+const dsHat=(open)=>dsMake(open?'ohat':'hat',open?.26:.05,1,(d,sr)=>{const hp=dsBQ('hp',open?6800:7800,.9,sr),hp2=dsBQ('hp',open?6800:7800,.9,sr),dl=open?.24:.034;let ph1=0,ph2=0;for(let i=0;i<d.length;i++){const t=i/sr;ph1+=540/sr;ph2+=800/sr;
+  const metal=((ph1%1)<.5?1:-1)*.25+((ph2%1)<.5?1:-1)*.25;d[i]=hp2(hp(Math.random()*2-1+metal*.6))*1.4*dsEnv(t,dl,.0008)}});
+// シンバル：左右で別のノイズを使い、広がりのある音に
+const dsCrash=()=>dsMake('crash',1.75,2,(d,sr,c)=>{const hp=dsBQ('hp',4800,.7,sr),bp=dsBQ('bp',7200,1.6,sr),bp2=dsBQ('bp',c?5300:5900,2.5,sr);for(let i=0;i<d.length;i++){const t=i/sr,r=Math.random()*2-1;d[i]=(hp(r)*dsEnv(t,1.7,.002)+bp(r)*.6*dsEnv(t,1.1,.002)+bp2(r)*.35*dsEnv(t,.6,.001))*1.1}});
+const dsClap=()=>dsMake('clap',.22,1,(d,sr)=>{const bp=dsBQ('bp',1300,1.1,sr),bp2=dsBQ('bp',1300,.9,sr);for(let i=0;i<d.length;i++){const t=i/sr,r=Math.random()*2-1;let a=0;for(let k=0;k<3;k++){const u=t-k*.011;if(u>=0&&u<.018)a+=.8*(1-u/.018)}const tail=t>=.033?dsEnv(t-.033,.16,.001):0;d[i]=bp(r)*a*1.4+bp2(r)*tail*1.4}});
+const dsRim=()=>dsMake('rim',.05,1,(d,sr)=>{const bp=dsBQ('bp',3600,2,sr);let ph=0;for(let i=0;i<d.length;i++){const t=i/sr;ph+=1750/sr;const tri=1-4*Math.abs((ph%1)-.5);d[i]=tri*dsEnv(t,.022,.0005)+bp(Math.random()*2-1)*1.6*dsEnv(t,.016,.0005)}});
+const dsTom=f=>dsMake('tom'+Math.round(f),.32,1,(d,sr)=>{const bp=dsBQ('bp',f*3,1,sr);let ph=0;for(let i=0;i<d.length;i++){const t=i/sr,ff=f*(t<.05?1.6*Math.pow(1/1.6,t/.05):1);ph+=2*Math.PI*ff/sr;d[i]=dsSat(Math.sin(ph)*dsEnv(t,.28,.002)+bp(Math.random()*2-1)*.7*dsEnv(t,.03,.001),1.2)}});
+// 和太鼓：低い胴鳴り（ゆっくり下がる）＋皮の倍音＋ばちの当たり
+const dsTaiko=()=>dsMake('taiko',.55,1,(d,sr)=>{const lp=dsBQ('lp',420,.7,sr),bp=dsBQ('bp',2400,1,sr);let p1=0,p2=0;for(let i=0;i<d.length;i++){const t=i/sr,k=Math.min(1,t/.3);p1+=2*Math.PI*88*Math.pow(.62,k)/sr;p2+=176*Math.pow(.7,Math.min(1,t/.12))/sr;const tri=1-4*Math.abs((p2%1)-.5),r=Math.random()*2-1;
+  d[i]=dsSat(Math.sin(p1)*dsEnv(t,.5,.003)+tri*.25*dsEnv(t,.12,.002)+lp(r)*.9*dsEnv(t,.09,.002)+bp(r)*.4*dsEnv(t,.012,.0005),1.3)}});
+const dsKane=()=>dsMake('kane',.18,1,(d,sr)=>{const hp=dsBQ('hp',1200,.7,sr),P=[0,0,0],F=[1580,2360,3340];for(let i=0;i<d.length;i++){const t=i/sr;let x=0;for(let k=0;k<3;k++){P[k]+=F[k]/sr;x+=((P[k]%1)<.5?1:-1)*(k?.5:1)*dsEnv(t,k?.09:.16,.001)}d[i]=hp(x)*.8}});
+const dsShaker=()=>dsMake('shaker',.08,1,(d,sr)=>{const bp=dsBQ('bp',7200,.8,sr);for(let i=0;i<d.length;i++){const t=i/sr;d[i]=bp(Math.random()*2-1)*1.8*(t<.012?t/.012:dsEnv(t-.012,.055,.0005))}});
+function kick(o,t,v=.5){if(!dsOK())return kick0(o,t,v);try{dsPlay(o,dsKick(),t,v,0,0)}catch{kick0(o,t,v)}}
+const snare=(o,t,v=.12,pan=0)=>{if(!dsOK())return snare0(o,t,v,pan);dsPlay(o,dsSnare(),t,v,pan,.12)};
+const hat=(o,t,v=.04,pan=.3)=>{if(!dsOK())return hat0(o,t,v,pan);dsPlay(o,dsHat(false),t,v,pan,0)};
+const ohat=(o,t,v=.04,pan=.3)=>{if(!dsOK())return ohat0(o,t,v,pan);dsPlay(o,dsHat(true),t,v,pan,0)};
+const clap=(o,t,v=.1,pan=0)=>{if(!dsOK())return clap0(o,t,v,pan);dsPlay(o,dsClap(),t,v,pan,.2)};
+const rim=(o,t,v=.06,pan=-.2)=>{if(!dsOK())return rim0(o,t,v,pan);dsPlay(o,dsRim(),t,v,pan,0)};
+const tom=(o,t,f,v=.25,pan=0)=>{if(!dsOK())return tom0(o,t,f,v,pan);dsPlay(o,dsTom(f),t,v,pan,.1)};
+const crash=(o,t,v=.09,pan=.35)=>{if(!dsOK())return crash0(o,t,v,pan);dsPlay(o,dsCrash(),t,v,pan*.4,.25)};
+const taiko=(o,t,v=.38,pan=0)=>{if(!dsOK())return taiko0(o,t,v,pan);dsPlay(o,dsTaiko(),t,v,pan,.2)};
+const kane=(o,t,v=.04,pan=.4)=>{if(!dsOK())return kane0(o,t,v,pan);dsPlay(o,dsKane(),t,v,pan,.1)};
+const shaker=(o,t,v=.04,pan=.4)=>{if(!dsOK())return shaker0(o,t,v,pan);dsPlay(o,dsShaker(),t,v,pan,0)};
+// 打楽器の波形は、音が使えるようになった直後に少しずつ先に作っておく（最初の1打で待たないように）
+function dsWarm(){if(!dsOK())return;const J=[dsKick,dsSnare,()=>dsHat(false),()=>dsHat(true),dsClap,dsRim,dsShaker,dsKane,dsTaiko,dsCrash];let i=0;const go=()=>{if(i>=J.length||!dsOK())return;try{J[i++]()}catch{}setTimeout(go,30)};setTimeout(go,50)}
 const timpani=(o,t,f,d=1,v=.3)=>{voice(o,t,f,d,{type:'sine',v,a:.006,bend:1.08,bendT:.04,rev:.3});voice(o,t,f*1.5,d*.6,{type:'sine',v:v*.25,rev:.3});noise(o,t,.05,{lp:500,v:v*.4})};
 // 曲データ：8分音符ごとのメロディ（MIDI番号、-1は休み）と小節ごとのコード。A・Bの2部分を form の順に演奏する。すべてオリジナル。
 const SONGS={
@@ -2480,11 +2539,8 @@ function buildMap(){const L=[];setTimeout(()=>{const m=$('#map');if(m&&!$('#step
       :(RL.push([a,b]),''))}));
   {const seg=o=>RL.map(([a,b])=>{const L=Math.hypot(b.x-a.x,b.y-a.y)||1,nx=-(b.y-a.y)/L*o,ny=(b.x-a.x)/L*o;return`M${(a.x+nx).toFixed(1)} ${(a.y+ny).toFixed(1)}L${(b.x+nx).toFixed(1)} ${(b.y+ny).toFixed(1)}`}).join(''),c=seg(0);
    L.push(`<g class="rails" fill="none" pointer-events="none"><path d="${seg(1.2)}" stroke="#000" stroke-width="7.6" stroke-linecap="round" opacity=".14"/><path d="${c}" stroke="var(--outline)" stroke-width="7" stroke-linecap="round"/><path d="${c}" stroke="var(--railBed)" stroke-width="5" stroke-linecap="round"/><path d="${c}" stroke="var(--tie)" stroke-width="4.4" stroke-dasharray="1.5 2.1"/><path d="${seg(-1.35)}${seg(1.35)}" stroke="var(--steel)" stroke-width=".85"/></g>`)}
-  // フェリーと飛行機が航路の上をゆっくり行き来する
-  if(!matchMedia('(prefers-reduced-motion: reduce)').matches)L.push('<g class="vehicles" pointer-events="none">'+ROUTES.map((r,i)=>{const d='M'+r.ids.map(k=>NODES[k].x.toFixed(1)+' '+NODES[k].y.toFixed(1)).join(' L');const dur=(r.ids.length*(r.k===2?1.6:3.2)).toFixed(1),beg=(-(h32('v'+i)%40)).toFixed(0);
-    const ico=r.k===2?'<path d="M9 0 L-3 -1.6 L-7 -7 L-9.5 -7 L-6.5 -1.6 L-10 -1.4 L-12 -4 L-13.5 -4 L-12.4 0 L-13.5 4 L-12 4 L-10 1.4 L-6.5 1.6 L-9.5 7 L-7 7 L-3 1.6Z" fill="#fff" stroke="var(--air)" stroke-width="1.2" stroke-linejoin="round"/>'
-      :'<path d="M-9 1 L9 1 L6 6 L-6 6Z" fill="#ff6b6b" stroke="#fff" stroke-width="1"/><rect x="-5" y="-4" width="10" height="5" rx="1.2" fill="#fff" stroke="var(--landEdge)" stroke-width=".8"/><rect x="-1" y="-8" width="3" height="4" fill="#ffcf3a"/>';
-    return`<path id="rt${i}" d="${d}" fill="none"/><g>${ico}<animateMotion dur="${dur}s" begin="${beg}s" repeatCount="indefinite" ${r.k===2?'rotate="auto"':''} keyPoints="0;1;0" keyTimes="0;.5;1" calcMode="linear"><mpath href="#rt${i}"/></animateMotion></g>`}).join('')+'</g>');
+  // フェリーと飛行機が航路の上をゆっくり行き来する。地図（SVG）の中で動かすと毎コマ地図全体を描き直して重くなるため、演出キャンバスに描く（VEH・drawVeh）
+  VEH=matchMedia('(prefers-reduced-motion: reduce)').matches?[]:ROUTES.map((r,i)=>{const P=r.ids.map(k=>[NODES[k].x,NODES[k].y]),C=[0];for(let j=1;j<P.length;j++)C.push(C[j-1]+Math.hypot(P[j][0]-P[j-1][0],P[j][1]-P[j-1][1]));return{P,C,len:C[C.length-1]||1,air:r.k===2,dur:r.ids.length*(r.k===2?1.6:3.2),beg:-(h32('v'+i)%40)}});
   L.push('<g id="trail"></g>');
   NODES.forEach(n=>{if(n.type==='station')return;L.push(`<use href="#sq-${n.type}" x="${(n.x-9).toFixed(1)}" y="${(n.y-9).toFixed(1)}" width="18" height="18"/>`)});
   L.push(`<rect id="nightLayer" x="-700" y="-900" width="${WW+1400}" height="${WH+1800}" fill="#0b0826" opacity="0" style="transition:opacity 1.2s;pointer-events:none"/>`);
@@ -2559,7 +2615,7 @@ const SKY=['linear-gradient(#ffd3a8dd,#9fd4ff00)','linear-gradient(#59b7ffcc,#bf
 // 演出キャンバス：地図の枠と同じ大きさ×画面の解像度で描く（以前は世界全体を1/2.5の粗さで描いて拡大していたため、粒がぼやけていた）
 const cv=$('#fx');const cx=cv.getContext('2d'),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let parts=[],pkind='leaf',bursts=[],flashes=[],fxW=0,fxH=0,fxD=1,fxDirty=true;
 function setSeason(m){const k=m>=3?'snow':'leaf';if(k!==pkind||!parts.length){pkind=k;parts=Array.from({length:reduce?0:Math.round(9*FXQ())},()=>({x:Math.random()*400,y:Math.random()*600,v:.25+Math.random()*.6,r:2+Math.random()*2.5,a:Math.random()*6,c:['#ff9d5c','#ffb347','#f2661a','#ffcf5c'][Math.random()*4|0]}))}}
-const FXQ=()=>({rich:1,normal:.6,lite:.25}[SET.fxq]||1);
+const FXQ=()=>({rich:1,normal:.6,lite:.25}[SET.fxq]||1)*(document.body&&document.body.classList.contains('lowfx')?.5:1);
 function vib(p){try{if(SET.vib&&navigator.vibrate)navigator.vibrate(p)}catch{}}
 function burst(kind,at){if(reduce)return;const x0=at?at.x:200,y0=at?at.y:280;const C=kind==='coin'?['#ffcc33','#ffb81c']:kind==='star'?['#ffcc33','#fff','#ffe36a']:kind==='heart'?['#ff5fa8','#ff8fc0','#ff3d8b']:['#ff5fa8','#3fb6ff','#ffcc33','#33d17a','#9d7bff','#ff8a3d'];
   // はじけた瞬間の光の輪（コイン・星・ハート・紙吹雪）
@@ -2579,17 +2635,36 @@ function drawPart(b){const k=b.s||1;
   else{cx.rotate(b.a);cx.scale(k,Math.cos(b.a*1.7)*k);cx.fillStyle=b.c;cx.fillRect(-3,-2,6,4);cx.fillStyle='rgba(255,255,255,.35)';cx.fillRect(-3,-2,6,1.4)}
   cx.restore()}
 // 地図の座標 → キャンバスの座標（カメラの拡大・移動に合わせる）
-function fxMap(d){try{const M=$('#map').getScreenCTM(),B=cv.getBoundingClientRect();if(M&&M.a)return[M.a*d,M.d*d,(M.e-B.left)*d,(M.f-B.top)*d]}catch{}const s=d*(fxW||400)/vb[2];return[s,s,-vb[0]*s,-vb[1]*s]}
-function frame(){const m=cv.parentElement,w=m?m.clientWidth:0,h=m?m.clientHeight:0,d=Math.min(2,devicePixelRatio||1);
+// getScreenCTMを毎コマ呼ぶと地図全体の再計算が起きて重いので、地図の枠の位置と大きさ（fxSvg）だけ時々測り、表示範囲（vb）から計算する
+let fxSvg=null;function fxSvgMeasure(){try{const S=$('#map').getBoundingClientRect(),B=cv.getBoundingClientRect();if(S.width&&S.height)fxSvg=[S.left-B.left,S.top-B.top,S.width,S.height]}catch{}}
+function fxMap(d){if(!fxSvg)fxSvgMeasure();if(fxSvg){const[ox,oy,sw,sh]=fxSvg,k=Math.min(sw/vb[2],sh/vb[3]),s=k*d;return[s,s,(ox+(sw-vb[2]*k)/2-vb[0]*k)*d,(oy+(sh-vb[3]*k)/2-vb[1]*k)*d]}const s=d*(fxW||400)/vb[2];return[s,s,-vb[0]*s,-vb[1]*s]}
+// 航路の乗り物（フェリー・飛行機）：行って戻るをくり返す。画面の外の乗り物は描かない
+let VEH=[];const VEHP={};
+function drawVeh(now){if(!VEH.length||fxLow())return;if(!VEHP.plane){try{VEHP.plane=new Path2D('M9 0 L-3 -1.6 L-7 -7 L-9.5 -7 L-6.5 -1.6 L-10 -1.4 L-12 -4 L-13.5 -4 L-12.4 0 L-13.5 4 L-12 4 L-10 1.4 L-6.5 1.6 L-9.5 7 L-7 7 L-3 1.6Z');VEHP.hull=new Path2D('M-9 1 L9 1 L6 6 L-6 6Z');const st=getComputedStyle(document.documentElement);VEHP.air=st.getPropertyValue('--air').trim()||'#6c5cff';VEHP.edge=st.getPropertyValue('--landEdge').trim()||'#2b2236'}catch{VEH=[];return}}
+  const T=now/1000,x0=vb[0]-30,x1=vb[0]+vb[2]+30,y0=vb[1]-30,y1=vb[1]+vb[3]+30;cx.globalAlpha=1;cx.lineJoin='round';
+  for(const v of VEH){const u=(((T-v.beg)%v.dur)+v.dur)%v.dur/v.dur,f=u<.5?u*2:2-u*2,dd=f*v.len;let j=1;while(j<v.C.length-1&&v.C[j]<dd)j++;const a=v.P[j-1],b=v.P[j],sl=(v.C[j]-v.C[j-1])||1,k=Math.min(1,Math.max(0,(dd-v.C[j-1])/sl)),x=a[0]+(b[0]-a[0])*k,y=a[1]+(b[1]-a[1])*k;
+    if(x<x0||x>x1||y<y0||y>y1)continue;cx.save();cx.translate(x,y);
+    if(v.air){let ang=Math.atan2(b[1]-a[1],b[0]-a[0]);if(u>=.5)ang+=Math.PI;cx.rotate(ang);cx.fillStyle='rgba(0,0,0,.18)';cx.translate(2,3);cx.fill(VEHP.plane);cx.translate(-2,-3);cx.fillStyle='#fff';cx.strokeStyle=VEHP.air;cx.lineWidth=1.2;cx.fill(VEHP.plane);cx.stroke(VEHP.plane)}
+    else{cx.translate(0,Math.sin(T*2.4+v.beg)*.6);cx.fillStyle='#ff6b6b';cx.strokeStyle='#fff';cx.lineWidth=1;cx.fill(VEHP.hull);cx.stroke(VEHP.hull);cx.fillStyle='#fff';cx.strokeStyle=VEHP.edge;cx.lineWidth=.8;cx.beginPath();cx.roundRect?cx.roundRect(-5,-4,10,5,1.2):cx.rect(-5,-4,10,5);cx.fill();cx.stroke();cx.fillStyle='#ffcf3a';cx.fillRect(-1,-8,3,4)}
+    cx.restore()}}
+// 動きの重さを測る：60コマ/秒が出ず重いとき（平均28ms超が約4秒続く）は、飾りのアニメを止めて粒を減らす（lowfx）。ゲームの進行・結果には影響しない
+let fxLast=0,fxAvg=16,fxSlow=0,fxTick=0,fxSz=null,fxRO=null;const fxLow=()=>document.body.classList.contains('lowfx');
+function fxMeter(now){const dt=now-fxLast;fxLast=now;if(dt<=0||dt>250||document.hidden||SET.fxq==='lite'||fxLow())return;fxAvg=fxAvg*.95+dt*.05;
+  if(fxAvg>28&&document.body.classList.contains('ingame')){if(++fxSlow>240){document.body.classList.add('lowfx');bursts.length=Math.min(bursts.length,120);parts.length=Math.min(parts.length,4)}}else fxSlow=Math.max(0,fxSlow-2)}
+function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.splice(0,bursts.length-500);if(flashes.length>24)flashes.splice(0,flashes.length-24);
+  const onlyAmb=!bursts.length&&!flashes.length&&!(performance.now()<staticUntil),hasVeh=VEH.length&&!fxLow();fxTick++;if(onlyAmb&&!fxDirty&&(fxTick&1)){if(!reduce)requestAnimationFrame(frame);return}
+  // 枠の大きさは、変わったとき（ResizeObserver）か約0.5秒ごとにだけ測る（毎コマ測ると画面の再計算が起きて重い）
+  if(!fxRO&&window.ResizeObserver&&cv.parentElement){fxRO=new ResizeObserver(()=>{fxSz=null});fxRO.observe(cv.parentElement)}if(!fxSz||!(fxTick%30)){const m=cv.parentElement;fxSz=[m?m.clientWidth:0,m?m.clientHeight:0];fxSvg=null}
+  const w=fxSz[0],h=fxSz[1],d=Math.min(2,devicePixelRatio||1);
   if(w&&h&&(w!==fxW||h!==fxH||d!==fxD)){fxW=w;fxH=h;fxD=d;cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.style.width=w+'px';cv.style.height=h+'px';fxDirty=true}
-  const busy=parts.length||bursts.length||flashes.length||performance.now()<staticUntil;
+  const busy=parts.length||bursts.length||flashes.length||hasVeh||performance.now()<staticUntil;
   if(busy||fxDirty){cx.setTransform(1,0,0,1,0,0);cx.globalAlpha=1;cx.clearRect(0,0,cv.width,cv.height);fxDirty=!!busy}
   if(busy){// まわりを舞う葉・雪（画面の座標）
     cx.setTransform(d,0,0,d,0,0);const W=fxW||400,H=fxH||560;
-    for(const p of parts){p.y+=p.v;p.x+=Math.sin(p.a+=.02)*.5;if(p.y>H+8){p.y=-8;p.x=Math.random()*W}if(p.x>W+8)p.x=-8;if(p.x<-8)p.x=W+8;
+    const sp=onlyAmb?2:1;for(const p of parts){p.y+=p.v*sp;p.x+=Math.sin(p.a+=.02*sp)*.5*sp;if(p.y>H+8){p.y=-8;p.x=Math.random()*W}if(p.x>W+8)p.x=-8;if(p.x<-8)p.x=W+8;
       if(pkind==='snow'){cx.globalAlpha=.35;cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y,p.r*1.3,0,7);cx.fill();cx.globalAlpha=.8;cx.beginPath();cx.arc(p.x,p.y,p.r*.6,0,7);cx.fill()}
       else{cx.globalAlpha=.55;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.scale(1,Math.cos(p.a*1.3)*.5+.6);cx.fillStyle=p.c;cx.beginPath();cx.moveTo(-p.r*1.6,0);cx.quadraticCurveTo(0,-p.r*1.1,p.r*1.6,0);cx.quadraticCurveTo(0,p.r*1.1,-p.r*1.6,0);cx.fill();cx.strokeStyle='rgba(120,50,0,.35)';cx.lineWidth=.6;cx.beginPath();cx.moveTo(-p.r*1.3,0);cx.lineTo(p.r*1.3,0);cx.stroke();cx.restore()}}
-    if(bursts.length||flashes.length){const T=fxMap(d);cx.setTransform(T[0],0,0,T[1],T[2],T[3]);
+    if(bursts.length||flashes.length||hasVeh){const T=fxMap(d);cx.setTransform(T[0],0,0,T[1],T[2],T[3]);if(hasVeh)drawVeh(now||performance.now());
       flashes=flashes.filter(f=>f.life-->0);for(const f of flashes){const t=1-f.life/f.max;cx.globalCompositeOperation='lighter';
         if(f.ring){cx.globalAlpha=(1-t)*.8;cx.strokeStyle=f.c;cx.lineWidth=2.2*(1-t)+.4;cx.beginPath();cx.arc(f.x,f.y,4+t*20,0,7);cx.stroke()}
         else{const r=6+t*26,gr=cx.createRadialGradient(f.x,f.y,0,f.x,f.y,r);gr.addColorStop(0,'rgba(255,255,255,.9)');gr.addColorStop(.35,f.c);gr.addColorStop(1,'rgba(0,0,0,0)');cx.globalAlpha=(1-t)*.55;cx.fillStyle=gr;cx.beginPath();cx.arc(f.x,f.y,r,0,7);cx.fill()}
@@ -2693,8 +2768,10 @@ function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4
 // 入りきらない古いコメントから一時的に下げ、結果カードが消えて空きができたら出し直す（最大4件・地図が低い画面では3件、5秒待っても出せなければ消す）
 let cmtWait=[],cmtWT=0;
 // 駅名と重なったコメントは薄く透かして、下の駅名を読めるようにする（地図が動いても追従）
-function cmtSee(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!box.children.length)return;const L=[...mb.querySelectorAll('svg g.lbl')].map(g=>g.getBoundingClientRect()).filter(r=>r.width);
-  for(const c of box.children){const r=c.getBoundingClientRect();c.classList.toggle('see',L.some(l=>l.left<r.right-2&&l.right>r.left+2&&l.top<r.bottom-2&&l.bottom>r.top+2))}}
+function cmtSee(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!box.children.length)return;let M=null;try{M=$('#map').getScreenCTM()}catch{}if(!M||!M.a||!M.d)return;const k=lastLS||1;
+  // 札の位置は地図の座標で分かっている（n.plate）。拡大に合わせた縮小（scaleMarks）も同じ式で反映する
+  for(const c of box.children){const r=c.getBoundingClientRect(),x0=(r.left+2-M.e)/M.a,x1=(r.right-2-M.e)/M.a,y0=(r.top+2-M.f)/M.d,y1=(r.bottom-2-M.f)/M.d;
+    c.classList.toggle('see',NODES.some(n=>{const q=n.plate;if(!q)return false;const a=n.x+(q.x-n.x)*k,b=n.x+(q.x+q.w-n.x)*k,u=n.y+(q.y-n.y)*k,w=n.y+(q.y+q.h-n.y)*k;return a<x1&&b>x0&&u<y1&&w>y0}))}}
 setInterval(cmtSee,250);
 function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box)return;const n=cmtRoom(mb,box);
   while(box.children.length>n){const c=box.firstChild;clearTimeout(c._k);c._wait=Date.now();c.remove();cmtWait.push(c)}cmtWait=cmtWait.slice(-4);if(cmtWait.length&&!cmtWT)cmtWT=setTimeout(cmtFlush,400);cmtSee()}
