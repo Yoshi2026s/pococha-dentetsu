@@ -19,6 +19,11 @@ node test-pause.cjs
 node test-audio.cjs
 ```
 - 更新で新しいテスト（例：`test-auth-fallback.cjs`）を追加したときは、それも実行する。
+- 通信（部屋・手番の同期・`firestore.rules`・`online.js`）に関わる変更では、Firebase エミュレーターのテストも実行する（Java が必要。初回はエミュレーター本体を自動でダウンロードする。本番のデータは使わない）。
+  ```bash
+  npm run test:online       # ルールと同期の確認（約30秒）
+  npm run test:online-e2e   # 2人分のブラウザで対戦する確認（約2〜3分）
+  ```
 - テストを実行すると結果 JSON が書き換わることがある。コミット前に `git status` で確認し、依頼にない結果ファイルは戻す。
 
 ## 更新の流れ
