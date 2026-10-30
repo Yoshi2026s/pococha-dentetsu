@@ -1652,7 +1652,7 @@ function unlock(){try{if(navigator.audioSession)navigator.audioSession.type='pla
   AU.se=ac.createGain();{const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=45;const pr=ac.createBiquadFilter();pr.type='peaking';pr.frequency.value=2800;pr.Q.value=.8;pr.gain.value=1.5;AU.se.connect(hp);hp.connect(pr);pr.connect(glue)}
   // ホール残響：初期反射＋暗くなっていく残響尾（ステレオで左右をずらす）
   const sr=ac.sampleRate,len=Math.floor(sr*2.6),pre=Math.floor(sr*.016),ir=ac.createBuffer(2,len,sr);
-  for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lp=0;for(let i=pre;i<len;i++){const k=(i-pre)/(len-pre),a=.25+.7*k;lp=lp*a+(Math.random()*2-1)*(1-a);d[i]=lp*Math.pow(1-k,2.4)*1.8}
+  for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lp=0;const fin=sr*.03;for(let i=pre;i<len;i++){const k=(i-pre)/(len-pre),a=.25+.7*k;lp=lp*a+(Math.random()*2-1)*(1-a);d[i]=lp*Math.pow(1-k,2.4)*1.8*Math.min(1,(i-pre)/fin)}
     for(let r=0;r<9;r++){const p=pre+Math.floor(sr*(.004+Math.random()*.075));d[p]+=(Math.random()<.5?-1:1)*(.55-r*.04)}}
   AU.rev=ac.createConvolver();AU.rev.buffer=ir;{const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=190;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=7500;const rg=ac.createGain();rg.gain.value=.3;AU.rev.connect(hp);hp.connect(lp);lp.connect(rg);rg.connect(glue)}
   // ピンポンディレイ：左右に跳ねるこだま。曲のテンポに合わせて間隔を変える
@@ -1767,6 +1767,8 @@ const dsTom=f=>dsMake('tom'+Math.round(f),.32,1,(d,sr)=>{const bp=dsBQ('bp',f*3,
 const dsTaiko=()=>dsMake('taiko',.55,1,(d,sr)=>{const lp=dsBQ('lp',420,.7,sr),bp=dsBQ('bp',2400,1,sr);let p1=0,p2=0;for(let i=0;i<d.length;i++){const t=i/sr,k=Math.min(1,t/.3);p1+=2*Math.PI*88*Math.pow(.62,k)/sr;p2+=176*Math.pow(.7,Math.min(1,t/.12))/sr;const tri=1-4*Math.abs((p2%1)-.5),r=Math.random()*2-1;
   d[i]=dsSat(Math.sin(p1)*dsEnv(t,.5,.003)+tri*.25*dsEnv(t,.12,.002)+lp(r)*.9*dsEnv(t,.09,.002)+bp(r)*.4*dsEnv(t,.012,.0005),1.3)}});
 const dsKane=()=>dsMake('kane',.18,1,(d,sr)=>{const hp=dsBQ('hp',1200,.7,sr),P=[0,0,0],F=[1580,2360,3340];for(let i=0;i<d.length;i++){const t=i/sr;let x=0;for(let k=0;k<3;k++){P[k]+=F[k]/sr;x+=((P[k]%1)<.5?1:-1)*(k?.5:1)*dsEnv(t,k?.09:.16,.001)}d[i]=hp(x)*.8}});
+// 線路の継ぎ目「タタン」（2回の低い当たり＋レールの金属音、左右に少しずらす）
+const dsStep=()=>dsMake('step',.2,2,(d,sr,c)=>{const lp=dsBQ('lp',380,.7,sr),bp=dsBQ('bp',3100,4,sr);let ph=0;for(let i=0;i<d.length;i++){const t=i/sr;let x=0;for(const[dt,v,pn]of[[0,.13,-.15],[.075,.1,.15]]){const u=t-dt;if(u<0)continue;const g=v*(c?1+pn:1-pn);ph+=0;x+=g*(lp(Math.random()*2-1)*2.4*dsEnv(u,.05,.001)+Math.sin(2*Math.PI*96*Math.pow(.7,Math.min(1,u/.06))*u)*.8*dsEnv(u,.06,.002))+g*.35*bp(Math.random()*2-1)*dsEnv(u,.03,.0005)}d[i]=x}});
 const dsShaker=()=>dsMake('shaker',.08,1,(d,sr)=>{const bp=dsBQ('bp',7200,.8,sr);for(let i=0;i<d.length;i++){const t=i/sr;d[i]=bp(Math.random()*2-1)*1.8*(t<.012?t/.012:dsEnv(t-.012,.055,.0005))}});
 function kick(o,t,v=.5){if(!dsOK())return kick0(o,t,v);try{dsPlay(o,dsKick(),t,v,0,0)}catch{kick0(o,t,v)}}
 const snare=(o,t,v=.12,pan=0)=>{if(!dsOK())return snare0(o,t,v,pan);dsPlay(o,dsSnare(),t,v,pan,.12)};
@@ -1780,7 +1782,7 @@ const taiko=(o,t,v=.38,pan=0)=>{if(!dsOK())return taiko0(o,t,v,pan);dsPlay(o,dsT
 const kane=(o,t,v=.04,pan=.4)=>{if(!dsOK())return kane0(o,t,v,pan);dsPlay(o,dsKane(),t,v,pan,.1)};
 const shaker=(o,t,v=.04,pan=.4)=>{if(!dsOK())return shaker0(o,t,v,pan);dsPlay(o,dsShaker(),t,v,pan,0)};
 // 打楽器の波形は、音が使えるようになった直後に少しずつ先に作っておく（最初の1打で待たないように）
-function dsWarm(){if(!dsOK())return;const J=[dsKick,dsSnare,()=>dsHat(false),()=>dsHat(true),dsClap,dsRim,dsShaker,dsKane,dsTaiko,dsCrash];let i=0;const go=()=>{if(i>=J.length||!dsOK())return;try{J[i++]()}catch{}setTimeout(go,30)};setTimeout(go,50)}
+function dsWarm(){if(!dsOK())return;const J=[dsStep,dsKick,dsSnare,()=>dsHat(false),()=>dsHat(true),dsClap,dsRim,dsShaker,dsKane,dsTaiko,dsCrash];let i=0;const go=()=>{if(i>=J.length||!dsOK())return;try{J[i++]()}catch{}setTimeout(go,30)};setTimeout(go,50)}
 const timpani=(o,t,f,d=1,v=.3)=>{voice(o,t,f,d,{type:'sine',v,a:.006,bend:1.08,bendT:.04,rev:.3});voice(o,t,f*1.5,d*.6,{type:'sine',v:v*.25,rev:.3});noise(o,t,.05,{lp:500,v:v*.4})};
 // 曲データ：8分音符ごとのメロディ（MIDI番号、-1は休み）と小節ごとのコード。A・Bの2部分を form の順に演奏する。すべてオリジナル。
 const SONGS={
@@ -1894,7 +1896,7 @@ const SE={
   dice:t=>{for(let i=0;i<9;i++){const at=t+i*.052+Math.random()*.014,pn=Math.random()*1.2-.6;noise(AU.se,at,.024,{bp:2000+Math.random()*2600,q:3,v:.15,pan:pn});voice(AU.se,at,1700+Math.random()*900,.02,{type:'triangle',v:.035,pan:pn})}
     noise(AU.se,t+.5,.07,{lp:650,v:.26});voice(AU.se,t+.5,190,.1,{type:'sine',v:.2,glide:.6});noise(AU.se,t+.5,.02,{bp:3200,q:2,v:.1});bell(t+.57,84,.09,.1,.8);bell(t+.57,91,.04,-.2,.5)},
   // 1マス進む：線路の継ぎ目（タタン）＋進んだ数だけ上がる音
-  step:(t,k)=>{[0,.075].forEach((dt,j)=>{noise(AU.se,t+dt,.05,{lp:380,v:.13-j*.03,pan:j?.15:-.15});voice(AU.se,t+dt,96,.06,{type:'sine',v:.1-j*.02,glide:.7})});voice(AU.se,t,mtof(72+Math.min(k,12)*2),.08,{wave:'pulse25',v:.05,lp:3600,s:.5,dc:.03,r:.04})},
+  step:(t,k)=>{if(dsOK()){try{dsPlay(AU.se,dsStep(),t,1,0,0)}catch{}}else[0,.075].forEach((dt,j)=>{noise(AU.se,t+dt,.05,{lp:380,v:.13-j*.03,pan:j?.15:-.15});voice(AU.se,t+dt,96,.06,{type:'sine',v:.1-j*.02,glide:.7})});voice(AU.se,t,mtof(72+Math.min(k,12)*2),.08,{wave:'pulse25',v:.05,lp:3600,s:.5,dc:.03,r:.04})},
   yell:t=>{[72,76,79,84,88,91].forEach((n,i)=>bell(t+i*.05,n,.09,-.5+i*.2,.6));noise(AU.se,t,.45,{bp:2500,sweep:9000,q:1,v:.05,a:.12});noise(AU.se,t+.05,.55,{bp:1000,q:.6,v:.04,a:.1,rev:.3})},
   anti:t=>{voice(AU.se,t,392,.55,{wave:'warm',v:.12,glide:.45,lp:1700,vib:.03,vibR:9,vibD:.02});noise(AU.se,t,.22,{bp:500,v:.08});voice(AU.se,t+.3,160,.35,{type:'sine',v:.14,glide:.5})},
   card:t=>{noise(AU.se,t,.2,{bp:900,sweep:5200,q:1.2,v:.11,a:.07});noise(AU.se,t+.15,.02,{hp:3200,v:.12});bell(t+.16,88,.08,.25,.6);bell(t+.22,93,.05,-.25,.5)},
@@ -2591,7 +2593,9 @@ function buildMap(){const L=[];setTimeout(()=>{const m=$('#map');if(m&&!$('#step
   $('#map').innerHTML=L.join('')}
 function movePawn(seat,pos,hop){const n=NODES[pos];const e=document.getElementById('pw'+seat);if(!e)return;if(hop)setPoff(seat,[0,-11]);e.style.transform=`translate(${n.x.toFixed(1)}px, ${n.y.toFixed(1)}px)`;
   if(hop&&!reduce){const b=e.querySelector('.bus');b.classList.remove('hop');void b.getBBox();b.classList.add('hop')}}
-function addTrail(seat,pos){const n=NODES[pos],g=$('#trail');if(!g)return;const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',n.x);c.setAttribute('cy',n.y);c.setAttribute('r','3');c.setAttribute('fill',SEATC[seat]);c.setAttribute('class','tr');g.appendChild(c);setTimeout(()=>c.remove(),2600)}
+// 席の色（CSSの色名を実際の色に直す。キャンバスでは var(--s0) が使えないため）
+function seatCol(i){try{return getComputedStyle(document.documentElement).getPropertyValue('--s'+i).trim()||'#ff5fa8'}catch{return'#ff5fa8'}}
+function addTrail(seat,pos){const n=NODES[pos];if(!reduce&&cv){const c=seatCol(seat);bursts.push({x:n.x,y:n.y,vx:0,vy:0,g:0,life:150,kind:'trail',c,a:0});for(let i=0;i<5;i++){const a=Math.random()*6.3,sp=.4+Math.random()*.8;bursts.push({x:n.x,y:n.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-.3,g:.01,life:34,kind:'star',c:i%2?'#fff':c,a:Math.random()*6,va:.15,s:.45})}return}const g=$('#trail');if(!g)return;const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',n.x);c.setAttribute('cy',n.y);c.setAttribute('r','3');c.setAttribute('fill',SEATC[seat]);c.setAttribute('class','tr');g.appendChild(c);setTimeout(()=>c.remove(),2600)}
 // 同じマスにいる駒は、マスを隠さないよう上側に並べる
 const POFF={1:[[0,-11]],2:[[-9,-11],[9,-11]],3:[[-17,-11],[0,-11],[17,-11]],4:[[-9,-21],[9,-21],[-9,-9],[9,-9]]};
 function layoutPawns(s){const by={};s.players.forEach((p,i)=>(by[p.pos]=by[p.pos]||[]).push(i));for(const k in by){const L=by[k],O=POFF[L.length]||POFF[4];L.forEach((i,j)=>setPoff(i,O[j]))}}
@@ -2603,7 +2607,9 @@ function drawPawns(s){if(!s||!built)return;s.players.forEach((p,i)=>movePawn(i,p
   if(s.troll!=null){const n=NODES[s.players[s.troll].pos];const big=lateGame(s);$('#trollMark').innerHTML=`<g class="lbl2" data-x="${n.x}" data-y="${n.y}"><g transform="translate(${n.x+12} ${n.y-22}) scale(${big?1.3:1})"><g class="bob"><rect x="-9" y="-7" width="18" height="13" rx="3" fill="${big?'var(--anti)':'#5d5470'}"/><rect x="-7" y="-5" width="14" height="9" rx="1" fill="#1d1726"/><rect x="-6" y="-3" width="9" height="1" fill="#fff"/><rect x="-4" y="0" width="10" height="1" fill="#fff"/><rect x="-2" y="6" width="4" height="3" fill="${big?'var(--anti)':'#5d5470'}"/></g></g></g>`}else $('#trollMark').innerHTML='';scaleMarks.dirty=true;scaleMarks(400/vb[2])}
 // カメラ（移動中は自分の駒に寄って追いかける）
 let VH=560,vb=[0,0,400,560],camAnim=null;// 画面に映す範囲（縦横比は常に400:560）
-function setVB(v){vb=v;updateGoalArrow();scaleMarks(400/v[2]);if($('#bView'))viewBtn();$('#map').setAttribute('viewBox',v.map(x=>x.toFixed(1)).join(' '));const W=$('#mapbox').clientWidth||400,u=W/400,k=400/v[2]}
+// カメラが動く間は毎コマ呼ばれる。ここで画面の大きさを測ると地図全体の再計算が起きて重いので、測る処理（目的地の矢印）は約0.1秒に1回にまとめる
+let arrowT=0;function qArrow(){if(!arrowT)arrowT=setTimeout(()=>{arrowT=0;updateGoalArrow()},90)}
+function setVB(v){vb=v;qArrow();scaleMarks(400/v[2]);if($('#bView'))viewBtn();$('#map').setAttribute('viewBox',v.map(x=>x.toFixed(1)).join(' '))}
 // 地図の表示：「現在地アップ」（ふだん）＝手番の人の駒のまわりを大きく／「全体」
 const ZN=1.75,ZM=2.25;let panned=false;
 // 拡大しても駅名の札・駒・目的地の札が大きくなりすぎないよう、ズームに合わせて縮める（画面上の大きさをほぼ一定に）
@@ -2630,7 +2636,7 @@ function updateGoalArrow(){const a=$('#goalArrow'),s=dispState;if(!a||!s||s.goal
   box.addEventListener('pointermove',e=>{if(!st)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(!moved&&Math.hypot(dx,dy)<8)return;moved=true;panned=true;cancelAnimationFrame(camAnim);const u=st.v[2]/box.clientWidth;
     setVB(st.v[2]>=WW-1?[st.v[0],st.v[1],st.v[2],st.v[3]]:[Math.max(0,Math.min(WW-st.v[2],st.v[0]-dx*u)),Math.max(0,Math.min(WH-st.v[3],st.v[1]-dy*u)),st.v[2],st.v[3]])});
   let panEnd=0;box.addEventListener('click',ev=>{if(performance.now()-panEnd<350&&!ev.target.closest('button')){ev.stopPropagation();ev.preventDefault()}},{capture:true});const end=()=>{if(st&&moved)panEnd=performance.now();st=null};box.addEventListener('pointerup',end);box.addEventListener('pointercancel',()=>{st=null})})();
-function viewBtn(){$('#bView').textContent=SET.view==='all'?'現在地を見る':(panned?'現在地にもどる':'全体を見る')}
+function viewBtn(){const b=$('#bView'),t=SET.view==='all'?'現在地を見る':(panned?'現在地にもどる':'全体を見る');if(b.textContent!==t)b.textContent=t}
 $('#bView').onclick=e=>{e.stopPropagation();if(SET.view==='near'&&panned){camHome(400);viewBtn();return}SET.view=SET.view==='all'?'near':'all';try{localStorage.setItem('poco-set',JSON.stringify(SET))}catch{}camHome(500);viewBtn()};
 function tween(to,ms){cancelAnimationFrame(camAnim);if(!(ms>0)){setVB(to);return}const from=vb.slice(),t0=performance.now();(function f(now){const k=Math.max(0,Math.min(1,(now-t0)/ms)),/* 描画フレームの時刻が開始時刻より前のとき、負の値で地図の表示範囲が飛ばないよう0〜1に収める */e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;setVB(from.map((v,i)=>v+(to[i]-v)*e));if(k<1)camAnim=requestAnimationFrame(f)})(t0)}
 
@@ -2654,6 +2660,7 @@ function fireworks(n){if(reduce)return;n=Math.max(1,Math.round(n*FXQ()));for(let
   for(let i=0;i<40;i++){const a=i/40*Math.PI*2,sp=2+Math.random()*1.5;bursts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,g:.04,life:55,kind:'spark',c:C,a:0})}flashes.push({x,y,life:16,max:16,c:C,ring:0})},k*(SET.fast?150:380))}
 // 粒1つを地図の座標で描く（紙吹雪は裏返り、コインは回転、星はきらめき、花火は光の尾を引く）
 function drawPart(b){const k=b.s||1;
+  if(b.kind==='trail'){const al=Math.min(1,b.life/60);cx.globalCompositeOperation='lighter';cx.globalAlpha=al*.45;cx.fillStyle=b.c;cx.beginPath();cx.arc(b.x,b.y,4.2,0,7);cx.fill();cx.globalAlpha=al;cx.beginPath();cx.arc(b.x,b.y,2.2,0,7);cx.fill();cx.fillStyle='#fff';cx.globalAlpha=al*.9;cx.beginPath();cx.arc(b.x,b.y,.9,0,7);cx.fill();cx.globalCompositeOperation='source-over';return}
   if(b.kind==='spark'){const al=Math.min(1,b.life/30);cx.globalCompositeOperation='lighter';cx.globalAlpha=al*.9;cx.strokeStyle=b.c;cx.lineWidth=1.5;cx.lineCap='round';cx.beginPath();cx.moveTo(b.x-b.vx*3.2,b.y-b.vy*3.2);cx.lineTo(b.x,b.y);cx.stroke();cx.globalAlpha=al;cx.fillStyle='#fff';cx.beginPath();cx.arc(b.x,b.y,1.1,0,7);cx.fill();cx.globalCompositeOperation='source-over';return}
   cx.globalAlpha=Math.min(1,b.life/30);cx.save();cx.translate(b.x,b.y);b.a+=b.va||.1;
   if(b.kind==='dust'){cx.globalAlpha=b.life/40*.8;cx.fillStyle=b.c;cx.beginPath();cx.arc(0,0,2+(28-b.life)*.12,0,7);cx.fill()}
@@ -2695,7 +2702,7 @@ function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.
       else{cx.globalAlpha=.55;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.scale(1,Math.cos(p.a*1.3)*.5+.6);cx.fillStyle=p.c;cx.beginPath();cx.moveTo(-p.r*1.6,0);cx.quadraticCurveTo(0,-p.r*1.1,p.r*1.6,0);cx.quadraticCurveTo(0,p.r*1.1,-p.r*1.6,0);cx.fill();cx.strokeStyle='rgba(120,50,0,.35)';cx.lineWidth=.6;cx.beginPath();cx.moveTo(-p.r*1.3,0);cx.lineTo(p.r*1.3,0);cx.stroke();cx.restore()}}
     if(bursts.length||flashes.length||hasVeh){const T=fxMap(d);cx.setTransform(T[0],0,0,T[1],T[2],T[3]);if(hasVeh)drawVeh(now||performance.now());
       flashes=flashes.filter(f=>f.life-->0);for(const f of flashes){const t=1-f.life/f.max;cx.globalCompositeOperation='lighter';
-        if(f.ring){cx.globalAlpha=(1-t)*.8;cx.strokeStyle=f.c;cx.lineWidth=2.2*(1-t)+.4;cx.beginPath();cx.arc(f.x,f.y,4+t*20,0,7);cx.stroke()}
+        if(f.ring){const r0=f.r0==null?4:f.r0,r1=f.r1==null?24:f.r1;cx.globalAlpha=(1-t)*.8;cx.strokeStyle=f.c;cx.lineWidth=2.2*(1-t)+.4;cx.beginPath();cx.arc(f.x,f.y,r0+t*(r1-r0),0,7);cx.stroke()}
         else{const r=6+t*26,gr=cx.createRadialGradient(f.x,f.y,0,f.x,f.y,r);gr.addColorStop(0,'rgba(255,255,255,.9)');gr.addColorStop(.35,f.c);gr.addColorStop(1,'rgba(0,0,0,0)');cx.globalAlpha=(1-t)*.55;cx.fillStyle=gr;cx.beginPath();cx.arc(f.x,f.y,r,0,7);cx.fill()}
         cx.globalCompositeOperation='source-over'}
       bursts=bursts.filter(b=>b.life-->0);for(const b of bursts){b.x+=b.vx;b.y+=b.vy;b.vy+=b.g;if(b.kind!=='spark'){b.vx*=.985}drawPart(b)}}
@@ -2903,7 +2910,7 @@ function heartsFly(a,b){if(reduce)return;const A=plEl(a),B=plEl(b);if(!A||!B)ret
   const c=B;c.classList.remove('spot');void c.offsetWidth;c.classList.add('spot')}
 // 1マス進むごとに光る輪／残りマス数の吹き出し／止まったマスの名前
 const SQNAME={plus:'プラスマス',minus:'マイナスマス',yell:'コアファンマス',port:'港マス',airport:'空港マス',anti:'アンチマス',card:'カードマス',rank:'ランクアップマス',collab:'コラボマス',event:'イベントマス',plain:'ふつうのマス',shop:'カードショップ',sea:'航路'};
-function stepRing(n,c,last){const g=$('#stepfx');if(!g)return;const e=document.createElementNS('http://www.w3.org/2000/svg','circle');e.setAttribute('cx',n.x);e.setAttribute('cy',n.y);e.setAttribute('r',last?9:7);e.setAttribute('fill','none');e.setAttribute('stroke',c);e.setAttribute('stroke-width','2.2');e.setAttribute('class','stepring');g.appendChild(e);setTimeout(()=>e.remove(),900)}
+function stepRing(n,c,last){if(!reduce&&cv){const k=SEATC.indexOf(c);flashes.push({x:n.x,y:n.y,life:last?40:26,max:last?40:26,c:k>=0?seatCol(k):'#ffffff',ring:1,r0:last?8:6,r1:last?26:16});if(last)flashes.push({x:n.x,y:n.y,life:20,max:20,c:k>=0?seatCol(k):'#ffffff',ring:0});return}const g=$('#stepfx');if(!g)return;const e=document.createElementNS('http://www.w3.org/2000/svg','circle');e.setAttribute('cx',n.x);e.setAttribute('cy',n.y);e.setAttribute('r',last?9:7);e.setAttribute('fill','none');e.setAttribute('stroke',c);e.setAttribute('stroke-width','2.2');e.setAttribute('class','stepring');g.appendChild(e);setTimeout(()=>e.remove(),900)}
 function stepLeft(seat,pos,left){const g=$('#stepleft');if(!g)return;if(pos==null||left<=0){g.innerHTML='';return}const n=NODES[pos];
   g.innerHTML=`<g transform="translate(${n.x.toFixed(1)} ${(n.y-27).toFixed(1)})"><rect x="-13" y="-7" width="26" height="12" rx="6" fill="${SEATC[seat]}" stroke="#fff" stroke-width="1.2"/><text y="2.6" text-anchor="middle" font-size="7.5" font-weight="800" fill="#fff" font-family="var(--f-display)">あと${left}</text></g>`}
 function landName(n){const p=mapPt(n),nm=n.type==='station'?n.name+'駅':n.hub?n.name:SQNAME[n.type]||'';if(!nm)return;const e=fxEl('sqname',`<b>${esc(nm)}</b>`,p.x,p.y-42,1700);if(e)e.style.setProperty('--c',SQC[n.type]||'var(--station)')}
@@ -3059,7 +3066,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   const{chain,broken}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip){$('#turnText').textContent='盤面を読み込み中…';return}
   const st=tip.state,ds=dispState||st;if(!dispState){dispState=st;drawPawns(st);camHome(0)}
   setSeason(1);const night=isNight(ds.hour),hh=ds.hour,sk=night?3:hh<10?0:hh<16?1:2;$('#sky').style.background=SKY[sk];{const w=WEATHER[ds.weather||0];$('#skyLabel').innerHTML=`${ds.month}日目 ${ds.hour}:00　決算まで${(24-ds.hour)%24||24}時間<small class="wx">${w[0]} ${w[1]}・${TZN[TZ(ds.hour)]}<span class="wxi">ⓘ 倍率</span></small>`};$('#mapbox').classList.toggle('isnight',night);const nl=$('#nightLayer');if(nl)nl.setAttribute('opacity',night?.38:0);
-  const ts=st.finished?-1:curSeat(ds);document.body.classList.add('ingame');requestAnimationFrame(fitMap);
+  const ts=st.finished?-1:curSeat(ds);document.body.classList.add('ingame');if(!render.fitQ){render.fitQ=1;requestAnimationFrame(()=>{render.fitQ=0;fitMap()})}
   // プレイヤー欄（第30版）：総Gの多い順に1人1段・4段で表示。順位が入れかわったら、なめらかに並びかえる
   {const box=$('#status');box.classList.add('rankview');const oldR={};const vis=box.offsetParent!==null;if(vis)box.querySelectorAll('.pl[data-seat]').forEach(e=>oldR[e.dataset.seat]=e.offsetTop);
     const as=ds.players.map((_,i)=>assets(ds,i)),order=[0,1,2,3].filter(i=>ds.players[i]).sort((a,b)=>as[b]-as[a]||a-b),place={},moved=order.join()!==lastOrder;lastOrder=order.join();order.forEach((i,k)=>{place[i]=k===0||as[i]<as[order[k-1]]?k+1:place[order[k-1]]});
