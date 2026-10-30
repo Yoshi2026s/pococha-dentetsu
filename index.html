@@ -713,7 +713,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
     <div class="goalcard" id="goalCard" hidden></div>
     <div class="turnbar" id="turnBar"></div>
     <div class="mapbox" id="mapbox">
-      <svg id="map" viewBox="0 0 400 560" role="img" aria-label="西日本のすごろく地図"></svg>
+      <div id="mapwrap"><svg id="map" viewBox="0 0 400 560" role="img" aria-label="西日本のすごろく地図"></svg></div>
       <div class="sky" id="sky"></div><div class="skylabel" id="skyLabel"></div>
       <canvas id="fx" width="900" height="700"></canvas>
       <button type="button" class="mapbtn" id="bView">全体を見る</button><div class="goalarrow" id="goalArrow" hidden></div>
@@ -867,6 +867,10 @@ h2{font-family:var(--f-pop);font-weight:400;letter-spacing:.03em}
 /* 数字：桁がそろう等幅数字＋太字 */
 .pl-coin,.pl-tot b,.card .big,.rl-in b,.fnum,.gc-l b{font-variant-numeric:tabular-nums;font-weight:900}
 .card .big{font-family:var(--f-display)}
+/* カメラが動いている間だけ、地図を画面合成の層にする（描き直さずに移動・拡大） */
+/* 地図は外枠（#mapwrap）ごと動かす。SVGそのものを動かすと毎コマ配置の再計算が起きるため */
+#mapwrap{display:block}.stream #mapwrap{height:100%}
+#mapwrap.camlive{will-change:transform}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .face{background:radial-gradient(120% 120% at 30% 20%,#fff 0,#f4eff9 55%,#ddd3ea 100%)}}
 </style>
 <script src="firebase-config.js"></script>
@@ -2609,7 +2613,23 @@ function drawPawns(s){if(!s||!built)return;s.players.forEach((p,i)=>movePawn(i,p
 let VH=560,vb=[0,0,400,560],camAnim=null;// 画面に映す範囲（縦横比は常に400:560）
 // カメラが動く間は毎コマ呼ばれる。ここで画面の大きさを測ると地図全体の再計算が起きて重いので、測る処理（目的地の矢印）は約0.1秒に1回にまとめる
 let arrowT=0;function qArrow(){if(!arrowT)arrowT=setTimeout(()=>{arrowT=0;updateGoalArrow()},90)}
-function setVB(v){vb=v;qArrow();scaleMarks(400/v[2]);if($('#bView'))viewBtn();$('#map').setAttribute('viewBox',v.map(x=>x.toFixed(1)).join(' '))}
+// ===== カメラを軽く動かす（第39版）=====
+// カメラが動く間に地図の表示範囲（viewBox）を毎コマ書き換えると、そのたびに地図全体を描き直して重い。
+// そこで、動き始めに「動く前と後の両方が入る範囲」で1回だけ描き、動いている間はその絵をCSSの移動・拡大だけで動かす（画面の合成だけで済む）。
+// 止まったら正しい範囲で描き直して、くっきりさせる。拡大率が大きく変わる移動（全体⇔現在地など）は、ぼやけないよう従来の方法で動かす。
+let camLive=null;
+function camGeom(v,w,h){const k=Math.min(w/v[2],h/v[3]);return[k,(w-v[2]*k)/2-v[0]*k,(h-v[3]*k)/2-v[1]*k]}// 画面上の位置＝k×地図の座標＋ずれ
+function camUnion(a,b){const x0=Math.min(a[0],b[0]),y0=Math.min(a[1],b[1]);return[x0,y0,Math.max(a[0]+a[2],b[0]+b[2])-x0,Math.max(a[1]+a[3],b[1]+b[3])-y0]}
+function liveStart(a,b){if(reduce||!built)return null;const U=camUnion(a,b),r=Math.max(U[2]/Math.min(a[2],b[2]),U[3]/Math.min(a[3],b[3]));if(!(r<=1.9))return null;
+  const svg=$('#map');let R,B;try{R=svg.getBoundingClientRect();B=cv.getBoundingClientRect()}catch{return null}if(!R.width||!R.height)return null;
+  svg.style.width=R.width+'px';svg.style.height=R.height+'px';/* 範囲の縦横比が変わっても地図の枠の大きさは変えない */svg.setAttribute('viewBox',U.map(x=>x.toFixed(1)).join(' '));const W=$('#mapwrap');W.style.transformOrigin='0 0';W.classList.add('camlive');
+  camLive={U,w:R.width,h:R.height,ox:R.left-B.left,oy:R.top-B.top,g:camGeom(U,R.width,R.height)};fxSvg=[camLive.ox,camLive.oy,R.width,R.height];return camLive}
+function liveSet(v){const L=camLive;if(!L)return setVB(v);vb=v;qArrow();if($('#bView'))viewBtn();const[ku,oux,ouy]=L.g,[kv,ovx,ovy]=camGeom(v,L.w,L.h),sc=kv/ku;
+  $('#mapwrap').style.transform=`translate(${(ovx-sc*oux).toFixed(2)}px,${(ovy-sc*ouy).toFixed(2)}px) scale(${sc.toFixed(5)})`}
+function liveEnd(){clearTimeout(camCommitT);camCommitT=0;if(camLive)setVB(vb)}
+// 連続して動くとき（1マスずつ進む間など）は、描いた絵の範囲に次の行き先が入っていれば描き直さずに使い回す。止まって約0.3秒たったら正しい範囲で描き直す
+let camCommitT=0;function liveFits(to){const L=camLive;if(!L)return false;const U=L.U,e=.5;if(to[0]<U[0]-e||to[1]<U[1]-e||to[0]+to[2]>U[0]+U[2]+e||to[1]+to[3]>U[1]+U[3]+e)return false;return Math.max(U[2]/to[2],U[3]/to[3])<=1.9}
+function setVB(v){if(camLive){const svg=$('#map'),W=$('#mapwrap');W.style.transform='';W.classList.remove('camlive');svg.style.width='';svg.style.height='';camLive=null;fxSvg=null}vb=v;qArrow();scaleMarks(400/v[2]);if($('#bView'))viewBtn();$('#map').setAttribute('viewBox',v.map(x=>x.toFixed(1)).join(' '))}
 // 地図の表示：「現在地アップ」（ふだん）＝手番の人の駒のまわりを大きく／「全体」
 const ZN=1.75,ZM=2.25;let panned=false;
 // 拡大しても駅名の札・駒・目的地の札が大きくなりすぎないよう、ズームに合わせて縮める（画面上の大きさをほぼ一定に）
@@ -2638,7 +2658,7 @@ function updateGoalArrow(){const a=$('#goalArrow'),s=dispState;if(!a||!s||s.goal
   let panEnd=0;box.addEventListener('click',ev=>{if(performance.now()-panEnd<350&&!ev.target.closest('button')){ev.stopPropagation();ev.preventDefault()}},{capture:true});const end=()=>{if(st&&moved)panEnd=performance.now();st=null};box.addEventListener('pointerup',end);box.addEventListener('pointercancel',()=>{st=null})})();
 function viewBtn(){const b=$('#bView'),t=SET.view==='all'?'現在地を見る':(panned?'現在地にもどる':'全体を見る');if(b.textContent!==t)b.textContent=t}
 $('#bView').onclick=e=>{e.stopPropagation();if(SET.view==='near'&&panned){camHome(400);viewBtn();return}SET.view=SET.view==='all'?'near':'all';try{localStorage.setItem('poco-set',JSON.stringify(SET))}catch{}camHome(500);viewBtn()};
-function tween(to,ms){cancelAnimationFrame(camAnim);if(!(ms>0)){setVB(to);return}const from=vb.slice(),t0=performance.now();(function f(now){const k=Math.max(0,Math.min(1,(now-t0)/ms)),/* 描画フレームの時刻が開始時刻より前のとき、負の値で地図の表示範囲が飛ばないよう0〜1に収める */e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;setVB(from.map((v,i)=>v+(to[i]-v)*e));if(k<1)camAnim=requestAnimationFrame(f)})(t0)}
+function tween(to,ms){cancelAnimationFrame(camAnim);clearTimeout(camCommitT);camCommitT=0;if(!(ms>0)){setVB(to);return}const from=vb.slice(),t0=performance.now();let live=null;if(liveFits(to))live=camLive;else{liveEnd();live=liveStart(from,to)}(function f(now){const k=Math.max(0,Math.min(1,(now-t0)/ms)),/* 描画フレームの時刻が開始時刻より前のとき、負の値で地図の表示範囲が飛ばないよう0〜1に収める */e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,v=from.map((x,i)=>x+(to[i]-x)*e);if(live&&camLive)liveSet(v);else setVB(v);if(k<1)camAnim=requestAnimationFrame(f);else if(camLive){clearTimeout(camCommitT);camCommitT=setTimeout(liveEnd,300)}})(t0)}
 
 // 顔（オリジナル図形キャラ）
 function faceSvg(expr,hair){const eyes={ふつう:'<circle cx="32" cy="40" r="3"/><circle cx="48" cy="40" r="3"/>',うれしい:'<path d="M28 41 q4-5 8 0 M44 41 q4-5 8 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',かなしい:'<path d="M28 38 q4 4 8 0 M44 38 q4 4 8 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',びっくり:'<circle cx="32" cy="40" r="4.5"/><circle cx="48" cy="40" r="4.5"/>'}[expr]||'';
@@ -2672,7 +2692,7 @@ function drawPart(b){const k=b.s||1;
   cx.restore()}
 // 地図の座標 → キャンバスの座標（カメラの拡大・移動に合わせる）
 // getScreenCTMを毎コマ呼ぶと地図全体の再計算が起きて重いので、地図の枠の位置と大きさ（fxSvg）だけ時々測り、表示範囲（vb）から計算する
-let fxSvg=null;function fxSvgMeasure(){try{const S=$('#map').getBoundingClientRect(),B=cv.getBoundingClientRect();if(S.width&&S.height)fxSvg=[S.left-B.left,S.top-B.top,S.width,S.height]}catch{}}
+let fxSvg=null;function fxSvgMeasure(){if(camLive){fxSvg=[camLive.ox,camLive.oy,camLive.w,camLive.h];return}try{const S=$('#map').getBoundingClientRect(),B=cv.getBoundingClientRect();if(S.width&&S.height)fxSvg=[S.left-B.left,S.top-B.top,S.width,S.height]}catch{}}
 function fxMap(d){if(!fxSvg)fxSvgMeasure();if(fxSvg){const[ox,oy,sw,sh]=fxSvg,k=Math.min(sw/vb[2],sh/vb[3]),s=k*d;return[s,s,(ox+(sw-vb[2]*k)/2-vb[0]*k)*d,(oy+(sh-vb[3]*k)/2-vb[1]*k)*d]}const s=d*(fxW||400)/vb[2];return[s,s,-vb[0]*s,-vb[1]*s]}
 // 航路の乗り物（フェリー・飛行機）：行って戻るをくり返す。画面の外の乗り物は描かない
 let VEH=[];const VEHP={};
@@ -2690,7 +2710,7 @@ function fxMeter(now){const dt=now-fxLast;fxLast=now;if(dt<=0||dt>250||document.
 function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.splice(0,bursts.length-500);if(flashes.length>24)flashes.splice(0,flashes.length-24);
   const onlyAmb=!bursts.length&&!flashes.length&&!(performance.now()<staticUntil),hasVeh=VEH.length&&!fxLow();fxTick++;if(onlyAmb&&!fxDirty&&(fxTick&1)){if(!reduce)requestAnimationFrame(frame);return}
   // 枠の大きさは、変わったとき（ResizeObserver）か約0.5秒ごとにだけ測る（毎コマ測ると画面の再計算が起きて重い）
-  if(!fxRO&&window.ResizeObserver&&cv.parentElement){fxRO=new ResizeObserver(()=>{fxSz=null});fxRO.observe(cv.parentElement)}if(!fxSz||!(fxTick%30)){const m=cv.parentElement;fxSz=[m?m.clientWidth:0,m?m.clientHeight:0];fxSvg=null}
+  if(!fxRO&&window.ResizeObserver&&cv.parentElement){fxRO=new ResizeObserver(()=>{fxSz=null});fxRO.observe(cv.parentElement)}if(!fxSz||!(fxTick%30)){const m=cv.parentElement;fxSz=[m?m.clientWidth:0,m?m.clientHeight:0];if(!camLive)fxSvg=null}
   const w=fxSz[0],h=fxSz[1],d=Math.min(2,devicePixelRatio||1);
   if(w&&h&&(w!==fxW||h!==fxH||d!==fxD)){fxW=w;fxH=h;fxD=d;cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.style.width=w+'px';cv.style.height=h+'px';fxDirty=true}
   const busy=parts.length||bursts.length||flashes.length||hasVeh||performance.now()<staticUntil;
