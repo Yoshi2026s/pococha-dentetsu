@@ -282,7 +282,7 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 @keyframes fnum{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}15%{transform:translate(-50%,-60%) scale(1.25);opacity:1}30%{transform:translate(-50%,-70%) scale(1)}100%{transform:translate(-50%,-180%);opacity:0}}
 #cmts{position:absolute;right:8px;bottom:66px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;gap:4px;z-index:9;pointer-events:none;max-width:min(54%,240px)}
 .cmt{background:rgba(20,14,30,.82);color:#fff;font-size:12px;border-radius:999px;padding:4px 11px;animation:cmtin .35s ease-out,cmtout .7s ease-in 4.3s forwards;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
-.cmt b{color:#ffcf3a;font-weight:700}.cmt.troll{background:rgba(70,70,70,.8)}.cmt.troll b{color:#bbb}
+.cmt b{color:#ffcf3a;font-weight:700}.cmt.troll{background:rgba(70,70,70,.8)}.cmt.troll b{color:#bbb}.cmt{transition:background-color .25s,color .25s,box-shadow .25s}.cmt.see,.cmt.troll.see{background:rgba(20,14,30,.22);color:rgba(255,255,255,.4);box-shadow:none}.cmt.see b{color:rgba(255,207,58,.45)}
 @keyframes cmtin{from{transform:translateX(20px);opacity:0}}@keyframes cmtout{to{opacity:0;transform:translateY(-6px)}}
 .banner{inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:7}
 .bn{background:var(--c);color:#fff;font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.2;padding:8px 20px;width:100%;display:flex;flex-direction:column;align-items:center;box-shadow:0 6px 0 rgba(0,0,0,.18);text-shadow:0 2px 0 rgba(0,0,0,.25);animation:bnin 1.9s cubic-bezier(.2,.9,.3,1.2) forwards}
@@ -1310,7 +1310,7 @@ function chooseGoal(s,R){const c=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!(s.goal
 function genesisState(seed,days){days=DAYS_OPT.includes(days)?days:1;const rounds=roundsFor(days);
   const s={turn:0,month:1,hour:START_H,since:0,days,maxTurn:rounds*4,oi:0,order:[0,1,2,3],rng:0,goal:null,goalDist:0,okiUsed:false,troll:null,boost:null,owner:{},closed:0,finished:false,hist:[[10000,10000,10000,10000]],
   players:[0,1,2,3].map(()=>({pos:START,coin:10000,rank:'E1',pt:0,cards:0,hand:[],face:'ふつう',earned:0,mc:newMc(),md:[],mtot:0,minusTot:0,ye:0,yb:0,dmis:0,dye:0,dbuy:0,e0:0})),ev:[],lastSeat:null,lastDice:null,lastPath:[]};
-  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];
+  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;
   chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.rng=n;return s}
 
 // ===== ゴールドがマイナスのときの物件売却（第32版）=====
@@ -1404,7 +1404,8 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
       // 目的地は「ぴったり止まった」ときだけゴール（通り過ぎてもゴールにならない）
       txt=fixed&&!slowed?`ラッキー7で${d}マス`:(used==='just'?'ジャスト':'サイコロ')+ds.join('+')+(!slowed&&mul>1?'×'+mul:'')+(boost?'(+1)':'')+(!slowed&&add?'(+'+add+')':'')+(ds.length>1||boost||(!slowed&&(add||mul>1))?'='+d:'')}
     s.lastDice=d;s.lastPath=path;const nd=NODES[p.pos];
-    if(reached){const prize=fl100((5000+s.goalDist*300)*(BASEPT[p.rank]/1000)*(nd.oki?1.2:1));// 賞金：距離×ランク帯（長いゲームでも日数で膨らまない）p.coin+=prize;p.earned+=prize;p.face='うれしい';
+    if(reached){const prize=fl100((5000+s.goalDist*300)*(BASEPT[p.rank]/1000)*(nd.oki?1.2:1));// 賞金：距離×ランク帯（長いゲームでも日数で膨らまない）
+      if(s.gp){p.coin+=prize;p.earned+=prize;p.face='うれしい'}// 賞金の加算（gp=1の盤面のみ。以前の盤面は検算が合うよう従来どおり）
       const old=D(s.goal);let far=-1,fd=-1;s.players.forEach((q,i)=>{if(i===seat)return;const v=old[q.pos]+R()*.5;if(v>fd){fd=v;far=i}});s.troll=far;
       ev('goal',`${nd.name}に1番乗り！ ＋${prize.toLocaleString()}G・コアファン＋5人・＋50pt`,prize);ptAdd(p,seat,50);s.players.forEach(q=>{q.ye=0;q.yb=0;q.mc.ye0=0});ev('yellreset','目的地が変わったので、全員のコアファンは0人から集め直し');yellAdd(p,seat,5);ev('troll',`荒らしラグ王が${far+1}Pに取りついた`);chooseGoal(s,R);ev('newgoal','次の目的地は'+NODES[s.goal].name)}
     else if(nd.type==='yell'){const tz=TZ(s.hour),wx=s.weather||0,nb=baseCount(s,seat);let y=(1+Math.floor(R()*3))*YELLM.tz[tz]*YELLM.wx[wx]*(boost?1.5:1)+(nb>=12?2:nb>=5?1:0)+Math.floor(RI(p.rank)/6);y=Math.max(1,Math.round(y));p.face='うれしい';txt+=`・コアファンマス コアファン＋${kp(y)}（${TZN[tz]}・${WEATHER[wx][1]}）`;yellAdd(p,seat,y)}
@@ -2330,7 +2331,8 @@ function ensureCubes(n){const box=document.querySelector('.dicebox');if(!box)ret
 function rollCube(d,faces,card){spins+=2;const sp=card&&DICE[card];let f=Array.isArray(faces)&&faces.length?faces.slice(0,8):null;const fixed=sp&&sp[4]&&!f;
   if(!f)f=fixed?[]:[Math.min(6,Math.max(1,d))];const cs=ensureCubes(f.length);cs.forEach((c,i)=>{c.style.transform=`rotateX(${(spins+i)*360}deg) rotateY(${(spins+i)*360}deg) ${ROT[f[i]]||''}`});
   let tag=$('#diceTag');if(!tag){tag=document.createElement('div');tag.id='diceTag';tag.className='dicetag';document.querySelector('.dicebox').appendChild(tag)}
-  const add=sp&&f.length&&!fixed&&f.length===(sp[0]||1)?(sp[1]||0):0,mul=sp&&f.length===(sp[0]||1)?(sp[3]||1):1;
+  // 足し算は実際に進む数から出す（カードの＋分だけでなく、ブーストの＋1なども表示に入れて、目と進む数をそろえる）
+  const sum=f.reduce((x,y)=>x+y,0);let mul=sp&&f.length===(sp[0]||1)?(sp[3]||1):1;if(sum*mul>d)mul=1;const add=fixed?0:Math.max(0,d-sum*mul);
   tag.textContent=fixed?`🍀${d}`:(f.length>1||add||mul>1)?`${mul>1?'×'+mul:''}${add?'＋'+add:''}＝${d}`:'';tag.hidden=!tag.textContent;tag.classList.remove('pop');void tag.offsetWidth;tag.classList.add('pop')}
 
 // ===== 豪華なマス（立体のコマ：影・ふち・光沢・白い内輪・記号・きらめき） =====
@@ -2608,8 +2610,12 @@ function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4
   box.style.bottom=bot+'px';const row=((box.lastElementChild&&box.lastElementChild.offsetHeight)||24)+4;return Math.max(0,Math.min(H<340?3:4,Math.floor((H-bot-top+4)/row)))}
 // 入りきらない古いコメントから一時的に下げ、結果カードが消えて空きができたら出し直す（最大4件・地図が低い画面では3件、5秒待っても出せなければ消す）
 let cmtWait=[],cmtWT=0;
+// 駅名と重なったコメントは薄く透かして、下の駅名を読めるようにする（地図が動いても追従）
+function cmtSee(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!box.children.length)return;const L=[...mb.querySelectorAll('svg g.lbl')].map(g=>g.getBoundingClientRect()).filter(r=>r.width);
+  for(const c of box.children){const r=c.getBoundingClientRect();c.classList.toggle('see',L.some(l=>l.left<r.right-2&&l.right>r.left+2&&l.top<r.bottom-2&&l.bottom>r.top+2))}}
+setInterval(cmtSee,250);
 function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box)return;const n=cmtRoom(mb,box);
-  while(box.children.length>n){const c=box.firstChild;clearTimeout(c._k);c._wait=Date.now();c.remove();cmtWait.push(c)}cmtWait=cmtWait.slice(-4);if(cmtWait.length&&!cmtWT)cmtWT=setTimeout(cmtFlush,400)}
+  while(box.children.length>n){const c=box.firstChild;clearTimeout(c._k);c._wait=Date.now();c.remove();cmtWait.push(c)}cmtWait=cmtWait.slice(-4);if(cmtWait.length&&!cmtWT)cmtWT=setTimeout(cmtFlush,400);cmtSee()}
 function cmtFlush(){cmtWT=0;const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!document.body.classList.contains('ingame')){cmtWait=[];return}
   cmtWait=cmtWait.filter(c=>Date.now()-c._wait<5000);if(cmtWait.length&&cmtRoom(mb,box)>box.children.length){/* 出し直しも1件ずつずらす */const c=cmtWait.shift();c._wait=0;box.appendChild(c);c._k=setTimeout(()=>c.remove(),5000)}
   if(cmtWait.length)cmtWT=setTimeout(cmtFlush,400)}
@@ -2887,7 +2893,9 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   drawTurnBar(ds,ts);
   const me=mySeat();$('#goalName').textContent=NODES[ds.goal]?NODES[ds.goal].name:'–';$('#goalLeft').textContent=me>=0?`あなたはあと${D(ds.goal)[ds.players[me].pos]}マス`:'';
   const cs=curSeat(st),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),left=Math.max(0,Math.ceil(((db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)-age)/1000)),isCpu=(meta.cpu||[]).includes(cs);
-  $('#turnText').textContent=st.finished?'ゲーム終了':`${st.month}日目 ${st.hour}:00・第${st.turn+1}手番（${st.maxTurn?'全'+st.maxTurn+'手':'無制限'}）`+(cs===me?'あなたの番です':`${cs+1}P ${seatName(cs)}の番`+(isCpu?'':'（考え中…）'))+(isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`);
+  // 演出中（表示中の盤面が最新より前）は、上の「いまの番」と同じく動いている人を出す（演出中に次の人の番と出て順番がずれて見えるのを防ぐ）
+  {const lag=!st.finished&&ds!==st&&ds.turn<st.turn,vs=lag?ds:st,vc=lag?curSeat(ds):cs,vCpu=(meta.cpu||[]).includes(vc);
+  $('#turnText').textContent=st.finished?'ゲーム終了':`${vs.month}日目 ${vs.hour}:00・第${vs.turn+1}手番（${vs.maxTurn?'全'+vs.maxTurn+'手':'無制限'}）`+(vc===me?'あなたの番です':`${vc+1}P ${seatName(vc)}の番`+(vCpu||lag?'':'（考え中…）'))+(lag||isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`)}
   LAYER.drums=cs===me&&!st.finished;LAYER.tempo=st.month===st.days&&st.hour>=21?1.05:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos];if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':isNight(ds.hour)?'night':regionSong(st.players[cs].pos));
   const fs=pending&&pending.stage==='fsell',act=pending&&pending.stage==='act',buy=pending&&pending.stage==='buy',shp=pending&&pending.stage==='shop',rt=pending&&pending.stage==='route',rw=pending&&pending.stage==='reward';$('#actMain').hidden=buy||rt||rw||shp||fs;$('#actFsell').hidden=!fs;$('#actShop').hidden=!shp;$('#bar').classList.toggle('routing',!!rt);$('#actReward').hidden=!rw;$('#actBuy').hidden=!buy;$('#actRoute').hidden=!rt;document.body.classList.toggle('routeview',!!rt);
   $('#bRoll').disabled=!act;$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
@@ -2900,7 +2908,7 @@ function tick(){if(db&&db.online&&meta&&meta.phase==='playing'&&meta.host!==myId
   for(const r of [...records.values()])if(r.pred&&Date.now()-r.pred>15000)dropPred(r.id);
   const{chain}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip||tip.state.finished)return render();
   const seat=curSeat(tip.state),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),me=mySeat();
-  if(seat===me&&!busy&&tip.id!==sentTip&&!tip.pred&&age<(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)&&!animating()){busy=true;takeTurn('s'+me+':'+myId,me,myDecide).catch(e=>toast(errText(e))).finally(()=>{busy=false;pending=null;const g=$('#ghost');if(g)g.innerHTML='';clearChoices();render()})}
+  if(seat===me&&!busy&&tip.id!==sentTip&&!tip.pred&&age<(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)&&!animating()){busy=true;const t0=tip.id;takeTurn('s'+me+':'+myId,me,myDecide).catch(e=>toast(errText(e))).finally(()=>{busy=false;pending=null;const g=$('#ghost');if(g)g.innerHTML='';clearChoices();/* 道選びの途中で手番が終わった（時間切れ・中断・通信待ち）ときは、先に進めた駒を表示中の盤面の位置へ戻す */const t=curTip();if(t&&t.id===t0&&dispState&&!animating()){localWalk=null;stepLeft(me,null,0);drawPawns(dispState)}render()})}
   const humans=[0,1,2,3].filter(i=>seats[i]&&seatOnline(i)),runner=db.online?seats.findIndex(s=>s&&s.uid===meta.host):(humans.length?Math.min(...humans):-1),isCpu=(meta.cpu||[]).includes(seat);
   if(runner===me&&!proxyBusy&&tip.id!==sentTip&&!tip.pred&&!animating()&&(isCpu?age>=0:age>=(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE+30000))){proxyBusy=true;
     takeTurn('cpu'+seat+':'+myId,seat,st=>new Promise(r=>setTimeout(()=>r(cpuDecide(st)),SET.fast?80:180))).catch(()=>{}).finally(()=>{proxyBusy=false})}
