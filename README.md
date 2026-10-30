@@ -51,7 +51,7 @@ npm ci
 npx firebase emulators:exec --only firestore --project demo-pococha-dentetsu 'node test-online.cjs && node test-dom.cjs'
 ```
 
-実行にはNode.jsとJavaが必要です。エミュレーターはデモ用プロジェクト名を使用し、本番の利用者データでは試験しません。テスト結果は `test-results.json` と `dom-test-results.json` を参照してください。
+通信のテストは `npm run test:online`（ルールと同期）と `npm run test:online-e2e`（2人分のブラウザで対戦）でも実行できます。実行にはNode.jsとJavaが必要です。エミュレーターはデモ用プロジェクト名を使用し、本番の利用者データでは試験しません。テスト結果は `test-results.json` と `dom-test-results.json` を参照してください。
 
 GitHub Pagesは `main` / `/ (root)` から公開します。秘密鍵・トークンを追加しないでください。ルールの反映はFirebase管理画面または公式CLIで別途行い、公開前に許可・拒否を検証してください。
 

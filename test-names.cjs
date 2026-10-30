@@ -20,8 +20,15 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   assert.equal(E(`nameize("${o+1}Pに小さなアンチ −500G")`),on+'に小さなアンチ −500G');
   assert.equal(E(`nameize("${me+1}Pのゴールドがマイナス・ランク30pt・E1")`),'よしゆきのゴールドがマイナス・ランク30pt・E1','名前以外まで置きかわった');
   E(`toast("${o+1}Pがブロックカードで防いだ")`);assert.equal(d.querySelector('#toast').textContent,on+'がブロックカードで防いだ','お知らせが名前になっていない');
+  // 地図上の電車の札：名前の頭文字。重なるときは2文字、それでも同じなら頭文字＋席の番号。4人とも必ず違う
+  E('drawPawnLabels()');const pl=()=>[0,1,2,3].map(i=>d.querySelector('#pw'+i+' .pwl').textContent);
+  {const L=pl();assert.equal(L[me],'よ','自分の札：'+L.join(','));assert(L.every(x=>!/^[1-4]P$/.test(x)),'札に「〇P」が残っている：'+L.join(','));assert.equal(new Set(L).size,4,'札が重なっている：'+L.join(','))}
+  E(`meta.uname[seats[${me}].uid]=seatName(${o}).replace(/\\s/g,'').slice(0,1)+'ポコ'`);E('drawPawnLabels()');
+  {const L=pl();assert.equal(new Set(L).size,4,'頭文字が同じとき札が重なる：'+L.join(','));assert.equal(L[me].length,2,'頭文字が同じとき2文字になっていない：'+L.join(','))}
+  E(`meta.uname[seats[${me}].uid]=seatName(${o})`);E('drawPawnLabels()');
+  {const L=pl();assert.equal(new Set(L).size,4,'名前が同じとき札が重なる：'+L.join(','));assert(/[1-4]$/.test(L[me])&&/[1-4]$/.test(L[o]),'名前が同じとき席の番号が付かない：'+L.join(','))}
   // 名前を設定していないときは従来どおり「あなた」
   E(`meta.uname={}`);assert.equal(E(`seatName(${me})`),'あなた');
   if(errors.length)throw Error(errors.join('\n'));
-  console.log(`PASS プレイヤーの呼び方（自分＝設定した名前・ほか＝名前・記録の文も名前に・未設定は「あなた」）`);dom.window.close();
+  console.log(`PASS プレイヤーの呼び方（自分＝設定した名前・ほか＝名前・記録の文も名前に・電車の札は頭文字・未設定は「あなた」）`);dom.window.close();
 }catch(e){console.error(e);dom.window.close();process.exitCode=1;}},100);

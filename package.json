@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "test:online": "firebase emulators:exec --only firestore --project demo-pococha-dentetsu \"node test-online.cjs\"",
+    "test:online-e2e": "firebase emulators:exec --config firebase.e2e.json --only firestore,auth --project demo-pococha-dentetsu \"node test-online-e2e.cjs\""
+  },
   "dependencies": {
     "@firebase/rules-unit-testing": "^3.0.4",
     "firebase": "^10.12.2",
