@@ -23,13 +23,13 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   // 3) BGMの選び方（music を差し替えて、選ばれた曲を記録）
   const songs=E(`(()=>{const got=[];const keep=music;music=k=>got.push(k);const out={};const t=curTip(),st=t.state,bk=JSON.stringify(st);
     const go=(k,fn)=>{Object.assign(st,JSON.parse(bk));fn(st);dispState=st;got.length=0;render();out[k]=got[got.length-1]};
-    go('day1',s=>{});go('day2',s=>{s.month=2});
+    /* 目的地はランダムなので、近いときの曲（goalrun）が優先されないよう、全員を目的地から遠い場所に置いてから確かめる */
+    const farAll=s=>{const d=D(s.goal),f=d.findIndex(v=>v>=8);s.players.forEach(p=>p.pos=f);return d};
+    go('day1',s=>{farAll(s)});go('day2',s=>{farAll(s);s.month=2});
     go('near',s=>{const k=D(s.goal).findIndex(v=>v===3);s.players[curSeat(s)].pos=k});
     go('far',s=>{const k=D(s.goal).findIndex(v=>v===6);s.players.forEach(p=>p.pos=k)});
-    go('final',s=>{s.maxTurn=s.maxTurn||120;s.turn=s.maxTurn-5});
-    go('troll',s=>{s.troll=curSeat(s)});
-    /* 空港・海路の曲：目的地が近いときの曲（goalrun）が優先されるので、全員を目的地から遠い場所に置いてから確かめる（目的地はランダムなため） */
-    const farAll=s=>{const d=D(s.goal),f=d.findIndex(v=>v>=8);s.players.forEach(p=>p.pos=f);return d};
+    go('final',s=>{farAll(s);s.maxTurn=s.maxTurn||120;s.turn=s.maxTurn-5});
+    go('troll',s=>{farAll(s);s.troll=curSeat(s)});
     go('air',s=>{const d=farAll(s);s.players[curSeat(s)].pos=NODES.findIndex((n,i)=>n.air&&d[i]>5)});
     go('sea',s=>{const d=farAll(s);s.players[curSeat(s)].pos=NODES.findIndex((n,i)=>n.sea&&!n.air&&!n.oki&&d[i]>5)});
     music=keep;return out})()`);
