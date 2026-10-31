@@ -62,7 +62,7 @@
 .pl-mv{position:absolute;left:-14px;top:50%;transform:translateY(-50%);font-style:normal;font-size:12px;animation:mvfade 3s ease-out forwards}.pl-mv.up{color:#2ecc71}.pl-mv.down{color:#ff5a6e}
 @keyframes mvfade{0%,70%{opacity:1}100%{opacity:0}}
 #status.rankview .pl.rankup{animation:rkup .9s ease-out}@keyframes rkup{0%{box-shadow:0 0 0 0 rgba(255,210,63,.9)}100%{box-shadow:0 0 0 12px rgba(255,210,63,0)}}
-@media (max-width:360px){#status.rankview .pl-l2{gap:6px}#status.rankview .pl-l2 .pl-ye{display:none}}
+@media (max-width:360px){#status.rankview .pl-l2{gap:5px}#status.rankview .pl-l2 .pl-ye .u{display:none}}@media (max-width:340px){#status.rankview .pl-l2 .pl-goal .u{display:none}}/* 320px幅では「🏁25」にして1行に収める *//* 狭い画面でもコアファンは見せる（「人」を省いて「💖7」） */
 
 .fx.roul{position:absolute;left:0;right:0;top:34%;display:flex;justify-content:center;z-index:9;pointer-events:none}
 .rl-in{background:linear-gradient(135deg,#2b1d4a,#4a1d5a);border:3px solid #ffd23f;border-radius:18px;padding:10px 22px;text-align:center;box-shadow:0 0 0 3px #fff,0 0 26px 6px rgba(255,210,63,.6);color:#fff;animation:spin .3s ease-out}
@@ -724,6 +724,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 /* 演出の見本のボタンは指で押しやすい高さ（48px）に */#demoRow button{min-height:48px}
 /* 曲の試聴：曲名が長くても画面からはみ出さないよう、見出しの下に全幅の選択欄を置く */label[for=sBgmT]{display:flex!important;flex-direction:column;align-items:stretch!important;gap:4px;min-width:0}#sBgmT{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
 #ov .card:focus{outline:none}
+.missheet .ms-fan{font-size:13px;font-weight:700;margin:8px 0 2px;color:#1a86d8;text-align:left}
 /* 長いイベント名（コアファンイベントなど）は省略せず2行まで折り返す */.rc-ttl b.ttl-long,.has-main .rc-ttl b.ttl-long,.mr-card .has-main .rc-ttl b.ttl-long{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;font-size:16px!important;line-height:1.25!important;word-break:keep-all;overflow-wrap:anywhere}
 .plsheet .pl-fan{font-size:13px;font-weight:700;margin:6px 0;text-align:left;color:var(--ink)}
 /* ジャストカードの目は3×2の同じ大きさのボタン（48px）に */#justPick>div{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}#justPick .jbtn{width:100%;min-height:48px;margin:0}
@@ -865,7 +866,7 @@ body.gfs-shake .wrap{animation:shk .45s}
 /* 狭い画面（〜389px）でも「ポコチャレ 0/3」がボタンからはみ出さないよう、文字・すき間を幅に合わせて縮める */@media (max-width:389px){.bar .toprow>button{gap:clamp(2px,1vw,6px)}.bar .toprow>button small{font-size:clamp(12.5px,3.9vw,15px)!important}.bar .toprow>button.misbtn{letter-spacing:0;padding:0 5px!important}.misbtn b{font-size:12px;padding:2px 5px}}
 /* ポコチャレの内容（ボタンから開く） */
 .missheet h3{margin:0}.ms-who{margin:2px 0 10px;font-size:13px;font-weight:700;color:var(--muted)}
-.ms-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left}
+.ms-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left}.ms-t>b{display:block;text-wrap:balance}/* お題は1文字だけ次の行に落ちないよう、行の長さをそろえて折り返す */.optbtn .ob-t b,.rc-ttl b.ttl-long{text-wrap:balance}
 .ms-r{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;border-radius:14px;border:2px solid var(--line);background:color-mix(in srgb,var(--rank) 6%,var(--panel))}
 .ms-r.done{border-color:#14935a;background:color-mix(in srgb,#14935a 14%,var(--panel))}.ms-r.fail{opacity:.6}.ms-r.fail .ms-t b{text-decoration:line-through}
 .ms-i{font-size:20px;text-align:center}.ms-t{display:flex;flex-direction:column;gap:6px;min-width:0}.ms-t b{font-size:15px;line-height:1.4;color:var(--ink)}
@@ -1332,6 +1333,8 @@ FANEVDEF.forEach(([k,n,r,d,e])=>{XEV[k]=e;EVN[k]=n;EVR[k]=r;EVD[k]=d;EVG[k]='フ
 const EVW2=EVW.concat(FANEVDEF.map(([k,,r])=>[k,RARW_EV[r]]));
 const xevBad=k=>{const e=XEV[k];return!!e&&((e.c||0)<0||(e.pt||0)<0||(e.y||0)<0||(e.card||0)<0)};
 const evBad=k=>EVG[k]==='ハプニング'||xevBad(k);
+// イベントの帯の小見出し：記録の文からイベント名より後ろの「結果」だけを取り出す（「・」で区切った最後だけだと「雨）」「＋10pt」のように切れていた）
+function evSub(t,k){let x=String(t||'').replace(/^サイコロ[^・]*・/,'');const nm=EVN[k]||'',i=nm?x.indexOf(nm):-1;if(i>=0)x=x.slice(i+nm.length);x=x.replace(/^[」…！!\s]+/,'').replace(/（[^）]*）/g,'').split('／')[0].replace(/^・/,'').trim();return x.length>40?x.slice(0,39)+'…':x}
 // カード（第25版）：進行・移動・ボーナス・攻撃・防御・策略・サポートの7ジャンル。レア度 N＜R＜SR＜SSR＜UR（効果が高いほど上）
 // 旧カード（ブースト・ダブルブースト・バズり）は廃止。遊んでいる途中の手札に残っている分だけ使える
 const CARDDEF=[
@@ -1363,10 +1366,10 @@ const CARDDEF=[
  ['rankboost','ランクアップ応援','ボーナス','R','ランクpt＋30をもらってからサイコロ'],
  ['bigyell','大型コアファンカード','ボーナス','SR','ゴールド（基本G×3）とコアファン3人をもらってからサイコロ'],
  ['sponsorc','スポンサーカード','ボーナス','SR','ゴールド（基本G×4）をもらってからサイコロ'],
- ['double','コアファン倍増カード','ボーナス','SR','この番に止まったマス・イベントでもらうゴールドが2倍'],
+ ['double','コアファン倍増カード','ボーナス','SR','この番に止まったマス・イベントでもらうゴールドとコアファンが2倍'],
  ['oshikatsu','推し活カード','ボーナス','SR','次の0:00決算で物件からのゴールドが1.5倍（その後サイコロ）'],
  ['fanfes','物件まつり','ボーナス','SSR','物件数×基本Gの半分をもらう（最大40件分）。その後サイコロ'],
- ['triple','コアファン3倍カード','ボーナス','SSR','この番に止まったマス・イベントでもらうゴールドが3倍'],
+ ['triple','コアファン3倍カード','ボーナス','SSR','この番に止まったマス・イベントでもらうゴールドとコアファンが3倍'],
  ['rankjump','ランク特訓カード','ボーナス','SSR','ランクpt＋60をもらってからサイコロ'],
  ['goldsponsor','大口スポンサー','ボーナス','UR','ゴールド（基本G×8）をもらってからサイコロ'],
  // 攻撃
@@ -1479,7 +1482,7 @@ const nextTier=c=>TIERS.find(x=>x>c)||null;
 const YELL_STEP=10;
 // コアファンの「次のボーナスまで」の説明（画面用）。新ルールの対戦では0:00で0人に戻ることも添える
 function fanNext(s,q){const ye=q.ye||0,nb=(Math.floor(ye/YELL_STEP)+1)*YELL_STEP,g=(BASEPT[q.rank]||0)*2;return{ye,need:nb-ye,nb,g,txt:`💖 コアファン${ye}人：あと${nb-ye}人で${nb}人ボーナス（＋${g.toLocaleString()}G）${s&&s.fy?'・0:00の決算で0人に戻る':''}`}}
-function addYell(s,q,qi,v){q.ye=Math.max(0,(q.ye||0)+v);if(v>0)q.dye=(q.dye||0)+v;while(Math.floor(q.ye/YELL_STEP)*YELL_STEP>(q.yb||0)){q.yb=(q.yb||0)+YELL_STEP;const g=BASEPT[q.rank]*2;q.coin+=g;q.earned+=g;s.ev.push({k:'yellbonus',t:`${qi+1}P コアファン${kp(q.yb)}達成ボーナス ＋${g.toLocaleString()}G`,v:qi})}}
+function addYell(s,q,qi,v){q.ye=Math.max(0,(q.ye||0)+v);if(v>0)q.dye=(q.dye||0)+v;if(v>0&&s.fy)q.yt=(q.yt||0)+v;/* 新ルール：対戦全体で集めたコアファンの合計（最終結果の「コアファン王」） */while(Math.floor(q.ye/YELL_STEP)*YELL_STEP>(q.yb||0)){q.yb=(q.yb||0)+YELL_STEP;const g=BASEPT[q.rank]*2;q.coin+=g;q.earned+=g;s.ev.push({k:'yellbonus',t:`${qi+1}P コアファン${kp(q.yb)}達成ボーナス ＋${g.toLocaleString()}G`,v:qi})}}
 // ランクダウン：1つ下のランク帯へ。ポイントは0から（次のランクまで必要数を最初から貯め直す）
 function rankDown(s,q,qi,why){const b=q.rank;q.pt=0;if(RI(b)===0)return;q.rank=RANKS[RI(b)-1];s.ev.push({k:'rankdown',t:`${qi+1}P ランクダウン ${b}→${q.rank}${why?'（'+why+'）':''}`,v:{seat:qi,before:b,after:q.rank}})}
 // ランクポイントの増減。マイナスで0を下回るとランクダウン
@@ -1528,7 +1531,7 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
   let n0k=null;/* イベントマスで引いた種類（新ルールの追加イベントの判定に使う） */const seat=s.order[s.oi],p=s.players[seat],B=BASEPT[p.rank],boost=s.boost===seat;s.lastSeat=seat;s.ev=[];s.buyCtx=null;p.face='ふつう';
   const ev=(k,t,v)=>s.ev.push({k,t,v});
   let gm=1;const fm=q=>1+fanBonus(baseCount(s,s.players.indexOf(q))),G=(q,v)=>Math.round(v*fm(q)*(q===p?gm:1)/10)*10;
-  const yellAdd=(q,qi,v)=>addYell(s,q,qi,v),ptAdd=(q,qi,v,why)=>addRank(s,q,qi,v,why);
+  const yellAdd=(q,qi,v)=>addYell(s,q,qi,s.fy&&q===p&&v>0&&gm>1?Math.round(v*gm):v)/* 新ルール：コアファン倍増・3倍カードはこの番に増えるコアファンも2倍・3倍 */,ptAdd=(q,qi,v,why)=>addRank(s,q,qi,v,why);
   const block=(q,what)=>{const i=q.hand.indexOf('block');if(i>=0){q.hand.splice(i,1);ev('block',`${q===p?'':(s.players.indexOf(q)+1)+'Pが'}ブロックカードで${what}を防いだ`);return true}if(q.shield>0){q.shield--;ev('block',`${q===p?'':(s.players.indexOf(q)+1)+'Pが'}バリアで${what}を防いだ`);return true}return false};
   if(action.yell||action.type==='stay')throw new Error('removed action');
   forceSell(s,seat,action.preSell,ev,!NF);
@@ -2531,7 +2534,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
    const we=evs.find(e=>e.k==='weather');if(we)comments(['sunny','good','rain','storm'][we.v|0]||'good',2);if(evs.some(e=>e.k==='fsell'||e.k==='sold'))comments('sell',2);
    {const q=s.players[seat],o=prev&&prev.players&&prev.players[seat];if(q&&o&&q.rank===o.rank&&(q.pt||0)>(o.pt||0)&&!evs.some(e=>e.k==='monthend'))comments('meter',1)}ambientComments(s)}
   const gc=evs.find(e=>e.k==='getcard');if(gc){comments('card',2);const r=CARDR[gc.v]||'N';floatNum(pNode,'「'+CARDN[gc.v]+'」GET'+(RARLV[r]>=2?'　'+r:''),RARLV[r]>=1?RARC[r]:'var(--card)');if(RARLV[r]>=2)rarFx(r,pNode);else{sfx(RARLV[r]?'rarR':'card');burst('star',pNode)}}
-  const ee=evs.find(e=>e.k==='event');if(ee){const r=EVR[ee.v]||'N',bad=evBad(ee.v),lv=RARLV[r];if(lv<3)vib([40,30,40]);const bn=banner((!bad&&lv>=4?'★ ':'')+EVN[ee.v].replace(/[！…]$/,'')+(bad?'…':'！'),bad?(lv>=3?'linear-gradient(90deg,#14061a,#5a0f2a,#14061a)':'linear-gradient(90deg,#5b4a78,#8a3a5a)'):RARBG[r],`${(EVGENRES.find(g=>g[0]===EVG[ee.v])||['',''])[1]}${EVG[ee.v]}・${r}　`+t.replace(/^.*・/,''));if(bn)bn.classList.add('rar-'+r,bad?'bad':'good');if(!bad){burst('confetti',pNode)}rarFx(r,pNode,bad);
+  const ee=evs.find(e=>e.k==='event');if(ee){const r=EVR[ee.v]||'N',bad=evBad(ee.v),lv=RARLV[r];if(lv<3)vib([40,30,40]);const bn=banner((!bad&&lv>=4?'★ ':'')+EVN[ee.v].replace(/[！…]$/,'')+(bad?'…':'！'),bad?(lv>=3?'linear-gradient(90deg,#14061a,#5a0f2a,#14061a)':'linear-gradient(90deg,#5b4a78,#8a3a5a)'):RARBG[r],`${YEV[ee.v]?'💖コアファンイベント':(EVGENRES.find(g=>g[0]===EVG[ee.v])||['',''])[1]+EVG[ee.v]}・${r}　`+evSub(t,ee.v));if(bn)bn.classList.add('rar-'+r,bad?'bad':'good');if(!bad){burst('confetti',pNode)}rarFx(r,pNode,bad);
     if(EVG[ee.v]==='お仕事'||ee.v==='tip'||ee.v==='jackpot'||ee.v==='lottery')coinsFly(pNode,seat,10);else if(ee.v==='photo'){fxEl('flash','',null,null,500);sfx('stamp')}else if(ee.v==='collabreq')shock(pNode,'var(--yell)');else if(ee.v==='buzz'||ee.v==='regular'){burst('heart',pNode);comments('event',6)}else if(evBad(ee.v)){sfx('anti');shake();staticNoise(500);comments('bad',3);comments('troll',2)}else{pillar(pNode,'#ffcf3a');comments('event',5)}}
   if(evs.some(e=>e.k==='bigyell')){burst('heart',pNode);floatNum(pNode,'大型コアファン！','var(--yell)')}
   {const cx=evs.filter(e=>e.k==='bonuscard'||e.k==='attack'||e.k==='defend'||e.k==='getcard2');cx.forEach((e,i)=>setTimeout(()=>{toast(e.t);if(e.k==='attack'){sfx('anti');shake()}else{sfx('card');burst('star',pNode)}},(SET.fast?200:500)+i*600))}
@@ -2545,7 +2548,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   const rd=evs.filter(e=>e.k==='rankdown');if(rd.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankdown',2);sfx('anti');shake();brokenHearts(pNode);banner('ランクダウン…','linear-gradient(90deg,#5d5470,#e5363d)',rd.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?900:2100);
   {const yr=evs.find(e=>e.k==='yellreset');if(yr)setTimeout(()=>toast(evs.some(e=>e.k==='monthend')?'💖 0:00の決算で、全員のコアファンが0人に戻りました（また今日から集め直し）':'💖 目的地が変わったので、全員のコアファンが0人に戻りました'),SET.fast?700:1700)}/* 記録の文（検算に使う）はそのまま、表示だけ読みやすく */
   {const we=evs.find(e=>e.k==='weather');if(we)setTimeout(()=>toast(we.t),SET.fast?600:1500)}
-  const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('yell');toast(e.t);chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
+  const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('yell');if(e.v!==seat)toast('🎉 '+e.t);/* 止まった人のボーナスは結果カードに出るので、お知らせは重ねない */chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
   {const g=evs.find(e=>e.k==='goal');if(g){if(localGoal===s.turn){localGoal=null;await wait(300)}else await goalShow(seat,pNode,g.v,s.goal)}}
   if(evs.some(e=>e.k==='mono'))setTimeout(()=>{comments('mono',6);sfx('rankup');pillar(pNode,'#ffcf3a');banner('独占！','#ffcf3a',(pNode.name||'')+' 決算'+(pNode.mono||2)+'倍');fireworks(2)},SET.fast?500:1100);
   if(evs.some(e=>e.k==='buy')){comments('buy',3);sfx('buy');houseRise(pNode,SEATC[seat]);burst('coin',pNode);banner('物件獲得！','var(--station)',pNode.name||'');coinsFly(pNode,seat,6,true)}
@@ -2575,7 +2578,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
 let finalSeen=false;
 function showFinal(s){const me=mySeat(),rows=s.final.map((f,i)=>`<tr${f.seat===me?' class="me"':''}><td>${['1位','2位','3位','4位'][i]} ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}G</td></tr>`).join('');
     const earn=[0,1,2,3].sort((a,b)=>s.players[b].earned-s.players[a].earned)[0];const rk=[0,1,2,3].sort((a,b)=>RANKS.indexOf(s.players[b].rank)-RANKS.indexOf(s.players[a].rank))[0];
-    if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">全国編</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
+    if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">${s.days?s.days+'日間':'無制限'}の対戦が終わりました</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
 function showOverlay(html,ms,kind){return new Promise(res=>{const o=$('#ov');o.innerHTML=`<div class="card${kind?' '+kind:''}">${html}<button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;const rb=$('#bRematch');if(rb)rb.onclick=()=>{rematch()};
   o.querySelectorAll('[data-count]').forEach(el=>countUp(el,0,+el.dataset.count,'＋'));
   const done=()=>{o.hidden=true;o.innerHTML='';clearTimeout(t);res()};$('#ovClose').onclick=done;o.onclick=e=>{if(e.target===o)done()};const t=ms?setTimeout(done,SET.fast?ms/2:ms):null})}
@@ -2638,12 +2641,12 @@ function drawMis(st){const b=$('#bMis');if(!b||!st||!st.mis)return;misSt=st;cons
 function showMis(){const st=misSt;if(!st||!st.mis)return;const o=$('#ov'),I=misInfo(st),h=st.hour,left=6-(h%6||0),nx=(h+left)%24;
   const rows=I.list.map(x=>`<li class="ms-r${x.done?' done':''}${x.fail?' fail':''}"><span class="ms-i" aria-hidden="true">${x.done?'✅':x.fail?'✖️':'🎯'}</span><span class="ms-t"><b>${esc(x.m.t)}</b>${x.m.end&&!x.done&&!x.fail?'<small class="ms-n">6時間の締め（次のお題が出るとき）に判定します</small>':''}${x.m.end||x.done?'':`<span class="ms-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${x.m.n}" aria-valuenow="${x.c}"><i style="width:${Math.round(x.c/x.m.n*100)}%"></i></span>`}</span><span class="ms-p">${esc(x.prog)}</span></li>`).join('');
   o.innerHTML=`<div class="card sheet missheet" id="misSheet" role="dialog" aria-label="ポコチャレ"><h3>🏅 ポコチャレ</h3><p class="ms-who">${esc(seatName(I.v))}の進み具合</p><ul class="ms-list">${rows}</ul>
-    <p class="ms-rw">🎁 達成ごとの報酬：<b>${(BASEPT[I.p.rank]*4).toLocaleString()}G</b> か <b>カード1枚</b>を選べて、さらに <b>コアファン＋2人・ランク＋20pt</b></p>
+    ${I.p?`<p class="ms-fan">${esc(fanNext(misSt||dispState,I.p).txt)}</p>`:''}<p class="ms-rw">🎁 達成ごとの報酬：<b>${(BASEPT[I.p.rank]*4).toLocaleString()}G</b> か <b>カード1枚</b>を選べて、さらに <b>コアファン＋2人・ランク＋20pt</b></p>
     <p class="muted ms-nx">次のお題は ${nx}:00（あと${left}時間）</p><button id="msClose">とじる</button></div>`;
   o.hidden=false;const c=$('#msClose');c.onclick=()=>{o.hidden=true;o.innerHTML=''}}
 function awards(s){const best=(f,lo)=>{const v=[0,1,2,3].map(i=>f(i)),m=lo?Math.min(...v):Math.max(...v);return m>0||lo?[0,1,2,3].filter(i=>v[i]===m):[]};
   const A=[['稼ぎ王',best(i=>s.players[i].earned),i=>s.players[i].earned.toLocaleString()+'G'],['ランク王',best(i=>RANKS.indexOf(s.players[i].rank)),i=>s.players[i].rank],
-    ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>(s.players[i].minusTot||0)+'回']];
+    ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>(s.players[i].minusTot||0)+'回']].concat(s.fy?[['コアファン王',best(i=>s.players[i].yt||0),i=>'合計'+(s.players[i].yt||0)+'人']]:[]);
   return`<div class="awards">${A.filter(a=>a[1].length&&a[1].length<4).map(([t,w,f])=>`<span class="award"><small>${t}</small><span>${w.map(i=>`<b style="color:${SEATC[i]}">${esc(seatName(i))}</b>`).join('・')}</span><i>${f(w[0])}</i></span>`).join('')}</div>`}
 function assetChart(hist,dark){if(!hist||hist.length<2)return'';/* 線の名札は地図の電車と同じ名前の2文字 */const PL=typeof pawnLabels==='function'&&meta&&meta.phase==='playing'?pawnLabels():null;const W=290,H=120,P=26,mx=Math.max(...hist.flat())*1.08,X=i=>P+i*(W-P-28)/(hist.length-1),Y=v=>H-18-(v/mx)*(H-30);
   const mon=hist.map((_,i)=>i?`${i}日目`:'開始');let g=`<svg class="achart" viewBox="0 0 ${W} ${H}" role="img" aria-label="総Gの推移"><line x1="${P}" y1="${H-18}" x2="${W-24}" y2="${H-18}" stroke="currentColor" opacity=".3"/>`;
@@ -3417,7 +3420,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
     const ng=box.__ng,gl=NODES[ng]?D(ng)[i===ts&&pending&&pending.pv&&pending.pv.goal&&ts===mySeat()?pending.pv.pos:p.pos]:null,rk=place[i],prevRk=lastPlace[i];
     d.innerHTML=`<span class="pl-pos r${rk}">${rk}<small>位</small></span>
       <span class="pl-l1"><span class="pl-name">${esc(seatName(i))}</span><span class="pl-rank ${p.rank[0]}" style="--rk:var(--rk${p.rank[0]})" title="ランク帯 ${p.rank}">${p.rank}</span>${i===ts?'<span class="pl-now">番</span>':''}${vs.troll===i?'<span class="trollmark">お邪魔</span>':''}${seats[i]&&!seatOnline(i)?'<em class="pl-off">切断</em>':''}</span>
-      <span class="pl-l2"><span class="pl-coin"><span class="coin"></span><i>G</i></span><span class="pl-fan" title="物件数">🏠<b>${nb}</b>件</span><span class="pl-ye" title="コアファン（目的地が変わるとリセット）">💖<b>${kpp(p.ye)[0]}</b>${kpp(p.ye)[1]}</span><span class="pl-goal${i===mySeat()?' me':''}" title="目的地までの残りマス">🏁あと<b>${gl==null||gl>=1e9?'–':gl}</b></span></span>
+      <span class="pl-l2"><span class="pl-coin"><span class="coin"></span><i>G</i></span><span class="pl-fan" title="物件数">🏠<b>${nb}</b>件</span><span class="pl-ye" title="${esc(fanNext(vs,p).txt.replace(/^💖 /,''))}">💖<b>${kpp(p.ye)[0]}</b><span class="u">${kpp(p.ye)[1]}</span></span><span class="pl-goal${i===mySeat()?' me':''}" title="目的地までの残りマス">🏁<span class="u">あと</span><b>${gl==null||gl>=1e9?'–':gl}</b></span></span>
       <span class="pl-tot"><small>総G</small><b>${shortNum(as[i])}</b>${prevRk&&prevRk!==rk?`<em class="pl-mv ${rk<prevRk?'up':'down'}">${rk<prevRk?'▲':'▼'}</em>`:''}</span>`;
     fitNum(d.querySelector('.pl-coin'),shortNum(p.coin),14,6,10);fitNum(d.querySelector('.pl-tot b'),shortNum(as[i]),16,5,11);const s1=d.querySelector('.coin');const was=lastCoins[i];if(was!=null&&was!==p.coin)countUp(s1,was,p.coin,'',shortNum);else s1.textContent=shortNum(p.coin);lastCoins[i]=p.coin;box.appendChild(d)});
     // 並びかえのアニメーション（前の位置から今の位置へすべらせる）
