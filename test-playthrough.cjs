@@ -62,7 +62,7 @@ async function play(br,port,W,seed){
   if(!finished)log('未完了','制限時間内に最終結果まで進まなかった');
   else{await page.waitForTimeout(1500);await layout('最終結果');await shot('final');
     if(POST==='rematch'){await click('#bRematch');await page.waitForTimeout(2000);if(!await page.locator('#vRoom').isVisible())log('再招待','部屋画面が出ない');
-      else{await click('#bStart');await page.waitForTimeout(2500);if(!await page.locator('#vGame').isVisible())log('再招待','開始できない')}}
+      else{await click('#bStart');await page.waitForTimeout(2500);if(!await page.locator('#vGame').isVisible())log('再招待','開始できない');else if(/最終結果/.test(await page.locator('#bRoll').textContent()))log('再招待','新しい対戦でも「最終結果」ボタンのまま')}}
     else{await click('#ov #ovClose');await page.waitForTimeout(2000);const head=await page.locator('#status .st-head').textContent();if(!head.includes('ゲーム終了'))log('終了後','上部欄：'+head);
       /* 閉じたあとも「最終結果」ボタンで見直せる */if(!/最終結果/.test(await page.locator('#bRoll').textContent())||await page.locator('#bRoll').isDisabled())log('終了後','最終結果を見直すボタンがない');else{await click('#bRoll');await page.waitForTimeout(800);if(!/最終結果/.test(await page.locator('#ov').textContent()))log('終了後','最終結果を見直せない')}}}
   await ctx.close();return{W,seed,finished,sec:Math.round((Date.now()-t0)/1000),myTurns:mine,clicks,issues}}
