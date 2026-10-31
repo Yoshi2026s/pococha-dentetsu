@@ -321,7 +321,7 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 .stream .gc-all{display:none}.stream .goalcard{padding:4px 10px}.stream .gc-l b{font-size:30px}
 body.stream .wrap{padding-top:10vh!important}
 .stream .mapbox{border-color:#000;height:calc(70vh - 150px);width:auto;max-width:100%;aspect-ratio:400/560;align-self:center;flex:none}
-.stream .mapbox svg#map{width:100%;height:100%}
+.stream .mapbox svg#map,.stream .mapbox svg#mapfx{width:100%;height:100%}
 .stream #bar{background:#000!important;border-top:none!important;min-height:20vh;box-sizing:border-box;color:#fff}
 .stream #bar .row .small,.stream #bar .chip{background:#222;color:#fff;border-color:#444}
 .stream #routeInfo{color:#ff9ccb}
@@ -594,7 +594,8 @@ button.small,.chip{box-shadow:none}
 .bar .log li:first-child{font-weight:800;color:var(--ink)}.log .lg-who{font-weight:900}
 /* 行動ログはタップで広げて、過去の手番を読み返せる */.bar .logpanel{cursor:pointer}.logpanel:has(#log:empty) .lp-tg{display:none}
 .sqx{animation:none!important}
-/* 演出中は地図の中の飾りのアニメ（波・きらめき・雲・マスの記号の動き）を一時停止：地図全体の描き直しを減らし、コマとカメラの動きをなめらかに */body.fxbusy #map .wv,body.fxbusy #map .cl,body.fxbusy #map .goaltag,body.fxbusy #map .turnring,body.fxbusy #map .goalpulse{animation-play-state:paused!important}
+/* 演出中は地図の中の飾りのアニメ（波・きらめき・雲・マスの記号の動き）を一時停止：地図全体の描き直しを減らし、コマとカメラの動きをなめらかに */body.fxbusy #map .wv,body.fxbusy #map .cl{animation-play-state:paused!important}
+/* 動くもの（コマ・手番の輪・目的地の印・分かれ道の矢印）は地図の上に重ねた別のSVG（#mapfx）に置く：コマが動いても大きな地図を描き直さない。地図と重ねSVGはそれぞれ別の層にして使い回す（2026-11-01） */#mapwrap{position:relative}#mapfx{position:absolute;left:0;top:0;pointer-events:none;overflow:hidden}#mapfx #choices{pointer-events:auto}#map,#mapfx{will-change:transform}
 /* リスナーコメント：下の操作欄の右下に3件まで（CPUのひとことは左側）。1行ずつ、はみ出す分は… */#cmts.cmts-bar{position:absolute;right:10px;bottom:max(6px,env(safe-area-inset-bottom));width:calc(46% - 14px);max-height:60px;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;z-index:6;pointer-events:none;overflow:hidden;max-width:none}#cmts.cmts-bar .cmt{width:100%;max-width:100%;box-sizing:border-box;font-size:11px;line-height:1.35;padding:1px 8px;border-radius:9px;animation:cmttick .3s ease-out,cmtout .6s ease-in 5.6s forwards}#cmts.cmts-bar .cmt:not(.troll){background:#2a2038}@keyframes cmttick{from{opacity:0;transform:translateY(6px)}}@media (prefers-reduced-motion:reduce){#cmts.cmts-bar .cmt{animation:none}}.bar.picking>#cmts,.bar.routing>#cmts,.bar.picking>.fx.speech,.bar.routing>.fx.speech{display:none}/* 道選び・獲得・ショップの画面では出さない *//* CPUのひとこと：下のメニュー欄の下側（行動ログの段）に重ねる。押す操作はさまたげない */.bar>.fx.speech.inbar{position:absolute;left:10px;right:auto;width:calc(54% - 14px);bottom:max(6px,env(safe-area-inset-bottom));top:auto;z-index:6;max-width:none;pointer-events:none;align-items:center}.bar>.fx.speech.inbar .sp-bub{flex:1;min-width:0;background:color-mix(in srgb,#fff 94%,transparent)}.bar>.fx.speech.inbar .sp-face{width:36px;height:36px;flex:none}.bar>.fx.speech.inbar .sp-bub{font-size:12.5px;line-height:1.35;padding:3px 9px 4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.bar>.fx.speech.inbar .sp-bub b{font-size:10px}/* 下の段（行動ログの段）を62pxにして、ひとこと（左）とコメント3件（右）がボタンに重ならないように */html body.ingame .bar .logpanel{min-height:62px;justify-content:flex-start;padding-top:6px}html body.ingame .bar .logpanel.open{min-height:62px}@media (prefers-reduced-motion:reduce){#cmts.cmts-top .cmt{animation:none}}
 /* 2026-10-31 下のボタンを1段4つに：左から メニュー・ポコチャレ・カード・サイコロ（一番右がサイコロで少し広く）。ボタンは48pxのまま */
 .btnrow{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr;gap:6px;width:100%}.btnrow:has(>#actMain[hidden]){display:none}
@@ -785,7 +786,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
     <div class="goalcard" id="goalCard" hidden></div>
     <div class="turnbar" id="turnBar"></div>
     <div class="mapbox" id="mapbox">
-      <div id="mapwrap"><svg id="map" viewBox="0 0 400 560" role="img" aria-label="西日本のすごろく地図"></svg></div>
+      <div id="mapwrap"><svg id="map" viewBox="0 0 400 560" role="img" aria-label="西日本のすごろく地図"></svg><svg id="mapfx" viewBox="0 0 400 560" aria-hidden="true"></svg></div>
       <div class="skylabel" id="skyLabel" role="button" tabindex="0" aria-label="時間帯と天気"><canvas class="wxwin" id="wxWin" width="132" height="88" aria-hidden="true"></canvas><div id="skyTxt"></div><div id="skyWx"></div></div>
       <canvas id="fx" width="900" height="700"></canvas>
       <button type="button" class="mapbtn" id="bView">全体を見る</button><div class="goalarrow" id="goalArrow" hidden></div>
@@ -2790,7 +2791,7 @@ function forestArt(LP){try{if(typeof Path2D!=='function')return'';const ctx=docu
     if(!P.some(p=>ctx.isPointInPath(p,x,y))||!P.some(p=>ctx.isPointInPath(p,x,y+9)))continue;if(pts.some(q=>Math.hypot(q[0]-x,q[1]-y)<12))continue;if(seg.some(g=>dseg(x,y,g)<5))continue;
     const k=(.5+(h>>>24)%5*.06).toFixed(2);out.push(`<use href="#tree" x="${(x-6*k).toFixed(1)}" y="${(y-9*k).toFixed(1)}" width="${(12*k).toFixed(1)}" height="${(13*k).toFixed(1)}"/>`)}
   return'<g class="forest" pointer-events="none">'+out.join('')+'</g>'}catch(e){return''}}
-function buildMap(){const L=[];setTimeout(()=>{const m=$('#map');if(m&&!$('#stepleft')){const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='stepleft';m.appendChild(g)}camHome(0)},0);
+function buildMap(){const L=[],F=[];setTimeout(()=>{const m=$('#mapfx');if(m&&!$('#stepleft')){const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='stepleft';m.appendChild(g)}camHome(0)},0);
   L.push(`<defs><linearGradient id="seaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sea)"/><stop offset="1" stop-color="var(--seaDeep)"/></linearGradient>
     <linearGradient id="snowG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--snow)"/><stop offset="1" stop-color="var(--snow2)"/></linearGradient>${texPat('landTex','grain',34,'<pattern id="landTex" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="4" cy="5" r="1" fill="#7a5a3a" opacity=".10"/><circle cx="15" cy="14" r="1.3" fill="#7a5a3a" opacity=".08"/><path d="M9 19 l2-3 2 3" stroke="#3f8a52" stroke-width=".9" fill="none" opacity=".18"/></pattern>')}${texPat('landMacro','macro',300,'')}<linearGradient id="landG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--land)"/><stop offset="1" stop-color="var(--land2)"/></linearGradient>
     <pattern id="landBlot" width="160" height="140" patternUnits="userSpaceOnUse"><ellipse cx="40" cy="36" rx="34" ry="20" fill="var(--forest)" opacity=".10"/><ellipse cx="120" cy="96" rx="28" ry="16" fill="var(--forest)" opacity=".08"/><ellipse cx="104" cy="22" rx="18" ry="10" fill="#fff" opacity=".25"/><ellipse cx="30" cy="112" rx="22" ry="9" fill="#fff" opacity=".2"/></pattern>
@@ -2832,7 +2833,7 @@ function buildMap(){const L=[];setTimeout(()=>{const m=$('#map');if(m&&!$('#step
   L.push('<g class="hubnames" pointer-events="none">'+NODES.filter(n=>n.hub).map((n,_i)=>{const S=NODES[SIDX[n.hub]],dx=n.x-S.x,dy=n.y-S.y,L=Math.hypot(dx,dy)||1,w=(n.name.length+1)*7.6,box=(x,y,a)=>{const x0=a==='start'?x:a==='end'?x-w:x-w/2;return{x0,x1:x0+w,y0:y-8,y1:y+2}};
     const cands=[[n.x+dx/L*13,n.y+dy/L*13+3,dx>8?'start':dx<-8?'end':'middle'],[n.x,n.y+17,'middle'],[n.x,n.y-11,'middle']];const P=(drawHubBox.list=_i===0?[]:drawHubBox.list||[]);
     let [tx,ty,anc]=cands.find(([x,y,a])=>{const b=box(x,y,a);return!P.some(q=>b.x0<q.x1&&q.x0<b.x1&&b.y0<q.y1&&q.y0<b.y1)})||cands[0];P.push(box(tx,ty,anc));return`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anc}" font-size="7.5" font-weight="800" fill="${n.type==='port'?'#1d4f86':'var(--air,#6c5cff)'}" stroke="#fff" stroke-width="2.4" paint-order="stroke">${n.type==='port'?'⚓':'✈'}${n.name}</text>`}).join('')+'</g>');
-  L.push('<g id="owners"></g><g id="goalMark"></g>');
+  L.push('<g id="owners"></g>');F.push('<g id="goalMark"></g>');
   // 駅名の札は、マスや他の札と重ならない向き（右・左・上・下）を自動で選ぶ
   const plates=[],hit=(r,x,y,rad)=>x+rad>r.x&&x-rad<r.x+r.w&&y+rad>r.y&&y-rad<r.y+r.h,over=(r,q)=>r.x<q.x+q.w&&q.x<r.x+r.w&&r.y<q.y+q.h&&q.y<r.y+r.h;
   NODES.forEach(n=>{if(n.type!=='station')return;const w=n.name.length*10+10,h=15;
@@ -2840,10 +2841,10 @@ function buildMap(){const L=[];setTimeout(()=>{const m=$('#map');if(m&&!$('#step
     let best=C[0],bs=1e9;C.forEach((r,ci)=>{let sc=ci*0.1;if(r.x<2||r.x+w>WW-2||r.y<2||r.y+h>WH-2)sc+=50;NODES.forEach((m,j)=>{if(m!==n&&hit(r,m.x,m.y,m.type==='station'?9:6))sc+=m.type==='station'?20:6});plates.forEach(q=>{if(over(r,q))sc+=30});if(sc<bs){bs=sc;best=r}});
     plates.push(best);L.push(`<use href="#sq-station" x="${n.x-12}" y="${n.y-12}" width="24" height="24"/>`);n.plate=best});
   NODES.forEach(n=>{if(!n.plate)return;const r=n.plate;L.push(`<g class="lbl" data-x="${n.x}" data-y="${n.y}"><rect x="${r.x+1.5}" y="${r.y+1.8}" width="${r.w}" height="${r.h}" rx="7.5" fill="var(--outline)"/><rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="7.5" fill="var(--panel)" stroke="var(--outline)" stroke-width="1.4"/><text x="${r.x+r.w/2}" y="${r.y+11.5}" text-anchor="middle" font-size="10" font-weight="800" font-family="var(--f-display)" fill="var(--ink)">${n.name}</text></g>`)});
-  L.push('<g id="ghost"></g><g id="stepfx"></g><g id="choices"></g>');
-  L.push('<g id="turnRing"></g>');
-  L.push('<g id="pawns">'+[0,1,2,3].map(i=>`<g id="pw${i}" style="transition:transform .26s ease-out"><g class="psc"><g class="poff" style="transition:transform .25s ease-out;transform:translate(0px,-10px)"><g class="bus"><ellipse cy="7.2" rx="8.6" ry="1.7" fill="#000" opacity=".25"/><path d="M-8.4 5V-2.2Q-8.4-6-4.6-6H4.6Q8.4-6 8.4-2.2V5Z" fill="${SEATC[i]}" stroke="var(--ink)" stroke-width="1" stroke-linejoin="round"/><path d="M-8.4 5V-2.2Q-8.4-6-4.6-6H4.6Q8.4-6 8.4-2.2V5Z" fill="url(#pawnShade)"/><g fill="#d6f2ff" stroke="var(--ink)" stroke-width=".5"><rect x="-6.6" y="-4.3" width="3.6" height="2.8" rx=".8"/><rect x="-1.8" y="-4.3" width="3.6" height="2.8" rx=".8"/><rect x="3" y="-4.3" width="3.6" height="2.8" rx=".8"/></g><path d="M-6.2-4l1.4 0-1.6 2.2z M-1.4-4l1.4 0-1.6 2.2z M3.4-4l1.4 0-1.6 2.2z" fill="#fff" opacity=".8"/><rect x="-8.4" y="-.6" width="16.8" height=".9" fill="#fff" opacity=".7"/><g fill="var(--ink)"><circle cx="-4.4" cy="5.2" r="1.9"/><circle cx="4.4" cy="5.2" r="1.9"/></g><g fill="#c9c3d6"><circle cx="-4.4" cy="5.2" r=".7"/><circle cx="4.4" cy="5.2" r=".7"/></g><text class="pwl" y="3.6" font-size="4.3" text-anchor="middle" fill="#fff" font-weight="900" stroke="#2b2236" stroke-width=".6" paint-order="stroke">${i+1}P</text></g></g></g></g>`).join('')+'</g><g id="trollMark"></g>');
-  $('#map').innerHTML=L.join('')}
+  F.push('<g id="ghost"></g><g id="stepfx"></g><g id="choices"></g>');
+  F.push('<g id="turnRing"></g>');
+  F.push('<g id="pawns">'+[0,1,2,3].map(i=>`<g id="pw${i}" style="transition:transform .26s ease-out"><g class="psc"><g class="poff" style="transition:transform .25s ease-out;transform:translate(0px,-10px)"><g class="bus"><ellipse cy="7.2" rx="8.6" ry="1.7" fill="#000" opacity=".25"/><path d="M-8.4 5V-2.2Q-8.4-6-4.6-6H4.6Q8.4-6 8.4-2.2V5Z" fill="${SEATC[i]}" stroke="var(--ink)" stroke-width="1" stroke-linejoin="round"/><path d="M-8.4 5V-2.2Q-8.4-6-4.6-6H4.6Q8.4-6 8.4-2.2V5Z" fill="url(#pawnShade)"/><g fill="#d6f2ff" stroke="var(--ink)" stroke-width=".5"><rect x="-6.6" y="-4.3" width="3.6" height="2.8" rx=".8"/><rect x="-1.8" y="-4.3" width="3.6" height="2.8" rx=".8"/><rect x="3" y="-4.3" width="3.6" height="2.8" rx=".8"/></g><path d="M-6.2-4l1.4 0-1.6 2.2z M-1.4-4l1.4 0-1.6 2.2z M3.4-4l1.4 0-1.6 2.2z" fill="#fff" opacity=".8"/><rect x="-8.4" y="-.6" width="16.8" height=".9" fill="#fff" opacity=".7"/><g fill="var(--ink)"><circle cx="-4.4" cy="5.2" r="1.9"/><circle cx="4.4" cy="5.2" r="1.9"/></g><g fill="#c9c3d6"><circle cx="-4.4" cy="5.2" r=".7"/><circle cx="4.4" cy="5.2" r=".7"/></g><text class="pwl" y="3.6" font-size="4.3" text-anchor="middle" fill="#fff" font-weight="900" stroke="#2b2236" stroke-width=".6" paint-order="stroke">${i+1}P</text></g></g></g></g>`).join('')+'</g><g id="trollMark"></g>');
+  $('#map').innerHTML=L.join('');$('#mapfx').innerHTML=F.join('')}
 function movePawn(seat,pos,hop){const n=NODES[pos];const e=document.getElementById('pw'+seat);if(!e)return;if(hop)setPoff(seat,[0,-11]);e.style.transform=`translate(${n.x.toFixed(1)}px, ${n.y.toFixed(1)}px)`;
   if(hop&&!reduce){const b=e.querySelector('.bus');b.classList.remove('hop');void b.getBBox();b.classList.add('hop')}}
 // 席の色（CSSの色名を実際の色に直す。キャンバスでは var(--s0) が使えないため）
@@ -2872,20 +2873,21 @@ function camUnion(a,b){const x0=Math.min(a[0],b[0]),y0=Math.min(a[1],b[1]);retur
 function liveStart(a,b){if(reduce||!built)return null;let U=camUnion(a,b),r=Math.max(U[2]/Math.min(a[2],b[2]),U[3]/Math.min(a[3],b[3]));if(!(r<=1.9))return null;
   /* 進む向きに2歩先まで含めて描いておき、続けて1マスずつ動く間は描き直さずに使い回す（ぼやけすぎないよう表示範囲の1.6倍まで） */{const ah=[b[0]+(b[0]-a[0])*2,b[1]+(b[1]-a[1])*2,b[2],b[3]],U2=camUnion(U,ah),r2=Math.max(U2[2]/Math.min(a[2],b[2]),U2[3]/Math.min(a[3],b[3]));if(r2<=1.6){U=U2;r=r2}}
   const svg=$('#map');let R,B;try{R=svg.getBoundingClientRect();B=cv.getBoundingClientRect()}catch{return null}if(!R.width||!R.height)return null;
-  svg.style.width=R.width+'px';svg.style.height=R.height+'px';/* 範囲の縦横比が変わっても地図の枠の大きさは変えない */svg.setAttribute('viewBox',U.map(x=>x.toFixed(1)).join(' '));const W=$('#mapwrap');W.style.transformOrigin='0 0';W.classList.add('camlive');
+  svg.style.width=R.width+'px';svg.style.height=R.height+'px';{const o=$('#mapfx');if(o){o.style.width=svg.style.width;o.style.height=svg.style.height}}/* 範囲の縦横比が変わっても地図の枠の大きさは変えない */mapVB(U);const W=$('#mapwrap');W.style.transformOrigin='0 0';W.classList.add('camlive');
   camLive={U,w:R.width,h:R.height,ox:R.left-B.left,oy:R.top-B.top,g:camGeom(U,R.width,R.height)};fxSvg=[camLive.ox,camLive.oy,R.width,R.height];return camLive}
 function liveSet(v){const L=camLive;if(!L)return setVB(v);vb=v;qArrow();if($('#bView'))viewBtn();const[ku,oux,ouy]=L.g,[kv,ovx,ovy]=camGeom(v,L.w,L.h),sc=kv/ku;
   $('#mapwrap').style.transform=`translate(${(ovx-sc*oux).toFixed(2)}px,${(ovy-sc*ouy).toFixed(2)}px) scale(${sc.toFixed(5)})`}
 function liveEnd(){clearTimeout(camCommitT);camCommitT=0;if(camLive)setVB(vb)}
 // 連続して動くとき（1マスずつ進む間など）は、描いた絵の範囲に次の行き先が入っていれば描き直さずに使い回す。止まって約0.3秒たったら正しい範囲で描き直す
 let camCommitT=0;function liveFits(to){const L=camLive;if(!L)return false;const U=L.U,e=.5;if(to[0]<U[0]-e||to[1]<U[1]-e||to[0]+to[2]>U[0]+U[2]+e||to[1]+to[3]>U[1]+U[3]+e)return false;return Math.max(U[2]/to[2],U[3]/to[3])<=1.9}
-function setVB(v){if(camLive){const svg=$('#map'),W=$('#mapwrap');W.style.transform='';W.classList.remove('camlive');svg.style.width='';svg.style.height='';camLive=null;fxSvg=null}vb=v;qArrow();scaleMarks(400/v[2]);if($('#bView'))viewBtn();$('#map').setAttribute('viewBox',v.map(x=>x.toFixed(1)).join(' '))}
+function setVB(v){if(camLive){const svg=$('#map'),W=$('#mapwrap');W.style.transform='';W.classList.remove('camlive');svg.style.width='';svg.style.height='';{const o=$('#mapfx');if(o){o.style.width='';o.style.height=''}}camLive=null;fxSvg=null}vb=v;qArrow();scaleMarks(400/v[2]);if($('#bView'))viewBtn();mapVB(v)}
+function mapVB(v){const t=v.map(x=>x.toFixed(1)).join(' ');$('#map').setAttribute('viewBox',t);const o=$('#mapfx');if(o)o.setAttribute('viewBox',t)}
 // 地図の表示：「現在地アップ」（ふだん）＝手番の人の駒のまわりを大きく／「全体」
 const ZN=1.75,ZM=2.25;let panned=false;
 // 拡大しても駅名の札・駒・目的地の札が大きくなりすぎないよう、ズームに合わせて縮める（画面上の大きさをほぼ一定に）
 let lastLS=0;function scaleMarks(z){const ls=Math.min(1.5,1.75/z),lp=Math.min(2.2,2/z);if(Math.abs(ls-lastLS)<.01&&!scaleMarks.dirty)return;lastLS=ls;scaleMarks.dirty=false;
   document.querySelectorAll('#map .lbl,#map .lbl2').forEach(g=>{const x=+g.dataset.x,y=+g.dataset.y,k=g.classList.contains('lbl2')?lp:ls;g.setAttribute('transform',`translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`)});
-  document.querySelectorAll('#map .psc').forEach(g=>g.setAttribute('transform',`scale(${lp})`))}
+  document.querySelectorAll('#mapfx .psc').forEach(g=>g.setAttribute('transform',`scale(${lp})`))}
 function camAt(n,z,ms,mid,ez){if(!n)return;const w=400/z,h=VH/z;const to=[Math.max(0,Math.min(WW-w,n.x-w/2)),Math.max(0,Math.min(WH-h,n.y-h*(mid?.5:.4))),w,h];camGoal=to;camGoalAt=Date.now();if(!SET.cam||reduce||SET.fxq==='lite')setVB(to);else tween(to,SET.fast?ms/2:ms,ez)}
 function camTo(n,z,ms){camAt(n,z,ms)}
 // 拡大率はそのままで、マスが画面の縦 fy（0〜1）の位置に来るようにカメラを動かす（結果カードを避けるため）
@@ -3244,7 +3246,7 @@ function houseRise(n,color){const p=mapPt(n);fxEl('house',`<svg viewBox="0 0 40 
 function plEl(i){return document.querySelector(`#status .pl[data-seat="${i}"]`)}
 function spotlight(){const me=mySeat();const c=plEl(me);if(!c||reduce)return;c.classList.remove('spot');void c.offsetWidth;c.classList.add('spot')}
 // 砂嵐と色ずれ（荒らしラグ王）
-let staticUntil=0;function staticNoise(ms){if(reduce)return;staticUntil=performance.now()+(SET.fast?ms/2:ms);const m=$('#map');m.classList.add('rgb');setTimeout(()=>m.classList.remove('rgb'),SET.fast?ms/2:ms)}
+let staticUntil=0;function staticNoise(ms){if(reduce)return;staticUntil=performance.now()+(SET.fast?ms/2:ms);const m=[$('#map'),$('#mapfx')].filter(Boolean);m.forEach(e=>e.classList.add('rgb'));setTimeout(()=>m.forEach(e=>e.classList.remove('rgb')),SET.fast?ms/2:ms)}
 // コインがステータスへ飛んでいく
 function coinsFly(n,seat,k=6,lose){if(reduce)return;const from=mapPt(n),box=$('#mapbox').getBoundingClientRect(),chip=plEl(seat);if(!chip)return;const to=chip.getBoundingClientRect();
   for(let i=0;i<k;i++){const e=document.createElement('div');e.className='flycoin';e.style.left=(box.left+from.x)+'px';e.style.top=(box.top+from.y)+'px';document.body.appendChild(e);
@@ -3723,7 +3725,7 @@ function openMenu(){unlock();const o=$('#ov'),inG=!!(meta&&meta.phase==='playing
 $('#bMenu').onclick=openMenu;$('#bMis').onclick=()=>{unlock();showMis()};$('#skyLabel').onclick=e=>{e.stopPropagation();showWx()};$('#skyLabel').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();showWx()}};
 // 下の操作バーの高さに合わせて余白を取り、余分なスクロールで上の欄がずれないようにする
 {const sb=$('#status');if(sb&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--sth',(sb.offsetParent?sb.offsetHeight:0)+'px')}).observe(sb)}
-{const bar=$('#bar');if(bar&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--barh',(bar.hidden?0:bar.offsetHeight)+'px')}).observe(bar)}
+{const bar=$('#bar');if(bar&&window.ResizeObserver){let last='';new ResizeObserver(()=>{const v=(bar.hidden?0:bar.offsetHeight)+'px';/* 同じ高さなら書き換えない（全体のスタイルの再計算を避ける） */if(v===last)return;last=v;document.documentElement.style.setProperty('--barh',v)}).observe(bar)}}
 {let wasG=false;new MutationObserver(()=>{const g=document.body.classList.contains('ingame');if(g&&!wasG)scrollTo(0,0);wasG=g}).observe(document.body,{attributes:true,attributeFilter:['class']})}
 // 長いシートは下までスクロールしなくても閉じられるよう、右上に×を付ける（「とじる」ボタンを押すのと同じ）
 // カードが開いたら読み上げ・キーボードの位置をカードへ移し、閉じたら元のボタンへ戻す（画面はスクロールさせない）
