@@ -1845,82 +1845,138 @@ Object.assign(SONGS,{
  okinawa:{name:'沖縄（島の風）',bpm:104,form:'AABA',lead:{type:'sanshin',v:.19,echo:.22,rev:.25},arp:false,pad:true,drums:'island',bass:'sync',
   A:{m:[72,-1,76,77,79,-1,77,76,72,-1,71,72,76,-1,-1,-1,77,79,83,-1,84,-1,83,79,77,-1,76,77,79,-1,-1,-1],c:[[48,52,55],[48,52,55],[41,45,48],[43,47,50]]},
   B:{m:[84,-1,83,79,77,-1,79,-1,76,77,79,-1,72,-1,-1,-1,71,72,76,-1,77,76,72,-1,71,-1,-1,72,72,-1,-1,-1],c:[[41,45,48],[48,52,55],[43,47,50],[48,52,55]]}}});
-// 2026.10.31 追加曲（オリジナル）：普段の対戦はPOPの2曲（日目の奇数・偶数で交代）。場面の曲は「目的地まであと少し」「終盤」のときだけ
-// 曲の書き方：form＝部分の並び、up＝部分ごとの転調（半音）、各部分の e＝盛り上がり（0＝前奏で軽め、1＝ふつう、2＝サビ）
-// stab＝裏拍の和音の刻み、cm＝対旋律、sparkle＝サビのきらめき、riser＝サビ前の盛り上げの音、resume＝場面の曲から戻ると前回の続きの部分から
+// 楽譜の書き方（2026.10.31 第2版）：音名＋オクターブ（C5＝ド、F#4、Bb5）、「-」＝前の音をのばす、「.」＝休み、「|」＝小節の区切り（1小節8コマ）
+const NPC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+const NT=x=>{if(x==='-')return -1;if(x==='.')return 0;const g=/^([A-G])(#|b)?(\d)$/.exec(x);if(!g)throw Error('音名：'+x);return 12*(+g[3]+1)+NPC[g[1]]+(g[2]==='#'?1:g[2]==='b'?-1:0)};
+const NOTES=str=>str.replace(/\|/g,' ').trim().split(/\s+/).map(NT);
+// 和音：C・Am・G7・Fmaj7・Dm7・Bb など。根音を40〜51の高さに置く（ベースはその1オクターブ下）
+const CHORD=nm=>{const g=/^([A-G])(#|b)?(maj7|m7|m|7)?$/.exec(nm);if(!g)throw Error('和音：'+nm);let r=NPC[g[1]]+(g[2]==='#'?1:g[2]==='b'?-1:0);r=((r-40)%12+12)%12+40;const q=g[3]||'',mi=q==='m'||q==='m7',c=[r,r+(mi?3:4),r+7];if(q==='7'||q==='m7')c.push(r+10);if(q==='maj7')c.push(r+11);return c};
+// 部分を作る：o＝{e:盛り上がり,L:音色,brk:ブレイク,b:ベース}、cs＝小節ごとの和音、mel＝メロディ、cm＝対旋律（省略可）
+function SEC(o,cs,mel,cm){const m=NOTES(mel),c=cs.trim().split(/\s+/).map(CHORD);if(m.length!==c.length*8)throw Error('小節数が合わない：'+cs);const r={...o,m:o.sh?m.map(x=>x>0?x+o.sh:x):m,c};if(cm){r.cm=NOTES(cm);if(r.cm.length!==m.length)throw Error('対旋律の長さ')}return r}
+const LD={chip:{type:'square',v:.06,det:6,echo:.2,rev:.14},chipB:{type:'square',v:.055,det:10,echo:.24,rev:.16},ep:{type:'epiano',v:.15,echo:.22,rev:.18},brass:{type:'brass',v:.09,echo:.2,rev:.2},
+  pluck:{type:'pluck',v:.19,echo:.25,rev:.18},mar:{type:'marimba',v:.16,echo:.25,rev:.2},bell:{type:'bell',v:.12,echo:.3,rev:.35},flute:{type:'flute',v:.14,echo:.22,rev:.28},organ:{type:'organ',v:.07,echo:.15,rev:.2}};
+// いつもの曲（POP）4曲：それぞれ約1分半〜2分の構成（前奏・Aメロ・Bメロ・サビ・ブレイク）。2周したら次の曲へ交代し、2周目は音色・刻み方・ベースの動きが変わる
 Object.assign(SONGS,{
- pop:{name:'ポコ電ごきげん旅（いつもの曲）',bpm:138,form:'IAABCC',up:[0,0,0,0,0,2],lead:{type:'square',v:.06,det:6,echo:.2,rev:.14},stab:'off',sparkle:true,riser:true,resume:true,arp:true,pad:true,drums:'dance',hat16:true,bass:'oct',cmi:{type:'bell',v:.055},
-  I:{e:0,m:[84,-1,79,-1,81,79,76,-1,77,-1,76,74,72,-1,74,-1,76,-1,72,-1,74,72,69,-1,71,-1,72,74,-1,-1,-1,-1],c:[[48,52,55],[43,47,50],[45,48,52],[43,47,50]]},
-  A:{m:[72,-1,72,74,76,-1,72,-1,71,-1,71,72,74,-1,67,-1,69,-1,69,71,72,-1,76,-1,77,76,74,72,74,-1,-1,-1],c:[[48,52,55],[43,47,50],[45,48,52],[41,45,48]]},
-  B:{m:[77,-1,77,76,77,-1,81,-1,79,-1,76,-1,72,-1,-1,-1,74,-1,74,76,77,-1,74,-1,79,-1,-1,-1,79,81,83,-1],c:[[41,45,48],[40,43,47],[38,41,45],[43,47,50]]},
-  C:{e:2,m:[84,-1,81,79,-1,81,79,77,79,-1,74,-1,74,76,77,-1,76,-1,79,84,-1,83,81,79,81,-1,79,76,-1,74,72,-1],
-     cm:[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,86,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,88,-1,86,-1],c:[[41,45,48],[43,47,50],[48,52,55],[45,48,52]]}},
- pop2:{name:'各駅ポップ（いつもの曲2）',bpm:126,form:'AABCC',lead:{type:'epiano',v:.15,echo:.2,rev:.15},stab:'push',sparkle:true,riser:true,resume:true,arp:true,pad:true,drums:'city',hat16:true,bass:'oct',cmi:{type:'marimba',v:.08},
-  A:{m:[71,-1,74,-1,79,-1,78,79,78,-1,74,-1,69,-1,-1,-1,71,-1,74,76,-1,74,71,-1,72,-1,71,69,-1,67,69,-1],c:[[43,47,50],[50,54,57],[40,43,47],[48,52,55]]},
-  B:{m:[76,-1,76,74,76,-1,79,-1,78,-1,76,74,-1,74,76,78,79,-1,78,74,-1,71,-1,74,76,-1,-1,-1,74,76,78,-1],c:[[48,52,55],[50,54,57],[47,50,54],[50,54,57]]},
-  C:{e:2,m:[79,-1,79,81,83,-1,81,79,81,-1,78,-1,74,-1,78,81,83,-1,83,81,79,-1,74,76,79,-1,78,76,-1,74,76,-1],
-     cm:[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,86,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,83,-1,-1,-1],c:[[48,52,55],[50,54,57],[43,47,50],[40,43,47]]}},
- goalrun:{name:'ラストスパート（目的地まであと少し）',bpm:150,form:'AABB',lead:{type:'square',v:.06,det:8,echo:.18,rev:.1},stab:'push',riser:true,sparkle:true,arp:true,pad:true,drums:'chase',bass:'oct',
-  A:{m:[74,-1,78,-1,81,-1,78,74,76,-1,73,-1,69,-1,73,76,78,-1,74,-1,71,-1,74,78,79,-1,78,76,74,-1,76,-1],c:[[50,54,57],[45,49,52],[47,50,54],[43,47,50]]},
-  B:{e:2,m:[79,-1,79,81,83,-1,79,-1,81,-1,81,83,85,-1,81,-1,86,-1,85,83,81,-1,78,-1,76,-1,78,-1,81,-1,85,-1],c:[[43,47,50],[45,49,52],[50,54,57],[45,49,52]]}},
- climax:{name:'最終電車（終盤）',bpm:144,form:'AABB',lead:{type:'brass',v:.09,echo:.2,rev:.2},harm:'bell',stab:'off',riser:true,sparkle:true,arp:true,pad:true,drums:'chase',bass:'oct',
-  A:{m:[76,-1,76,77,76,-1,72,-1,77,-1,77,79,77,-1,72,-1,79,-1,79,81,79,-1,74,-1,80,-1,76,-1,71,-1,68,-1],c:[[45,48,52],[41,45,48],[43,47,50],[40,44,47]]},
-  B:{e:2,m:[81,-1,-1,79,77,-1,76,77,79,-1,-1,77,76,-1,74,76,76,-1,80,83,-1,80,76,-1,81,-1,-1,-1,-1,-1,-1,-1],h:[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,88,-1,-1,-1,-1,-1,-1,-1],c:[[41,45,48],[43,47,50],[40,44,47],[45,48,52]]}}});
+ pop:{name:'ポコ電ごきげん旅（いつもの曲1）',bpm:138,form:'IAABCDBC',up:[0,0,0,0,0,0,0,2],lead:LD.chip,lead2:LD.pluck,stab:'off',sparkle:true,riser:true,resume:true,pl:true,vary:true,arp:true,pad:true,drums:'dance',hat16:true,bass:'oct',cmi:{type:'bell',v:.055},
+  I:SEC({e:0},'C G Am G','C6 - G5 - A5 G5 E5 - | F5 - E5 D5 C5 - D5 - | E5 - C5 - D5 C5 A4 - | B4 - C5 D5 G5 - . .'),
+  A:SEC({L:LD.ep},'C G Am Em F C Dm G','E5 - E5 F5 G5 - E5 - | D5 - D5 E5 F5 - D5 - | C5 - C5 D5 E5 - A5 - | G5 - - - . . . . | A5 - A5 G5 F5 - E5 F5 | G5 - E5 - C5 - E5 - | F5 - E5 D5 E5 - F5 - | D5 - - - . . . .'),
+  B:SEC({},'F G Em Am F G Em G','A5 - A5 - G5 A5 C6 - | B5 - G5 - D5 - . G5 | G5 - G5 A5 B5 - G5 - | A5 - - - . . . . | A5 - A5 - G5 A5 C6 - | D6 - B5 - G5 - B5 - | E6 - D6 C6 B5 - G5 - | D6 - - - - - . .'),
+  C:SEC({e:2},'F G C Am F G C C','C6 - A5 C6 - D6 C6 A5 | B5 - G5 - G5 A5 B5 - | C6 - E6 - D6 C6 G5 - | A5 - - - . . . . | D6 - C6 A5 - C6 D6 - | D6 - B5 - G5 - D6 - | E6 - D6 C6 - G5 C6 - | C6 - - - . . . .',
+   '- - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - E6 - G6 - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - G6 - E6 -'),
+  D:SEC({e:0,brk:true,L:LD.bell},'Am F C G','E5 - - - C5 - - - | F5 - - - A5 - - - | G5 - - - E5 - - - | D5 - - - G5 - B5 -')},
+ pop2:{name:'各駅ポップ（いつもの曲2）',bpm:126,form:'AABCDBCC',up:[0,0,0,0,0,0,0,1],lead:LD.ep,lead2:LD.mar,stab:'push',sparkle:true,riser:true,resume:true,pl:true,vary:true,arp:true,pad:true,drums:'city',hat16:true,bass:'funk',cmi:{type:'marimba',v:.08},
+  A:SEC({},'G D Em C G D C D','B4 - D5 - G5 - F#5 G5 | F#5 - D5 - A4 - . . | B4 - D5 E5 - D5 B4 - | C5 - B4 A4 - G4 A4 - | B4 - D5 - G5 - A5 B5 | A5 - F#5 - D5 - E5 F#5 | G5 - E5 - C5 - E5 - | D5 - - - . . . .'),
+  B:SEC({b:'sync'},'C D Bm Em C D Bm D','E5 - E5 D5 E5 - G5 - | F#5 - E5 D5 - D5 E5 F#5 | G5 - F#5 D5 - B4 - D5 | E5 - - - . . . . | E5 - E5 D5 E5 - G5 - | A5 - G5 F#5 - E5 F#5 A5 | B5 - A5 F#5 - D5 - F#5 | A5 - - - - - . .'),
+  C:SEC({e:2,L:LD.brass},'C D G Em C D G G','G5 - G5 A5 B5 - A5 G5 | A5 - F#5 - D5 - F#5 A5 | B5 - B5 A5 G5 - D5 E5 | G5 - F#5 E5 - D5 E5 - | G5 - G5 A5 B5 - D6 - | C6 - B5 A5 - F#5 A5 - | G5 - - - B5 - A5 G5 | G5 - - - . . . .',
+   '- - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - D6 - B5 -'),
+  D:SEC({e:0,brk:true,L:LD.bell},'Em C G D','E5 - - - G5 - - - | E5 - - - C5 - - - | D5 - - - B4 - - - | A4 - - - . . . .')},
+ pop3:{name:'ハッピー・ポコ・ステーション（いつもの曲3）',bpm:132,swing:.12,form:'IABCABCC',lead:LD.mar,lead2:LD.flute,stab:'off',sparkle:true,riser:true,resume:true,pl:true,vary:true,arp:true,pad:true,drums:'pop',hat16:true,bass:'walk',cmi:{type:'bell',v:.05},
+  I:SEC({e:0},'F C Dm C','F5 - A5 C6 - A5 F5 - | E5 - G5 C6 - G5 E5 - | D5 - F5 A5 - F5 D5 - | E5 - G5 - Bb5 - A5 G5'),
+  A:SEC({},'F Am Bb C F Am Gm C','A4 - C5 - F5 - E5 F5 | E5 - C5 - A4 - . . | Bb4 - D5 F5 - D5 Bb4 - | C5 - - - . C5 D5 E5 | F5 - F5 G5 A5 - F5 - | E5 - E5 F5 G5 - E5 - | D5 - Bb4 - G4 - Bb4 D5 | C5 - - - . . . .'),
+  B:SEC({},'Bb C Am Dm Bb C Am C','D5 - D5 C5 D5 - F5 - | E5 - E5 D5 E5 - G5 - | A5 - G5 F5 E5 - C5 - | D5 - - - . . . . | D5 - D5 C5 D5 - F5 - | G5 - G5 F5 G5 - Bb5 - | A5 - G5 F5 E5 - C5 - | G5 - - - A5 Bb5 C6 -'),
+  C:SEC({e:2,L:LD.chip},'F C Dm Bb F C Bb F','C6 - A5 - F5 - A5 C6 | C6 - G5 - E5 - G5 - | A5 - F5 - D5 - F5 A5 | Bb5 - A5 G5 F5 - D5 - | C6 - A5 - F5 A5 C6 - | D6 - C6 Bb5 A5 - G5 - | F5 - G5 A5 Bb5 - G5 - | F5 - - - . . . .')},
+ pop4:{name:'スキップ・トレイン（いつもの曲4）',bpm:144,form:'IAABCDC',lead:LD.pluck,lead2:LD.chipB,stab:'push',sparkle:true,riser:true,resume:true,pl:true,vary:true,arp:true,pad:true,drums:'dance',hat16:true,bass:'oct',cmi:{type:'bell',v:.05},
+  I:SEC({e:0},'D A Bm G','D6 - A5 - F#5 A5 D6 - | C#6 - A5 - E5 A5 C#6 - | B5 - F#5 - D5 F#5 B5 - | G5 - B5 - D6 - E6 -'),
+  A:SEC({},'D A Bm F#m G D Em A','F#5 - F#5 E5 D5 - A4 - | C#5 - E5 - A5 - . . | B4 - D5 - F#5 - E5 D5 | C#5 - - - . A4 B4 C#5 | D5 - D5 E5 G5 - F#5 E5 | F#5 - A5 - D5 - . . | E5 - F#5 G5 - B5 A5 G5 | A5 - - - . . . .'),
+  B:SEC({},'G A F#m Bm G A Bm A','B5 - A5 G5 - G5 A5 B5 | C#6 - B5 A5 - A5 B5 C#6 | A5 - F#5 - C#5 - F#5 A5 | B5 - - - . . . . | B5 - A5 G5 - G5 A5 B5 | C#6 - B5 A5 - A5 B5 C#6 | D6 - C#6 B5 - F#5 - B5 | A5 - - - E6 - - -'),
+  C:SEC({e:2,L:LD.chip},'D A Bm G D A G A','F#6 - - - E6 D6 - A5 | C#6 - - - E6 - C#6 A5 | B5 - - - D6 C#6 B5 F#5 | G5 - B5 - D6 - E6 - | F#6 - - - E6 D6 - A5 | E6 - C#6 - A5 - C#6 E6 | D6 - B5 G5 - B5 D6 - | C#6 - - - D6 - - -'),
+  D:SEC({e:0,brk:true,L:LD.bell},'Bm G D A','D5 - - - F#5 - - - | D5 - - - B4 - - - | A4 - - - D5 - - - | C#5 - - - E5 - - -')},
+ // 場面の曲も長くした（8小節の部分＋2周目の変化）
+ goalrun:{name:'ラストスパート（目的地まであと少し）',bpm:150,form:'AABC',lead:LD.chip,lead2:LD.brass,stab:'push',riser:true,sparkle:true,vary:true,arp:true,pad:true,drums:'chase',bass:'oct',
+  A:SEC({sh:-12},'D A Bm G D A G A','D6 - F#6 - A6 - F#6 D6 | E6 - C#6 - A5 - C#6 E6 | F#6 - D6 - B5 - D6 F#6 | G6 - F#6 E6 D6 - E6 - | D6 - F#6 - A6 - F#6 D6 | E6 - C#6 - A5 - C#6 E6 | D6 - B5 - G5 - B5 D6 | C#6 - - - . . . .'),
+  B:SEC({e:2,sh:-12},'G A D Bm G A F#m A','G6 - G6 A6 B6 - G6 - | A6 - A6 B6 C#7 - A6 - | D7 - C#7 B6 A6 - F#6 - | B6 - - - . . . . | G6 - G6 A6 B6 - G6 - | A6 - A6 B6 C#7 - E7 - | C#7 - - - A6 - F#6 - | E6 - - - . . . .'),
+  C:SEC({e:1,b:'sync',sh:-12},'Em A D B7 Em A D A','E6 - G6 - B6 - G6 - | A6 - G6 - F#6 - E6 - | F#6 - A6 - D7 - A6 - | D#6 - F#6 - B6 - . . | E6 - G6 - B6 - G6 - | C#7 - B6 - A6 - G6 - | F#6 - - - D6 - - - | E6 - - - A6 - - -')},
+ climax:{name:'最終電車（終盤）',bpm:144,form:'AABC',lead:LD.brass,lead2:LD.chipB,harm:'bell',stab:'off',riser:true,sparkle:true,vary:true,arp:true,pad:true,drums:'chase',bass:'oct',
+  A:SEC({},'Am F G E Am F G E','E5 - E5 F5 E5 - C5 - | F5 - F5 G5 F5 - C5 - | G5 - G5 A5 G5 - D5 - | G#5 - E5 - B4 - G#4 - | A5 - A5 B5 A5 - E5 - | C6 - B5 A5 F5 - A5 - | B5 - A5 G5 D5 - G5 - | G#5 - - - . . . .'),
+  B:SEC({e:2},'F G Em Am F G E Am','A5 - - G5 F5 - E5 F5 | G5 - - F5 E5 - D5 E5 | E5 - G5 B5 - G5 E5 - | A5 - - - . . . . | C6 - - B5 A5 - G5 A5 | B5 - - A5 G5 - F5 G5 | G#5 - B5 E6 - B5 G#5 - | A5 - - - . . . .'),
+  C:SEC({e:0,brk:true,L:LD.organ},'Dm Am Dm E','D5 - - - F5 - A5 - | E5 - - - C5 - A4 - | F5 - - - A5 - D6 - | B5 - - - G#5 - E5 -')}});
+const POPS=['pop','pop2','pop3','pop4'];let popIdx=0;
 const SPOS={};
 // 終盤：手番の上限がある対戦は残り8手番（4人×2周）以内、ない対戦は最終日の21時以降
 const finalStretch=st=>!st.finished&&((st.maxTurn&&st.maxTurn-st.turn<=8)||(st.month===st.days&&st.hour>=21));
-function music(key){if(!AU.ac)return;const ac=AU.ac,now=ac.currentTime;if(SET.bgm===0)key=null;if(key===songKey)return;if(songKey&&SONGS[songKey]&&SONGS[songKey].resume)SPOS[songKey]=mStep;
+function music(key){if(!AU.ac)return;const ac=AU.ac,now=ac.currentTime;if(SET.bgm===0)key=null;if(key==='@pop')key=POPS[popIdx%POPS.length];if(key===songKey)return;if(songKey&&SONGS[songKey]&&SONGS[songKey].resume)SPOS[songKey]=mStep;
   if(songGain){const old=songGain;old.gain.cancelScheduledValues(now);old.gain.setValueAtTime(old.gain.value,now);old.gain.linearRampToValueAtTime(0,now+.9);setTimeout(()=>{try{old.disconnect()}catch{}},1300)}
   songKey=key;clearInterval(mTimer);mTimer=null;songGain=null;if(!key)return;
   // こだまの間隔を曲のテンポ（付点8分）に合わせる
   const sg=SONGS[key];if(sg&&AU.dl){const q=60/sg.bpm*.75;AU.dl.delayTime.setTargetAtTime(q,now,.05);AU.dr.delayTime.setTargetAtTime(q,now,.05)}
-  songGain=ac.createGain();songGain.gain.setValueAtTime(0,now);songGain.gain.linearRampToValueAtTime(SONG_GAIN[key]||1,now+.9);songGain.connect(AU.bgm);mStep=sg&&sg.resume?(SPOS[key]||0)-(SPOS[key]||0)%32:0;mNext=now+.12;mTimer=setInterval(sched,25)}
+  songGain=ac.createGain();songGain.gain.setValueAtTime(0,now);songGain.gain.linearRampToValueAtTime(SONG_GAIN[key]||1,now+.9);songGain.connect(AU.bgm);mStep=sg&&sg.resume&&SPOS[key]?SPOS[key]-songAt(sg,SPOS[key]).i:0;mNext=now+.12;mTimer=setInterval(sched,25)}
 // 曲ごとの音量合わせ（test-audio.cjsで測った平均音量を約-29dBにそろえる係数）
-const SONG_GAIN={title:0.58,sea:0.79,pinch:0.69,superpinch:0.58,closing:0.6,ending:0.63,sky:0.57,wait:0.6,okinawa:0.76,pop:0.52,pop2:0.5,goalrun:0.47,climax:0.46};
+const SONG_GAIN={title:0.58,sea:0.79,pinch:0.69,superpinch:0.58,closing:0.6,ending:0.63,sky:0.57,wait:0.6,okinawa:0.76,pop:0.5,pop2:0.5,pop3:0.5,pop4:0.5,goalrun:0.5,climax:0.5};
 // メロディの下に、コードの音から3度・6度下の音を自動で重ねる（ハモリ）
 function harmBelow(m,ch){let b=-1;for(const c of ch)for(let k=-2;k<=4;k++){const x=c+12*k;if(x<m-2&&x>=m-9&&x>b)b=x}return b}
 function leadNote(out,L,t,f,dur,v,pan,n){const type=L.type==='square'?'chip':L.type,LL={...L,v};
   if(type==='pluck'){voice(out,t,f,.34,{wave:'pulse25',v:v*.5,lp:3800,lpEnd:320,echo:L.echo,rev:L.rev,pan});voice(out,t,f,.45,{type:'triangle',v,rev:L.rev,pan})}
   else if(!inst(out,type,t,f,dur*(L.hold||1),LL,pan))voice(out,t,f,dur,{type,v,det:L.det,echo:L.echo,rev:L.rev,lp:L.lp,pan,a:.01,s:.75,dc:.1,r:.08,vib:n>=3?.006:0,vibD:.2})}
-function sched(){const s=SONGS[songKey];if(!s||!AU.ac||!songGain)return;const out=songGain,e=60/(s.bpm*LAYER.tempo)/2,ac=AU.ac;
-  while(mNext<ac.currentTime+.15){const per=32,FL=s.form.length,fi=Math.floor(mStep/per)%FL,sk=s.form[fi],sec=s[sk],i=mStep%per,bar=Math.floor(i/8),beat=i%8,tr=s.up&&s.up[fi]||0,ch=tr?sec.c[bar].map(x=>x+tr):sec.c[bar],m=sec.m[i]>0?sec.m[i]+tr:sec.m[i],en=sec.e==null?1:sec.e;
-    const t=mNext+(beat%2===1&&s.swing?s.swing*e:0),lastBar=bar===3&&fi===FL-1,nextK=s.form[(fi+1)%FL],prevK=s.form[(fi-1+FL)%FL],hum=()=>.93+Math.random()*.14,dr=s.drums||(LAYER.drums?'pop':null);
-    // メロディ：次の休みまで音を伸ばす（レガート）。拍頭は少し強く、人が弾いたような強弱をつける
-    if(m>0){const L=s.lead;let n=1;while(n<4&&i+n<per&&sec.m[i+n]===-1)n++;const v=L.v*(beat===0?1.08:beat%2?.9:1)*hum(),dur=e*n*.92;leadNote(out,L,t,mtof(m),dur,v,-.1,n);
+// 曲の部分の位置（部分ごとに長さが違ってよい：8コマ＝1小節の倍数）
+function songOff(s){if(s._off)return s._off;let o=0;s._off=[...s.form].map(k=>{const a=o;o+=s[k].m.length;return a});s._len=o;return s._off}
+// 曲のどこを演奏中か（周回・部分の番号・部分の中の位置）
+function songAt(s,step){const O=songOff(s),T=s._len,pos=((step%T)+T)%T;let fi=O.length-1;while(fi>0&&O[fi]>pos)fi--;return{pass:Math.floor(step/T),fi,i:pos-O[fi]}}
+// 演奏（2026.10.31 第2版）：周回ごとに編曲が変わる・部分の長さ自由・音色の持ち替え・ベースの経過音・フィルインの種類・ゴーストノート・
+// ブレイク（間奏）・サビのオクターブ重ね・メロディの休みにベルの「返事」・アルペジオの型が盛り上がりで変わる
+function sched(){const s=SONGS[songKey];if(!s||!AU.ac||!songGain)return;const out=songGain,e=60/(s.bpm*LAYER.tempo)/2,ac=AU.ac,OFF=songOff(s),FL=s.form.length;let rot=false;
+  while(mNext<ac.currentTime+.15){const at=songAt(s,mStep),pass=at.pass,fi=at.fi,i=at.i;
+    // いつもの曲（POP）は2周したら次のPOP曲へ交代
+    if(s.pl&&i===0&&fi===0&&pass>=(s.loops||2)){rot=true;break}
+    const sk=s.form[fi],sec=s[sk],per=sec.m.length,nb=per/8,bar=Math.floor(i/8),beat=i%8,tr=s.up&&s.up[fi]||0,ch=tr?sec.c[bar].map(x=>x+tr):sec.c[bar],m=sec.m[i]>0?sec.m[i]+tr:sec.m[i],en=sec.e==null?1:sec.e,brk=!!sec.brk,vary=!!s.vary,odd=pass%2===1;
+    const nextK=s.form[(fi+1)%FL],prevK=s.form[(fi-1+FL)%FL],ntr=s.up&&s.up[(fi+1)%FL]||0,nch=bar<nb-1?(tr?sec.c[bar+1].map(x=>x+tr):sec.c[bar+1]):s[nextK].c[0].map(x=>x+ntr),endBar=bar===nb-1;
+    const t=mNext+(beat%2===1&&s.swing?s.swing*e:0),lastBar=endBar&&fi===FL-1,hum=()=>.93+Math.random()*.14,jit=()=>rich()?(Math.random()-.5)*.006:0,dr=s.drums||(LAYER.drums?'pop':null);
+    // メロディ：次の休みまで音を伸ばす（レガート）。部分ごと・周回ごとに音色を持ち替える。最後のサビは1オクターブ下を重ねて厚く
+    if(m>0){const L=sec.L||(vary&&odd&&s.lead2)||s.lead;let n=1;while(n<4&&i+n<per&&sec.m[i+n]===-1)n++;const v=L.v*(beat===0?1.08:beat%2?.9:1)*hum(),dur=e*n*.92,tl=t+jit();leadNote(out,L,tl,mtof(m),dur,v,-.1,n);
+      if(vary&&en>1&&(fi===FL-1||odd)&&rich()&&!auBusy())leadNote(out,L,tl,mtof(m-12),dur,v*.42,.25,n);
       if(s.harm&&sec.h&&sec.h[i]>0)inst(out,s.harm,t,mtof(sec.h[i]+tr),e*.9,{v:L.v*.5,echo:L.echo,rev:L.rev},.3);
-      else if(rich()&&!auBusy()&&n>=2&&(sk==='B'||fi>=2)&&!s.glitch){const hb=harmBelow(m,ch);if(hb>0)leadNote(out,L,t,mtof(hb),dur,v*.36,.32,n)}}
-    // ベース：やわらかいノコギリ波＋同じ高さのサイン波（スマホのスピーカーでも聞こえる）
-    {const r=ch[0]-12,bs=s.bass||'basic',B=(n,d,v=.2)=>{voice(out,t,mtof(n),d,{wave:'warm',v:v*.75*hum(),a:.006,lp:rich()?1100:700,lpEnd:280,lpT:.16,q:1.1,s:.55,dc:.12,r:.05,pan:.05});voice(out,t,mtof(n),d,{type:'sine',v:v*.6,a:.008,s:.8,dc:.1,r:.05})};
-     if(bs==='oct'){if(en>0||beat%4===0)B(beat===7&&bar===3?r+7:beat%2?r+12:r,e*.8,.19)}
+      else if(rich()&&!auBusy()&&n>=2&&(sk==='B'||fi>=2||(vary&&en>1))&&!s.glitch&&!brk){const hb=harmBelow(m,ch);if(hb>0)leadNote(out,L,t,mtof(hb),dur,v*.36,.32,n)}}
+    // メロディの「返事」：小節の後半が休み（.）のとき、前半のフレーズをベルで1オクターブ上にまねする（2周目・サビ）
+    if(vary&&beat===4&&(odd||en>1)&&!auBusy()&&[0,1,2,3].every(k=>sec.m[i+k]===0)){for(let k=0;k<4;k++){const q=sec.m[i-4+k];if(q>0)inst(out,'bell',t+k*e,mtof(q+tr+12),.6,{v:.045,echo:.3,rev:.35},.4)}}
+    // ベース：やわらかいノコギリ波＋同じ高さのサイン波。次の和音へ半音でつなぐ経過音（小節の最後）
+    {const r=ch[0]-12,nr=nch[0]-12,bs=brk?'hold':(sec.b||s.bass||'basic'),B=(n,d,v=.2)=>{voice(out,t,mtof(n),d,{wave:'warm',v:v*.75*hum(),a:.006,lp:rich()?1100:700,lpEnd:280,lpT:.16,q:1.1,s:.55,dc:.12,r:.05,pan:.05});voice(out,t,mtof(n),d,{type:'sine',v:v*.6,a:.008,s:.8,dc:.1,r:.05})};
+     const appr=beat===7&&nr!==r&&en>0&&bs!=='drone'&&bs!=='hold'&&(endBar||bar%2===1||vary),ap=nr+(nr>r?-1:1);
+     if(appr)B(ap,e*.8,.17);
+     else if(bs==='hold'){if(beat===0)B(r,e*7.5,.16)}
+     else if(bs==='oct'){if(en>0||beat%4===0)B(beat%2?r+12:(vary&&odd&&beat===4?r+7:r),e*.8,.19)}
+     else if(bs==='funk'){const pat={0:r,2:r+12,3:r,5:r+10,6:r+7};if(pat[beat]!=null)B(pat[beat],e*(beat===0?1.6:.7),.2)}
      else if(bs==='sync'){const pat={0:r,3:r+12,4:r,6:r+7,7:r+12};if(pat[beat]!=null)B(pat[beat],e*.9,.21)}
      else if(bs==='drone'){if(beat===0){voice(out,t,mtof(r),e*7.5,{wave:'organ',v:.11,a:.08,s:.85,r:.4,lp:900});voice(out,t,mtof(r+7),e*7.5,{type:'sine',v:.06,a:.12,s:.9,r:.4})}}
      else if(bs==='walk'){if(beat%2===0)B([r,r+4,r+7,r+9][beat/2],e*1.7,.2)}
      else if(beat%2===0)B(r+(beat===6?7:0),e*1.8,.2)}
-    // パッド：ストリングス風（なめらかに立ち上がり、次の小節へつながる）
-    if(s.pad&&beat===0&&!auBusy())ch.forEach((n,k)=>rich()?voice(out,t,mtof(n+12),e*7.6,{wave:'warm',v:.02,a:.35,s:.9,dc:.3,r:.55,det:9,lp:1700,rev:.5,pan:k%2?.4:-.4}):voice(out,t,mtof(n+12),e*7.6,{type:'sine',v:.035,a:.2,det:4,pan:k%2?.35:-.35}));
-    // POP曲の飾り：裏拍の和音の刻み（push＝3・3・2のノリ）、対旋律、サビのきらめき、サビ前の盛り上げの音
-    if(s.stab&&en>0&&!auBusy()&&(s.stab==='push'?beat===0||beat===3||beat===6:beat%2===1))ch.forEach((n,k)=>voice(out,t,mtof(n+12),e*.45,{wave:'pulse25',v:.016*(en>1?1.25:1)*hum(),a:.003,lp:3400,lpEnd:900,lpT:.12,pan:k%2?.3:-.3,rev:.12}));
+    // パッド：ストリングス風。豪華・ふつうでは9度の音を足して明るく広がる響きに。ブレイクでは大きめ
+    if(s.pad&&beat===0&&!auBusy()){const pv=brk?1.6:1;ch.forEach((n,k)=>rich()?voice(out,t,mtof(n+12),e*7.6,{wave:'warm',v:.02*pv,a:.35,s:.9,dc:.3,r:.55,det:9,lp:1700,rev:.5,pan:k%2?.4:-.4}):voice(out,t,mtof(n+12),e*7.6,{type:'sine',v:.035*pv,a:.2,det:4,pan:k%2?.35:-.35}));
+      if(vary&&rich()&&en>0)voice(out,t,mtof(ch[0]+26),e*7.6,{type:'sine',v:.014*pv,a:.4,s:.9,dc:.3,r:.6,rev:.5,pan:.2})}
+    // 和音の刻み（off＝裏拍、push＝3・3・2のノリ）。2周目は刻み方を入れ替える
+    if(s.stab&&en>0&&!brk&&!auBusy()){const st=vary&&odd?(s.stab==='push'?'off':'push'):s.stab;if(st==='push'?beat===0||beat===3||beat===6:beat%2===1)ch.forEach((n,k)=>voice(out,t,mtof(n+12),e*.45,{wave:'pulse25',v:.016*(en>1?1.25:1)*hum(),a:.003,lp:3400,lpEnd:900,lpT:.12,pan:k%2?.3:-.3,rev:.12}))}
     if(sec.cm&&sec.cm[i]>0&&!auBusy()){const ci=s.cmi||{type:'bell',v:.06};inst(out,ci.type,t,mtof(sec.cm[i]+tr),e*1.6,{v:ci.v,echo:.25,rev:.3},.35)}
     if(s.sparkle&&en>1&&beat%2===0&&rich()&&!auBusy()){const n=ch[(i>>1)%ch.length]+36;voice(out,t,mtof(n),.3,{type:'sine',v:.022*hum(),a:.002,echo:.3,rev:.25,pan:(i>>1)%2?.5:-.5})}
-    if(s.riser&&bar===3&&beat===0&&nextK!==sk&&(s[nextK].e==null?1:s[nextK].e)>en)noise(out,t,e*7.6,{bp:700,sweep:6500,q:.9,v:.04,a:e*7,rev:.2});
-    if(s.arp&&beat%2===1&&!auBusy()){const n=ch[(i>>1)%ch.length]+24;voice(out,t,mtof(n),e*.8,{type:'triangle',v:.032*hum(),echo:.28,rev:.15,pan:(i>>1)%2?.45:-.45})}
-    // ドラム：部分の切り替わりでシンバル、部分の終わりでタムのフィルイン
-    if(dr&&i===0&&dr!=='tick'&&dr!=='brush'&&(mStep%(per*FL)===0||sk!==prevK))crash(out,t,dr==='waltz'?.04:.065);
-    const fill=dr&&bar===3&&beat>=6&&(nextK!==sk||lastBar)&&['pop','city','taiko','matsuri','shaker','island','dance','chase'].includes(dr);
-    if(fill){tom(out,t,beat===6?190:140,.22,-.2);tom(out,t+e/2,beat===6?165:115,.2,.2)}
-    if(dr==='pop'){if(beat%4===0||(sk==='B'&&beat===3))kick(out,t,beat===3?.32:.5);if(s.hat16&&rich())hat(out,t+e/2,.012,.35);if((beat===2||beat===6)&&!fill){snare(out,t);if(sk==='B'&&rich())clap(out,t,.05)}hat(out,t,(beat%2?.028:.04)*hum(),beat%2?.3:-.3);if(beat===7&&bar%2===1)ohat(out,t,.025,.3)}
-    else if(dr==='dance'){if(beat%2===0)kick(out,t,en===0?.34:.5);if((beat===2||beat===6)&&!fill&&en>0){snare(out,t,.11);clap(out,t,en>1?.07:.045,.1)}hat(out,t,(beat%2?.04:.022)*hum(),beat%2?.3:-.3);if(s.hat16&&rich())hat(out,t+e/2,.014,.35);if(beat%2===1&&en>1)ohat(out,t,.018,.4)}
-    else if(dr==='chase'){if(beat===0||beat===3||beat===4||(beat===6&&en>1))kick(out,t,.48);if((beat===2||beat===6)&&!fill){snare(out,t,.13);if(rich())clap(out,t,.05,-.1)}hat(out,t,(beat%2?.03:.045)*hum(),beat%2?.3:-.3);if(rich())hat(out,t+e/2,.016,-.3);if(bar===3&&beat>=4&&!fill&&en>0)snare(out,t+e/2,.06,.2)}
+    if(s.riser&&endBar&&beat===0&&nextK!==sk&&(s[nextK].e==null?1:s[nextK].e)>en)noise(out,t,e*7.6,{bp:700,sweep:6500,q:.9,v:.04,a:e*7,rev:.2});
+    // アルペジオ：前奏・ブレイクは4分、ふつうは裏拍、サビ（vary曲）は8分で上下に動く
+    if(s.arp&&!auBusy()){const A=ch.length,mode=!vary?1:en===0||brk?0:en>1?2:1;
+      if(mode===0&&beat%2===0){const n=ch[(beat>>1)%A]+24;voice(out,t,mtof(n),e*1.6,{type:'triangle',v:.03*hum(),echo:.35,rev:.25,pan:(beat>>1)%2?.45:-.45})}
+      else if(mode===1&&beat%2===1){const n=ch[(i>>1)%A]+24;voice(out,t,mtof(n),e*.8,{type:'triangle',v:.032*hum(),echo:.28,rev:.15,pan:(i>>1)%2?.45:-.45})}
+      else if(mode===2){const P=[0,1,2,1,0,2,1,2],n=ch[P[beat]%A]+(beat>=4?36:24);voice(out,t,mtof(n),e*.7,{type:'triangle',v:.026*hum(),echo:.2,rev:.15,pan:beat%2?.45:-.45})}}
+    // ドラム：部分の切り替わり（8小節の部分は4小節目のあとも）でシンバル。フィルインは3種類から部分と周回で選ぶ
+    const kit=['pop','city','taiko','matsuri','shaker','island','dance','chase'].includes(dr);
+    if(dr&&i===0&&dr!=='tick'&&dr!=='brush'&&!brk&&(mStep%s._len===0||sk!==prevK||vary))crash(out,t,dr==='waltz'?.04:.065);
+    if(dr&&vary&&!brk&&en>1&&nb>=8&&i===32&&kit)crash(out,t,.045);
+    const fill=dr&&kit&&!brk&&((endBar&&beat>=4&&(nextK!==sk||lastBar||vary))||(vary&&nb>=8&&bar===3&&beat>=6)),ft=(fi+pass)%3,mini=!endBar;
+    if(fill){if(mini||(ft===0&&!vary)){if(beat>=6){tom(out,t,beat===6?190:140,.22,-.2);tom(out,t+e/2,beat===6?165:115,.2,.2)}}
+      else if(ft===0){if(beat>=4){const f=[230,200,170,140][beat-4];tom(out,t,f,.2,-.3+(beat-4)*.2);tom(out,t+e/2,f-15,.18,-.2+(beat-4)*.2)}}
+      else if(ft===1){if(beat>=4){const g=.04+(beat-4)*.025;snare(out,t,g);snare(out,t+e/2,g+.012)}}
+      else{if(beat===4||beat===6)kick(out,t,.45);if(beat===5||beat===7){snare(out,t,.12);if(rich())clap(out,t,.05)}if(beat===7)ohat(out,t+e/2,.03,.4)}}
+    const ghost=dr&&vary&&rich()&&!fill&&!brk&&en>0&&kit&&(beat===5||(beat===7&&bar%2===0))&&Math.random()<.55;if(ghost)snare(out,t+e/2,.022,.15);
+    if(brk&&dr){hat(out,t,(beat%2?.014:.022)*hum(),beat%2?.3:-.3);if(bar>=nb-2?beat%2===0:beat===0)kick(out,t,bar>=nb-2?.3+bar*.02:.22);if(bar===nb-1&&beat>=4)snare(out,t,.03+(beat-4)*.02);mNext+=e;mStep++;continue}
+    const fx=fill&&!mini&&!(ft===0&&!vary),hfill=fx&&beat>=4;
+    if(dr==='pop'){if(!hfill&&(beat%4===0||((sk==='B'||(vary&&en>1))&&beat===3)))kick(out,t,beat===3?.32:.5);if(s.hat16&&rich())hat(out,t+e/2,.012,.35);if((beat===2||beat===6)&&!fill){snare(out,t);if((sk==='B'||(vary&&en>1))&&rich())clap(out,t,.05)}hat(out,t+jit(),(beat%2?.028:.04)*hum(),beat%2?.3:-.3);if(beat===7&&bar%2===1)ohat(out,t,.025,.3)}
+    else if(dr==='dance'){if(beat%2===0&&!hfill)kick(out,t,en===0?.34:.5);if((beat===2||beat===6)&&!fill&&en>0){snare(out,t,.11);clap(out,t,en>1?.07:.045,.1)}hat(out,t+jit(),(beat%2?.04:.022)*hum(),beat%2?.3:-.3);if(s.hat16&&rich())hat(out,t+e/2,.014,.35);if(beat%2===1&&en>1)ohat(out,t,.018,.4)}
+    else if(dr==='chase'){if(!hfill&&(beat===0||beat===3||beat===4||(beat===6&&en>1)))kick(out,t,.48);if((beat===2||beat===6)&&!fill){snare(out,t,.13);if(rich())clap(out,t,.05,-.1)}hat(out,t+jit(),(beat%2?.03:.045)*hum(),beat%2?.3:-.3);if(rich())hat(out,t+e/2,.016,-.3);if(endBar&&beat>=4&&!fill&&en>0)snare(out,t+e/2,.06,.2)}
     else if(dr==='brush'){hat(out,t,.022*hum(),beat%2?.4:-.4);if(beat===2||beat===6)noise(out,t,.22,{bp:3000,v:.045,a:.03});if(beat===0)kick(out,t,.18);if(beat===5&&bar%2)rim(out,t,.03)}
     else if(dr==='shaker'){shaker(out,t,(beat%2?.03:.045)*hum(),.4);if(beat===0)kick(out,t,.3);if(beat===6&&!fill)rim(out,t,.04)}
     else if(dr==='taiko'){if(beat===0||beat===3||beat===4)taiko(out,t,beat===0?.4:.32);if((beat===6||beat===7)&&!fill)voice(out,t,180,.12,{type:'triangle',v:.12,glide:.6});if(beat%2===1)noise(out,t,.03,{bp:4500,v:.03,pan:.5})}
-    else if(dr==='city'){if(beat===0||beat===3||beat===5){kick(out,t,.45)}if((beat===2||beat===6)&&!fill){snare(out,t,.12);if(rich())clap(out,t,.045,-.15)}hat(out,t,beat%2?.03:.045,beat%2?.35:-.35);hat(out,t+e/2,.017,.35);if(beat===7)ohat(out,t,.022,.4)}
+    else if(dr==='city'){if(!hfill&&(beat===0||beat===3||beat===5)){kick(out,t,.45)}if((beat===2||beat===6)&&!fill){snare(out,t,.12);if(rich())clap(out,t,.045,-.15)}hat(out,t+jit(),beat%2?.03:.045,beat%2?.35:-.35);hat(out,t+e/2,.017,.35);if(beat===7)ohat(out,t,.022,.4)}
     else if(dr==='waltz'){if(beat===0)kick(out,t,.3);if(beat===3||beat===6)voice(out,t,2093,.4,{type:'sine',v:.03,rev:.5,pan:beat===3?.5:-.5});hat(out,t,.015,beat%2?.4:-.4)}
     else if(dr==='tick'){voice(out,t,beat%2?1760:1320,.03,{type:'sine',v:.06,pan:.5});if(beat%4===0)kick(out,t,.4);if(sk==='B'&&beat%2===0)hat(out,t,.03,-.3)}
     else if(dr==='matsuri'){if(beat===0||beat===3||beat===4)taiko(out,t,beat===0?.38:.3,-.1);if(!fill&&(beat===6||beat===7))tom(out,t,230,.13,.25);if(beat%2===1)kane(out,t,.035*hum(),.45);if(beat===2)kane(out,t,.022,-.45)}
     else if(dr==='island'){if(beat===0||beat===5)kick(out,t,.3);shaker(out,t,(beat%2?.028:.04)*hum(),.4);if((beat===2||beat===6)&&!fill)rim(out,t,.05,-.25);if(beat===7&&bar%2===1)clap(out,t,.035,.2)}
     if(s.glitch&&beat%4===3){noise(out,t,.05*s.glitch,{bp:700+s.glitch*300,v:.06*s.glitch});if(rich())for(let k=0;k<s.glitch+1;k++)voice(out,t+k*.03,mtof(60+Math.floor(Math.random()*24)),.025,{wave:'pulse12',v:.03,pan:Math.random()-.5})}
-    mNext+=e;mStep++}}
+    mNext+=e;mStep++}
+  if(rot){popIdx++;mStep=0;music('@pop')}}
 // ===== 効果音（すべてその場で合成）=====
 const bell=(t,n,v=.1,pan=0,d=1)=>inst(AU.se,'bell',t,mtof(n),d,{v,rev:.35,echo:.15},pan);
 const mar=(t,n,v=.1,pan=0)=>inst(AU.se,'marimba',t,mtof(n),.4,{v,rev:.25,echo:.15},pan);
@@ -3235,7 +3291,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   // 演出中（表示中の盤面が最新より前）は、上の「いまの番」と同じく動いている人を出す（演出中に次の人の番と出て順番がずれて見えるのを防ぐ）
   {const lag=!st.finished&&ds!==st&&ds.turn<st.turn,vs=lag?ds:st,vc=lag?curSeat(ds):cs,vCpu=(meta.cpu||[]).includes(vc);
   $('#turnText').textContent=st.finished?'ゲーム終了':`${vs.month}日目 ${vs.hour}:00・第${vs.turn+1}手番（${vs.maxTurn?'全'+vs.maxTurn+'手':'無制限'}）`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':'（考え中…）'))+(lag||isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`)}
-  LAYER.drums=cs===me&&!st.finished;const fin=finalStretch(st);LAYER.tempo=fin?1.04:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos],near=!st.finished&&NODES[st.goal]&&st.players.some(p=>{const v=D(st.goal)[p.pos];return v>0&&v<=5});if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):near?'goalrun':fin?'climax':cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':st.month%2?'pop':'pop2');
+  LAYER.drums=cs===me&&!st.finished;const fin=finalStretch(st);LAYER.tempo=fin?1.04:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos],near=!st.finished&&NODES[st.goal]&&st.players.some(p=>{const v=D(st.goal)[p.pos];return v>0&&v<=5});if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):near?'goalrun':fin?'climax':cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':'@pop');
   const fs=pending&&pending.stage==='fsell',act=pending&&pending.stage==='act',buy=pending&&pending.stage==='buy',shp=pending&&pending.stage==='shop',rt=pending&&pending.stage==='route',rw=pending&&pending.stage==='reward';$('#actMain').hidden=buy||rt||rw||shp||fs;$('#actFsell').hidden=!fs;$('#actShop').hidden=!shp;$('#bar').classList.toggle('routing',!!rt);$('#bar').classList.toggle('picking',!!(buy||shp||fs||rw));$('#actReward').hidden=!rw;$('#actBuy').hidden=!buy;$('#actRoute').hidden=!rt;document.body.classList.toggle('routeview',!!rt);
   $('#bRoll').disabled=!act;$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
   if(buy)drawBaseList();
@@ -3453,7 +3509,7 @@ const SYS=[
  ['🏅 ポコチャレ','ポコチャレ',`<p>0:00・6:00・12:00・18:00に、全員共通の3つのお題（ポコチャレ）が出ます。上のバーで進み具合を確認できます。</p><h4>達成の報酬</h4><ul><li>ゴールド（基本ゴールドの4倍）か、カード1枚のどちらかを選べます。</li><li>どちらを選んでも<b>コアファン＋2人・ランク＋20pt</b>。</li><li>「マイナス0回」のお題は、6時間の締めのときに判定します。</li></ul>`],
  ['👾 お邪魔','お邪魔キャラ',`<p>誰かが目的地に着くと、お邪魔キャラ「荒らしラグ王」が誰かに取りつくことがあります。取りつかれると、いたずらをされます。</p><p>防御系や策略系のカードで追い払ったり、ほかの人に押し付けたりできます。</p>`],
  ['🤖 CPU','CPUキャラと名前',`<ul><li>空いた席には、えらんだ強さ（弱い・普通・強い）のCPUキャラが入ります。強さごとに10人いて、毎回ランダムで決まります。</li><li>キャラごとに、出身地・職業・性格などのプロフィールと、カードをよく使う・物件を買いまくる・最短で目的地を目指すなどの<b>プレイのクセ</b>があります。</li><li>キャラは方言やくせのある話し方で、場面ごとにひとりごとを言います。</li><li>上のプレイヤー欄をタップすると、プロフィールを見たり、<b>名前を変えたり</b>できます（自分の名前と、CPUの名前）。ホストはCPUキャラの入れかえもできます。</li><li>部屋の画面でも、自分の表示名を変えられます。</li></ul>`],
- ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMは、ふだんは軽快なPOPの曲（日目ごとに2曲で交代）。目的地まであと少し・終盤・お邪魔が取りついた番・空路・海路・沖縄のときだけ、その場面の曲に変わり、終わるといつもの曲の続きに戻ります（全13曲・すべてオリジナル）。</li><li>時間帯と天気は、地図の左上の小窓の中だけで空の色・太陽や月・雲・雨・稲光として表示します（地図には色を重ねません）。効果音が鳴る間はBGMを少し下げて聞きやすくします。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li></ul>`],
+ ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMは、ふだんは軽快なPOPの曲（4曲。1曲を2回くり返すと次の曲へ交代し、2回目は音色や伴奏が変わります）。目的地まであと少し・終盤・お邪魔が取りついた番・空路・海路・沖縄のときだけ、その場面の曲に変わり、終わるといつもの曲の続きに戻ります（全15曲・すべてオリジナル）。</li><li>時間帯と天気は、地図の左上の小窓の中だけで空の色・太陽や月・雲・雨・稲光として表示します（地図には色を重ねません）。効果音が鳴る間はBGMを少し下げて聞きやすくします。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li></ul>`],
  ['⏸ 中断','中断と再開・対戦',`<ul><li>部屋を作ると4文字の部屋コードができます。最大4人で参加し、開始時の空席はCPUになります。開始後は新規参加できません。同じブラウザの匿名IDが残っていれば復帰できます。</li><li>途中でやめるときはメニューの「中断する」。次はタイトル画面の「続きから遊ぶ」か部屋コードで、続きから遊べます。</li><li>ゲームが更新されたときは、全員ページを開き直してから遊んでください。</li></ul>`]];
 let sysI=0;
 // 地図の左上の時刻・天気をタップ：いまの時間帯と天気で、マスでもらえる量が何倍になるか

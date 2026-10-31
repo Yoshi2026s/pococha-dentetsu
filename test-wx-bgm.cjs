@@ -1,8 +1,8 @@
 // 時間帯・天気の小窓とBGMの選び方（2026-10-31）の回帰テスト（jsdom・端末内モード）
 // 1) 時間帯・天気の演出は左上の小窓だけ：地図全体に重ねる要素（色の層・空の帯・夜の暗幕・夜の光）がない
 // 2) 時刻を変えても地図の枠に時間帯・天気の印が付かない。小窓の札に時刻・決算まで・天気・倍率が出る
-// 3) BGM：ふだんはPOP（日目で2曲交代）、目的地まであと少し・終盤・お邪魔・空路・海路のときだけ場面の曲
-// 4) 曲データ：全曲の各部分が32コマ・4小節、音量係数がそろっている
+// 3) BGM：ふだんはPOP（4曲を順に交代＝@pop）、目的地まであと少し・終盤・お邪魔・空路・海路のときだけ場面の曲
+// 4) 曲データ：全曲の各部分が1小節8コマの倍数で和音の数と合う、音量係数がそろっている、POP4曲が交代用の設定、続きの位置が部分の頭
 const {JSDOM,VirtualConsole}=require('jsdom');const fs=require('fs'),assert=require('assert');
 const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>{if(!e.message.includes('Not implemented'))errors.push(e.message)});
 const html=fs.readFileSync('index.html','utf8'),s=html.replace(/<script[^>]+src=[^>]+><\/script>/g,'');
@@ -31,11 +31,13 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
     go('air',s=>{s.players[curSeat(s)].pos=NODES.findIndex(n=>n.air)});
     go('sea',s=>{s.players[curSeat(s)].pos=NODES.findIndex(n=>n.sea&&!n.air&&!n.oki)});
     music=keep;return out})()`);
-  assert.deepEqual(songs,{day1:'pop',day2:'pop2',near:'goalrun',far:'pop',final:'climax',troll:'pinch',air:'sky',sea:'sea'},'BGMの選び方：'+JSON.stringify(songs));
+  assert.deepEqual(songs,{day1:'@pop',day2:'@pop',near:'goalrun',far:'@pop',final:'climax',troll:'pinch',air:'sky',sea:'sea'},'BGMの選び方：'+JSON.stringify(songs));
   // 4) 曲データ
-  const bad=E(`(()=>{const b=[];for(const [k,v] of Object.entries(SONGS)){if(!(SONG_GAIN[k]>0))b.push(k+':音量係数');if(v.up&&v.up.length!==v.form.length)b.push(k+':転調');for(const sk of new Set(v.form)){const c=v[sk];if(!c){b.push(k+':'+sk+'なし');continue}if(c.c.length!==4)b.push(k+':'+sk+':小節');for(const f of ['m','h','cm'])if(c[f]&&c[f].length!==32)b.push(k+':'+sk+':'+f)}}
+  const bad=E(`(()=>{const b=[];for(const [k,v] of Object.entries(SONGS)){if(!(SONG_GAIN[k]>0))b.push(k+':音量係数');if(v.up&&v.up.length!==v.form.length)b.push(k+':転調');for(const sk of new Set(v.form)){const c=v[sk];if(!c){b.push(k+':'+sk+'なし');continue}if(c.m.length%8||c.c.length*8!==c.m.length)b.push(k+':'+sk+':小節');for(const f of ['h','cm'])if(c[f]&&c[f].length!==c.m.length)b.push(k+':'+sk+':'+f)}}
+    if(POPS.length!==4||!POPS.every(k=>SONGS[k]&&SONGS[k].pl&&SONGS[k].resume&&SONGS[k].vary))b.push('POPの交代設定');
+    {const s=SONGS.pop,O=songOff(s),a=songAt(s,O[3]+13),z=songAt(s,s._len*2+O[2]);if(a.fi!==3||a.i!==13||z.pass!==2||z.fi!==2||z.i!==0)b.push('曲の位置の計算')}
     for(const k of ['map','night','kyushu','hokkaido'])if(SONGS[k])b.push(k+':廃止した曲が残っている');if(typeof regionSong!=='undefined')b.push('regionSongが残っている');return b})()`);
   assert.deepEqual(bad,[],'曲データ：'+bad.join(', '));
   if(errors.length)throw Error(errors.join('\n'));
-  console.log('PASS 小窓とBGM（地図に重ねない・小窓の時間帯/天気・札の文字・POPが基本で場面の曲8場面・曲データ13曲）');dom.window.close();
+  console.log('PASS 小窓とBGM（地図に重ねない・小窓の時間帯/天気・札の文字・POPが基本で場面の曲8場面・曲データ15曲）');dom.window.close();
 }catch(e){console.error('FAIL',e.message);process.exitCode=1;dom.window.close()}},500);
