@@ -80,9 +80,9 @@
   - 最後のサビで全音上げる転調（いつもの曲）。
   - 新しいリズム：dance（4つ打ち）、chase（追いかけ）。新しいベース：oct（オクターブで弾む）。
 
-## 効果音（26種）
+## 効果音（27種）
 
-dice（転がる→着地→確定チャイム）、step（線路の継ぎ目「タタン」＋進んだ数で上がる音）、station（到着チャイム＋ブレーキの空気音）、buy（コイン＋レジ）、yell、anti、card、troll、myturn、stamp、rankup、clock、roulTick、roulStop、firework（打ち上げ笛→ドーン→パチパチ）、rarN〜rarUR、badSR、badUR、goal、goalBig、goalOld、ui（ボタンを押した小さな音・新規）。
+dice（転がる→着地→確定チャイム）、step（線路の継ぎ目「タタン」＋進んだ数で上がる音）、station（到着チャイム＋ブレーキの空気音）、buy（コイン＋レジ）、yell、anti、card、troll、myturn、stamp、rankup、clock、roulTick、roulStop、firework（打ち上げ笛→ドーン→パチパチ）、rarN〜rarUR、badSR、badUR、goal、goalBig、goalOld、ui（ボタンを押した小さな音・新規）、celebrate（条件達成のお祝い：短いドラムロール→ブラスの和音4つ→シンバルと鐘のきらめき。ポコチャレ達成・コアファン10人ごとのボーナス・締めの条件クリアで鳴る。2026-10-31追加）。
 
 ## 設定（音と設定）
 
