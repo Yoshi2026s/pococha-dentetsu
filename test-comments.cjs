@@ -1,4 +1,4 @@
-// リスナーコメント（2026-10-29）：場面ごとのコメント・画面右上・少しずつずらして表示・約5秒で消える（jsdom・端末内モード）
+// リスナーコメント（2026-10-29）：場面ごとのコメント・画面右上・少しずつずらして表示・約6秒で消える（jsdom・端末内モード）
 const {JSDOM,VirtualConsole}=require('jsdom');const fs=require('fs'),assert=require('assert');
 const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>{if(!e.message.includes('Not implemented'))errors.push(e.message)});
 const html=fs.readFileSync('index.html','utf8'),s=html.replace(/<script[^>]+src=[^>]+><\/script>/g,'');
@@ -20,8 +20,8 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   E('SET.fast=false;CMT.__test=["試験A","試験B","試験C","試験D"];window.__t=[];new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains("cmt")&&/試験/.test(n.textContent))window.__t.push(performance.now())}))).observe(document.body,{subtree:true,childList:true});comments("__test",3)');
   await wait(100);assert.equal(E('window.__t.length'),1,'最初の1件');assert.equal(d.querySelector('#cmts').parentNode.id,'mapbox','コメントが地図の中にない');
   await wait(2200);const t=E('window.__t');assert.equal(t.length,3,'3件出ない：'+t.length);assert(t[1]-t[0]>=300&&t[2]-t[1]>=300,'ずらして出ていない');
-  const first=[...d.querySelectorAll('#cmts .cmt')].find(c=>/試験/.test(c.textContent));await wait(2600);assert(first.isConnected,'5秒より前に消えた');await wait(1600);assert(!first.isConnected,'約5秒で消えない');
-  assert(/cmtout \.7s ease-in 4\.3s/.test(html),'フェードアウトの指定（4.3秒から0.7秒）');
+  const first=[...d.querySelectorAll('#cmts .cmt')].find(c=>/試験/.test(c.textContent));await wait(3800);assert(first.isConnected,'6秒より前に消えた');await wait(1600);assert(!first.isConnected,'約6秒で消えない');/* 2026-10-31 表示時間を約5秒→約6秒に延長 */
+  assert(/cmtout \.7s ease-in 5\.5s/.test(html),'フェードアウトの指定（5.5秒から0.7秒）');
   // 場面に合ったコメント：プラスマスならプラス用の文から選ばれる
   E('document.querySelector("#cmts").innerHTML="";comments("minus",1)');await wait(30);const txt=[...d.querySelectorAll('#cmts .cmt')].pop().childNodes[1].textContent.trim();assert(E('CMT.minus').includes(txt),'場面に合わない：'+txt);
   // 一度に出るのは最大4件
@@ -34,5 +34,5 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   E('__rp.remove()');await wait(900);assert([...d.querySelectorAll('#cmts .cmt')].some(c=>/試験X/.test(c.textContent)),'カードが消えた後に出ない');
   E('Object.defineProperty(document.querySelector("#mapbox"),"clientHeight",{value:0,configurable:true})');
   if(errors.length)throw Error(errors.join('\n'));
-  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・地図の上・結果カードと重ならない・ずらして表示・約5秒で消える）`);dom.window.close();
+  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・地図の上・結果カードと重ならない・ずらして表示・約6秒で消える）`);dom.window.close();
 }catch(e){console.error(e);dom.window.close();process.exitCode=1;}},100);

@@ -79,7 +79,7 @@
 .dicebox[data-n="2"] .cw{zoom:.86}.dicebox[data-n="3"] .cw{zoom:.74}.dicebox[data-n="4"] .cw,.dicebox[data-n="5"] .cw{zoom:.64}
 .dicetag{position:absolute;right:0;top:-24px;background:var(--pink);color:#fff;font:800 13px var(--f-display);padding:2px 8px;border-radius:999px;border:2px solid #fff;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.3)}
 .dicetag.pop{animation:dtpop .5s .7s both}@keyframes dtpop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
-.fx.speech{position:absolute;left:8px;bottom:10px;max-width:78%;z-index:8;display:flex;gap:6px;align-items:flex-end;pointer-events:none;animation:spin .25s ease-out,spout .4s ease-in 2.6s forwards}
+.fx.speech{position:absolute;left:8px;bottom:10px;max-width:78%;z-index:8;display:flex;gap:6px;align-items:flex-end;pointer-events:none;animation:spin .25s ease-out,spout .4s ease-in 3.4s forwards}
 .sp-face{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:#fff;border:2px solid var(--outline,#2b2236);display:grid;place-items:center;overflow:hidden}.sp-face svg{width:30px;height:30px}
 .sp-bub{position:relative;background:#fff;color:#2b2236;border:2.5px solid var(--c);border-radius:14px 14px 14px 4px;padding:5px 10px 6px;font-size:13.5px;font-weight:700;line-height:1.4;box-shadow:2px 2px 0 rgba(0,0,0,.35)}
 .sp-bub b{display:block;font-size:10.5px;color:var(--c);margin-bottom:1px}
@@ -279,14 +279,14 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 @keyframes spk{0%,100%{opacity:0;transform:scale(.3)}50%{opacity:1;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.beat,.rise,.burstspin,.pop,.twinkle,.tilt,.spin,.spark{animation:none}}
 .fx{position:absolute;pointer-events:none;z-index:5}
-.fnum{transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:800;font-size:20px;text-shadow:0 2px 0 var(--panel),0 0 6px var(--panel);animation:fnum 1.6s ease-out forwards;white-space:nowrap}
+.fnum{transform:translate(-50%,-50%);font-family:var(--f-display);font-weight:800;font-size:20px;text-shadow:0 2px 0 var(--panel),0 0 6px var(--panel);animation:fnum 2s ease-out forwards;white-space:nowrap}
 @keyframes fnum{0%{transform:translate(-50%,-30%) scale(.6);opacity:0}15%{transform:translate(-50%,-60%) scale(1.25);opacity:1}30%{transform:translate(-50%,-70%) scale(1)}100%{transform:translate(-50%,-180%);opacity:0}}
 #cmts{position:absolute;right:8px;bottom:66px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;gap:4px;z-index:9;pointer-events:none;max-width:min(54%,240px)}
-.cmt{background:rgba(20,14,30,.82);color:#fff;font-size:12px;border-radius:999px;padding:4px 11px;animation:cmtin .35s ease-out,cmtout .7s ease-in 4.3s forwards;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.cmt{background:rgba(20,14,30,.82);color:#fff;font-size:12px;border-radius:999px;padding:4px 11px;animation:cmtin .35s ease-out,cmtout .7s ease-in 5.5s forwards;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
 .cmt b{color:#ffcf3a;font-weight:700}.cmt.troll{background:rgba(70,70,70,.8)}.cmt.troll b{color:#bbb}.cmt{transition:background-color .25s,color .25s,box-shadow .25s}.cmt.see,.cmt.troll.see{background:rgba(20,14,30,.22);color:rgba(255,255,255,.4);box-shadow:none}.cmt.see b{color:rgba(255,207,58,.45)}
 @keyframes cmtin{from{transform:translateX(20px);opacity:0}}@keyframes cmtout{to{opacity:0;transform:translateY(-6px)}}
 .banner{inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;z-index:7}
-.bn{background:var(--c);color:#fff;font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.2;padding:8px 20px;width:100%;display:flex;flex-direction:column;align-items:center;box-shadow:0 6px 0 rgba(0,0,0,.18);text-shadow:0 2px 0 rgba(0,0,0,.25);animation:bnin 1.9s cubic-bezier(.2,.9,.3,1.2) forwards}
+.bn{background:var(--c);color:#fff;font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1.2;padding:8px 20px;width:100%;display:flex;flex-direction:column;align-items:center;box-shadow:0 6px 0 rgba(0,0,0,.18);text-shadow:0 2px 0 rgba(0,0,0,.25);animation:bnin 2.3s cubic-bezier(.2,.9,.3,1.2) forwards}
 .bn small{font-size:13px;font-weight:700}
 @keyframes bnin{0%{transform:translateX(-110%) skewY(-4deg)}18%{transform:translateX(0) skewY(-4deg)}80%{transform:translateX(0) skewY(-4deg);opacity:1}100%{transform:translateX(110%) skewY(-4deg);opacity:0}}
 .shock{width:10px;height:10px;border:3px solid;border-radius:50%;transform:translate(-50%,-50%);animation:shock .7s ease-out forwards}@keyframes shock{to{width:90px;height:90px;opacity:0;border-width:1px}}
@@ -394,7 +394,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .routeopts.n3 .ob-t small,.routeopts.n4 .ob-t small,.routeopts.n5 .ob-t small{font-size:10.5px}
 .optpulse{transform-box:fill-box;transform-origin:center;animation:opp 1.2s ease-out infinite}@keyframes opp{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.5);opacity:0}}
 @media (prefers-reduced-motion:reduce){.optpulse{animation:none}}
-.fx.respop{left:50%;top:44px;transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 14px 8px 8px;border-radius:18px;background:var(--panel);border:3px solid var(--outline,#2b2236);box-shadow:4px 4px 0 var(--pop,#2b2236),inset 0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent);pointer-events:none;animation:rpop 4.2s ease-out forwards}
+.fx.respop{left:50%;top:44px;transform:translateX(-50%);z-index:8;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 14px 8px 8px;border-radius:18px;background:var(--panel);border:3px solid var(--outline,#2b2236);box-shadow:4px 4px 0 var(--pop,#2b2236),inset 0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent);pointer-events:none;animation:rpop 5.4s ease-out forwards}
 .rp-who{flex-shrink:0;color:#fff;font-weight:800;font-size:12px;padding:2px 8px;border-radius:999px;border:2px solid var(--outline,#2b2236)}
 .rp-i{font-size:22px;line-height:1}.rp-t{display:flex;flex-direction:column;min-width:0}.rp-t b{font-family:var(--f-display);font-size:16px;line-height:1.25;color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rp-t small{font-size:12px;font-weight:800;color:var(--ink)}
 @keyframes rpop{0%{opacity:0;transform:translate(-50%,-20px) scale(.8)}8%{opacity:1;transform:translate(-50%,-4px) scale(1.04)}14%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,10px)}}
@@ -449,7 +449,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .turnring{transform-box:fill-box;transform-origin:center;animation:trg 1.3s ease-out infinite}@keyframes trg{0%{transform:scale(.8);opacity:1}100%{transform:scale(1.8);opacity:0}}
 .stream .turnbar .tb-goal{background:#111;color:#fff}
 @media (prefers-reduced-motion:reduce){.tb-turn.flash,.tb-turn.mine,.turnring{animation:none}}
-.fx.stinfo{left:50%;top:112px;transform:translateX(-50%);z-index:8;width:min(300px,calc(100% - 24px));padding:8px 10px;border-radius:16px;background:var(--panel);border:3px solid var(--outline,#2b2236);box-shadow:4px 4px 0 var(--pop,#2b2236);animation:rpop 4.2s ease-out forwards;color:var(--ink)}
+.fx.stinfo{left:50%;top:112px;transform:translateX(-50%);z-index:8;width:min(300px,calc(100% - 24px));padding:8px 10px;border-radius:16px;background:var(--panel);border:3px solid var(--outline,#2b2236);box-shadow:4px 4px 0 var(--pop,#2b2236);animation:rpop 5.4s ease-out forwards;color:var(--ink)}
 .sl-h{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px}.sl-h b{font-family:var(--f-display);font-size:14px;color:var(--station)}.sl-h small{font-size:11px;font-weight:800;color:var(--muted)}.sl-h em{font-style:normal;color:#fff;padding:1px 7px;border-radius:999px}
 .sl-r{display:flex;align-items:center;gap:6px;padding:3px 0;border-top:1px dashed var(--line);font-size:12.5px}.sl-n{flex:1;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sl-p{font-variant-numeric:tabular-nums;color:var(--muted);font-size:11.5px}
 .sl-o{min-width:46px;text-align:center;font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;border:1.5px solid var(--outline,#2b2236);background:var(--panel)}
@@ -593,6 +593,11 @@ button.small,.chip{box-shadow:none}
 .bar .log{font-size:12px;line-height:1.35;gap:1px;max-height:46px;overflow-y:auto}/* スマホで読めるよう12px */.bar .log .n{min-width:2.6em}
 .bar .log li:first-child{font-weight:800;color:var(--ink)}.log .lg-who{font-weight:900}
 /* 行動ログはタップで広げて、過去の手番を読み返せる */.bar .logpanel{cursor:pointer}.logpanel:has(#log:empty) .lp-tg{display:none}
+/* 持ち時間の警告：手番の文字と下の操作欄を赤く点滅 */body.timewarn #turnText{color:#d6304b!important;font-weight:900;animation:twarn .9s ease-in-out infinite}body.timewarn .bar{box-shadow:inset 0 0 0 3px #ff5a5f,0 -4px 18px rgba(255,60,80,.35)!important;animation:twbar .9s ease-in-out infinite}@keyframes twarn{50%{transform:scale(1.06)}}@keyframes twbar{50%{box-shadow:inset 0 0 0 3px #ff5a5f,0 -4px 26px rgba(255,60,80,.6)}}@media (prefers-reduced-motion:reduce){body.timewarn #turnText,body.timewarn .bar{animation:none}}
+/* 2026-10-31 地図を広く：上の順位の行を詰め、下の操作欄を小さく（ボタンは48pxを保つ）。行動ログはふだん閉じ、タップで履歴を開く */
+html body.ingame #status.rankview .pl{padding-block:0!important;min-height:0!important}html body.ingame #status.rankview{gap:2px!important;padding-bottom:2px!important}
+html body.ingame .bar #actMain button,html body.ingame .bar .toprow>button{height:48px!important;min-height:48px!important}html body.ingame .bar .inner{gap:5px!important}html body.ingame .bar{padding-top:6px!important;padding-bottom:max(6px,env(safe-area-inset-bottom))!important}
+.bar .logpanel:not(.open) .log{display:none!important}.bar .logpanel{min-height:44px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}.bar .logpanel.open{justify-content:flex-start}
 /* 背の低い縦画面（高さ620px以下）：順位の行を詰め、手番の表示は小さめ、行動ログは広げるまで1行にして、地図が操作欄に隠れないようにする */@media (orientation:portrait) and (max-height:620px){html body.ingame #status.rankview .pl{padding-block:0!important;min-height:0!important}.ingame #turnText{font-size:11px;line-height:1.3}.bar .logpanel:not(.open) .log{max-height:17px}}.lp-tg{font-size:11px;font-weight:700;color:var(--muted);margin-left:6px}.bar .logpanel.open .log{max-height:min(40vh,320px)}
 .ingame #vGame .mapbox{align-self:stretch}
 /* 第24.4版：メニュー・操作欄 */
@@ -781,7 +786,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 
 <div class="bar" id="bar" hidden>
   <div class="inner">
-    <div class="main" id="actMain"><button id="bRoll" disabled>サイコロ</button><button id="bCard" class="ghost" disabled>カード</button></div>
+    <div class="main" id="actMain"><button id="bCard" class="ghost" disabled>カード</button><button id="bRoll" disabled>サイコロ</button></div>
     <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><button type="button" class="misbtn" id="bMis" aria-haspopup="dialog" aria-label="ポコチャレ（タップで内容を見る）"><span class="mis-i" aria-hidden="true">🏅</span><small>ポコチャレ</small><b id="misCnt">0/3</b></button></div>
     <div id="actRoute" hidden><div class="routehead"><span class="routeinfo" id="routeInfo">進む方向をえらんでください</span><span class="routeleft" id="routeLeft"></span></div><div class="routeopts" id="routeOpts"></div><div class="main routectl"><button id="bUndo" class="ghost" disabled>↶ 1つ戻す</button><button id="bAuto" class="ghost">おまかせ（おすすめ）</button></div></div>
     <div id="actReward" hidden><div class="rwinfo" id="rwInfo"></div><div class="main"><button id="bRwCoin">ゴールド 3,000G</button><button id="bRwCard" class="ghost">カード1枚</button></div></div>
@@ -3031,7 +3036,7 @@ addEventListener('resize',()=>setTimeout(fitMap,60));
 function mapPt(n){const svg=$('#map'),box=$('#mapbox').getBoundingClientRect();try{const p=svg.createSVGPoint();p.x=n.x;p.y=n.y;const q=p.matrixTransform(svg.getScreenCTM());return{x:q.x-box.left,y:q.y-box.top}}catch{return{x:n.x/400*box.width,y:n.y/560*box.height}}}
 function fxEl(cls,html,x,y,ms){if(reduce&&!/fnum|banner|cmt|respop|stinfo|speech|roul/.test(cls))return null;const e=document.createElement('div');e.className='fx '+cls;if(html)e.innerHTML=html;if(x!=null){e.style.left=x+'px';e.style.top=y+'px'}e.dataset.t=Date.now();$('#mapbox').appendChild(e);setTimeout(()=>e.remove(),SET.fast?ms/2:ms);if(/respop|stinfo|speech/.test(cls))cmtFit();return e}
 // 数字が浮かぶ（＋1,200 など）
-function floatNum(n,t,color){const p=mapPt(n);const e=fxEl('fnum','',p.x,p.y-10,1600);if(e){e.textContent=t;e.style.color=color}}
+function floatNum(n,t,color){const p=mapPt(n);const e=fxEl('fnum','',p.x,p.y-10,2000);if(e){e.textContent=t;e.style.color=color}}
 // ===== リスナーコメント（第35版）：場面に合ったコメントを画面右上に、少しずつずらして出し、約5秒でフェードアウト =====
 const CMT_NAME=['リスナーA','リスナーB','常連さん','初見さん','古参','ポコ民','箱推し','夜ふかし勢','通りすがり','九州リスナー','博多っ子','鉄道ファン','旅好き','ROM専','新規さん','推し活中','おやつ担当','応援団長','スタンプ職人','朝活勢','残業中','学生リスナー','ママリスナー','地元民','遠征組','コメント係','ギフト職人','ねこ好き','ゲーム好き','ラーメン派','温泉好き','すごろく名人','記念日勢','ゆる勢','最古参','ヘビーリスナー','たまに来る人','お茶担当','実況勢','見守り隊'];
 const CMT_TROLL_NAME=['？？？','名無し','荒らし','通りすがり（？）','ラグ王の手下','匿名さん','謎の人'];
@@ -3107,11 +3112,11 @@ function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!do
     if(cmtRoom(mb,box)<1){if(tries<12)setTimeout(()=>show(tries+1),400);return}/* 結果カードで空きがないときは、カードが消えるまで待つ（約5秒で諦める） */
     let t,k=0;do{t=L[Math.floor(Math.random()*L.length)];k++}while(cmtRecent.includes(t)&&k<8);cmtRecent.push(t);if(cmtRecent.length>14)cmtRecent.shift();
     const c=document.createElement('div');c.className='cmt'+(troll?' troll':'');const who=document.createElement('b');const N=troll?CMT_TROLL_NAME:CMT_NAME;who.textContent=N[Math.floor(Math.random()*N.length)];
-    c.append(who,document.createTextNode(' '+t));box.appendChild(c);c._k=setTimeout(()=>c.remove(),5000);cmtFit()};setTimeout(()=>show(0),at)}}
+    c.append(who,document.createTextNode(' '+t));box.appendChild(c);c._k=setTimeout(()=>c.remove(),6200);cmtFit()};setTimeout(()=>show(0),at)}}
 // コメントを出せる行数：地図の上の時刻欄より下、サイコロより上で、結果カード・駅の持ち主表示（消え始めるまで）と重ならない範囲
 // CPUの吹き出しが右側まで広がっているときは、コメント欄の下端を吹き出しの上に上げる（位置は登場アニメの拡大縮小に左右されない offsetTop で測る）
 function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4;let top=56,bot=66;
-  mb.querySelectorAll('.fx.respop,.fx.stinfo').forEach(e=>{if(Date.now()-(+e.dataset.t||0)>4200||!e.offsetHeight)return;if(e.classList.contains('at-bot'))bot=Math.max(bot,H-e.offsetTop+6);else top=Math.max(top,e.offsetTop+e.offsetHeight+6)});
+  mb.querySelectorAll('.fx.respop,.fx.stinfo').forEach(e=>{if(Date.now()-(+e.dataset.t||0)>5400||!e.offsetHeight)return;if(e.classList.contains('at-bot'))bot=Math.max(bot,H-e.offsetTop+6);else top=Math.max(top,e.offsetTop+e.offsetHeight+6)});
   mb.querySelectorAll('.fx.speech').forEach(e=>{if(e.offsetHeight&&e.offsetLeft+e.offsetWidth>W*.44)bot=Math.max(bot,H-e.offsetTop+4)});
   box.style.bottom=bot+'px';const row=((box.lastElementChild&&box.lastElementChild.offsetHeight)||24)+4;return Math.max(0,Math.min(H<340?3:4,Math.floor((H-bot-top+4)/row)))}
 // 入りきらない古いコメントから一時的に下げ、結果カードが消えて空きができたら出し直す（最大4件・地図が低い画面では3件、5秒待っても出せなければ消す）
@@ -3125,19 +3130,19 @@ setInterval(cmtSee,250);
 function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box)return;const n=cmtRoom(mb,box);
   while(box.children.length>n){const c=box.firstChild;clearTimeout(c._k);c._wait=Date.now();c.remove();cmtWait.push(c)}cmtWait=cmtWait.slice(-4);if(cmtWait.length&&!cmtWT)cmtWT=setTimeout(cmtFlush,400);cmtSee()}
 function cmtFlush(){cmtWT=0;const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!document.body.classList.contains('ingame')){cmtWait=[];return}
-  cmtWait=cmtWait.filter(c=>Date.now()-c._wait<5000);if(cmtWait.length&&cmtRoom(mb,box)>box.children.length){/* 出し直しも1件ずつずらす */const c=cmtWait.shift();c._wait=0;box.appendChild(c);c._k=setTimeout(()=>c.remove(),5000)}
+  cmtWait=cmtWait.filter(c=>Date.now()-c._wait<5000);if(cmtWait.length&&cmtRoom(mb,box)>box.children.length){/* 出し直しも1件ずつずらす */const c=cmtWait.shift();c._wait=0;box.appendChild(c);c._k=setTimeout(()=>c.remove(),6200)}
   if(cmtWait.length)cmtWT=setTimeout(cmtFlush,400)}
 // 手番のあとに、時間帯・天気・出目に合わせたひとことを少しだけ（毎回ではない）
 function ambientComments(s){if(!s)return;const tz=TZ(s.hour),wx=s.weather||0,r=Math.random();
   if(s.lastDice>=10&&r<.7)return comments('bigdice',2);if(s.lastDice===1&&r<.6)return comments('smalldice',1);
   if(r<.22)return comments(['morning','good','golden','night'][tz],1);if(r<.32)return comments(['sunny','good','rain','storm'][wx],1);if(r<.42)return comments('liver',1);if(r<.55)comments('good',1)}
 // 画面を横切る帯（GOAL！ 拠点ゲット！ など）
-function banner(t,color,sub){const e=fxEl('banner',`<div class="bn" style="--c:${color}"><span>${esc(nameize(t))}</span>${sub?`<small>${esc(nameize(sub))}</small>`:''}</div>`,null,null,1900);return e}
+function banner(t,color,sub){const e=fxEl('banner',`<div class="bn" style="--c:${color}"><span>${esc(nameize(t))}</span>${sub?`<small>${esc(nameize(sub))}</small>`:''}</div>`,null,null,2300);return e}
 
 // ===== CPUキャラのひとりごと・会話（場面ごとに吹き出しで話す）=====
 let lastTalk=0;
 function say(seat,scene,delay=0){const c=cpuChar(seat);if(!c||!c.L[scene]||!SET.talk&&SET.talk!==undefined)return;setTimeout(()=>{if(!$('#mapbox'))return;const ds=dispState,p=ds&&ds.players[seat];
-  const e=fxEl('speech',`<span class="sp-face">${faceSvg(p?p.face:'ふつう',HAIR[seat])}</span><span class="sp-bub" style="--c:${SEATC[seat]}"><b>${esc(seatName(seat))}</b>${esc(c.L[scene])}</span>`,null,null,SET.fast?1800:3000);lastTalk=Date.now()},delay)}
+  const e=fxEl('speech',`<span class="sp-face">${faceSvg(p?p.face:'ふつう',HAIR[seat])}</span><span class="sp-bub" style="--c:${SEATC[seat]}"><b>${esc(seatName(seat))}</b>${esc(c.L[scene])}</span>`,null,null,SET.fast?2300:3800);lastTalk=Date.now()},delay)}
 function cpuTalk(s,prev,seat,t){if(!meta||seat==null)return;const evs=s.ev||[],cpu=meta.cpu||[],isC=cpu.includes(seat),D0=SET.fast?300:700;
   const goal=evs.some(e=>e.k==='goal'),ee=evs.find(e=>e.k==='event'),card=evs.find(e=>e.k==='card');
   if(goal){if(isC)say(seat,'goal',D0);const o=cpu.filter(i=>i!==seat);if(o.length)say(o[Math.floor(Math.random()*o.length)],'rival',D0+(isC?2200:600))}
@@ -3325,7 +3330,7 @@ function resultHTML(r,who){const kind=r.kind&&r.kind!==r.title?r.kind:'',lines=r
   +(r.note?`<div class="rc-note">${esc(r.note)}</div>`:'')+`</div>`}
 function resultPop(s,prev,seat,t,n){if(seat==null||!s.lastPath)return;const r=resultInfo(s,prev,seat,t,n);if(!r.title&&!r.msg)return;
   if(seat===mySeat()){myResult(r,n,s);return}
-  const e=fxEl('respop',resultHTML(r,`<span class="rp-who" style="background:${SEATC[seat]}">${esc(seatName(seat))}</span> `),null,null,5600);if(e){e.style.setProperty('--c',r.c);resPlace(e,n)}
+  const e=fxEl('respop',resultHTML(r,`<span class="rp-who" style="background:${SEATC[seat]}">${esc(seatName(seat))}</span> `),null,null,7000);if(e){e.style.setProperty('--c',r.c);resPlace(e,n)}
 }
 // 結果カードが止まったマス（コマ）に重ならないように置く（2026-10-31）：カメラの移動先からコマの位置を求め、上の定位置で重なるなら地図の下端に寄せる
 function resSpot(n){const mb=$('#mapbox'),svg=$('#map');if(!mb||!n||!svg)return null;const R=mb.getBoundingClientRect();if(!R.width||!R.height)return null;
@@ -3433,6 +3438,9 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   // 演出中（表示中の盤面が最新より前）は、上の「いまの番」と同じく動いている人を出す（演出中に次の人の番と出て順番がずれて見えるのを防ぐ）
   {const lag=!st.finished&&ds!==st&&ds.turn<st.turn,vs=lag?ds:st,vc=lag?curSeat(ds):cs,vCpu=(meta.cpu||[]).includes(vc);
   /* 日時は地図の左上に出ているので、ここは手番と「だれの番か」だけにする */$('#turnText').textContent=st.finished?'ゲーム終了':`第${vs.turn+1}手番${vs.maxTurn?'／全'+vs.maxTurn+'手':''}・`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':'（考え中…）'))+(lag||isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`)}
+  /* 持ち時間の警告（オンライン対戦の自分の番）：残り15秒で知らせ、10秒からは毎秒の警告音・振動・赤く点滅 */
+  {const warn=!!db.online&&!st.finished&&cs===me&&!isCpu&&left<=15&&left>0;document.body.classList.toggle('timewarn',warn);
+   if(warn&&left!==render.warnSec){render.warnSec=left;if(left===15)toast('⏰ 持ち時間が残り15秒です');if(left<=10){sfx('roulTick');vib(left<=5?[60,40,60]:40)}}if(!warn)render.warnSec=null}
   LAYER.drums=cs===me&&!st.finished;const fin=finalStretch(st);LAYER.tempo=fin?1.04:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos],near=!st.finished&&NODES[st.goal]&&st.players.some(p=>{const v=D(st.goal)[p.pos];return v>0&&v<=5});if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):near?'goalrun':fin?'climax':cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':'@pop');
   const fs=pending&&pending.stage==='fsell',act=pending&&pending.stage==='act',buy=pending&&pending.stage==='buy',shp=pending&&pending.stage==='shop',rt=pending&&pending.stage==='route',rw=pending&&pending.stage==='reward';$('#actMain').hidden=buy||rt||rw||shp||fs;$('#actFsell').hidden=!fs;$('#actShop').hidden=!shp;$('#bar').classList.toggle('routing',!!rt);$('#bar').classList.toggle('picking',!!(buy||shp||fs||rw));$('#actReward').hidden=!rw;$('#actBuy').hidden=!buy;$('#actRoute').hidden=!rt;document.body.classList.toggle('routeview',!!rt);
   const fin2=!act&&!pending&&ds&&ds.finished&&!animating()&&$('#ov').hidden;/* ゲーム終了後は「最終結果」を見直すボタンにする */$('#bRoll').disabled=!act&&!fin2;$('#bRoll').textContent=fin2?'🏆 最終結果':'サイコロ';$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
