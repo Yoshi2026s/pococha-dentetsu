@@ -1,5 +1,5 @@
 // 下のボタンの見た目と、ポコチャレの表示（2026-10-31）を確かめる（端末内モード・Playwright）
-// 1) サイコロ・カード・メニュー・ポコチャレの4つが同じ大きさ（48px以上）で2×2に並び、画面からはみ出さない
+// 1) メニュー・ポコチャレ・カード・サイコロの4つが1段に並び（サイコロが一番右）、48px以上で画面からはみ出さない（2026-10-31に2×2から変更）
 // 2) ポコチャレの内容は最初は出ておらず、ポコチャレボタンを押したときだけ表示され、とじるで消える
 // 3) 対戦中のお知らせ（トースト）が上の順位表に重ならない
 // 4) 獲得の画面では、メニュー・ポコチャレの列を隠す
@@ -15,11 +15,13 @@ const {chromium}=require('playwright');const path=require('path');
       const t0=Date.now();while(Date.now()-t0<30000){if(await p.evaluate(()=>!!(pending&&pending.stage==='act')))break;await p.waitForTimeout(200)}
       for(let i=0;i<5;i++){const c=await p.$('#ov:not([hidden]) button');if(!c)break;await c.click().catch(()=>{});await p.waitForTimeout(300)}
       await p.waitForTimeout(300);
-      const R=await p.evaluate(()=>['#bRoll','#bCard','#bMenu','#bMis'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return{s,w:r.width,h:r.height,l:r.left,r:r.right,t:r.top}}));
-      const w0=R[0].w,h0=R[0].h;
-      ok(R.every(x=>Math.abs(x.w-w0)<1.5&&Math.abs(x.h-h0)<1.5),tag+' 4つのボタンの大きさがそろっていない '+JSON.stringify(R));
+      const R=await p.evaluate(()=>['#bMenu','#bMis','#bCard','#bRoll'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return{s,w:r.width,h:r.height,l:r.left,r:r.right,t:r.top}}));
+      // 2026-10-31：1段に4つ（左から メニュー・ポコチャレ・カード・サイコロ）。サイコロは一番右で少し広い
+      ok(R.every(x=>Math.abs(x.h-R[0].h)<1.5&&Math.abs(x.t-R[0].t)<1),tag+' 4つのボタンが1段に同じ高さで並んでいない '+JSON.stringify(R));
+      ok(R.slice(0,3).every(x=>Math.abs(x.w-R[0].w)<1.5)&&R[3].w>=R[0].w,tag+' メニュー・ポコチャレ・カードの幅がそろっていない／サイコロが狭い');
+      ok(R.every((x,i)=>i===0||x.l>=R[i-1].r-1),tag+' 左から メニュー・ポコチャレ・カード・サイコロ の順でない');
       ok(R.every(x=>x.h>=48&&x.w>=48),tag+' ボタンが48px未満');
-      ok(Math.abs(R[0].t-R[1].t)<1&&Math.abs(R[2].t-R[3].t)<1&&R[2].t>R[0].t,tag+' 2×2に並んでいない');
+      ok(await p.evaluate(()=>[...document.querySelectorAll('#btnRow button')].every(b=>b.scrollWidth<=b.clientWidth+1)),tag+' ボタンの文字がはみ出す');
       ok(R.every(x=>x.l>=0&&x.r<=innerWidthOf(W)),tag+' ボタンが画面の横からはみ出す');
       ok(await p.evaluate(()=>!document.querySelector('#misSheet')&&!document.querySelector('.misbar')),tag+' ポコチャレの内容が最初から出ている');
       ok(/^\d\/\d$/.test(await p.textContent('#misCnt')),tag+' ポコチャレボタンに達成数がない');
@@ -35,5 +37,5 @@ const {chromium}=require('playwright');const path=require('path');
     if(errs.length)fail.push(tag+' JSエラー：'+errs.join(' / '));await p.close()}
   await b.close();
   if(fail.length){console.log('FAIL 下のボタンとポコチャレ\n'+fail.join('\n'));process.exit(1)}
-  console.log('PASS 下のボタンとポコチャレ（4ボタン同サイズ2×2・押したときだけ内容表示・お知らせの位置・獲得画面で非表示）4画面')})();
+  console.log('PASS 下のボタンとポコチャレ（4ボタン1段・サイコロが右・押したときだけ内容表示・お知らせの位置・獲得画面で非表示）4画面')})();
 function innerWidthOf(W){return W+0.5}

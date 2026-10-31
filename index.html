@@ -593,6 +593,17 @@ button.small,.chip{box-shadow:none}
 .bar .log{font-size:12px;line-height:1.35;gap:1px;max-height:46px;overflow-y:auto}/* スマホで読めるよう12px */.bar .log .n{min-width:2.6em}
 .bar .log li:first-child{font-weight:800;color:var(--ink)}.log .lg-who{font-weight:900}
 /* 行動ログはタップで広げて、過去の手番を読み返せる */.bar .logpanel{cursor:pointer}.logpanel:has(#log:empty) .lp-tg{display:none}
+/* 演出中は地図の中の飾りのアニメ（波・きらめき・雲・マスの記号の動き）を一時停止：地図全体の描き直しを減らし、コマとカメラの動きをなめらかに */body.fxbusy #map .wv,body.fxbusy #map .spark,body.fxbusy #map .gl,body.fxbusy #map .cl,body.fxbusy #map .burstspin,body.fxbusy #map .beat,body.fxbusy #map .rise,body.fxbusy #map .tilt,body.fxbusy #map .spin,body.fxbusy #map .pop,body.fxbusy #map .goaltag,body.fxbusy #map .turnring{animation-play-state:paused!important}
+/* リスナーコメント：順位欄の見出しの右側に1件ずつ（1行・はみ出す分は…） */#cmts.cmts-top{position:fixed;z-index:12;display:flex;align-items:center;justify-content:flex-end;pointer-events:none;overflow:hidden;max-width:none;right:auto;bottom:auto;gap:0}#cmts.cmts-top .cmt{width:100%;max-width:100%;box-sizing:border-box;font-size:11.5px;line-height:1.55;padding:1px 10px;animation:cmttick .3s ease-out,cmtout .6s ease-in 5.6s forwards}@keyframes cmttick{from{opacity:0;transform:translateY(6px)}}/* CPUのひとこと：下のメニュー欄の下側（行動ログの段）に重ねる。押す操作はさまたげない */.bar>.fx.speech.inbar{position:absolute;left:10px;right:10px;bottom:max(6px,env(safe-area-inset-bottom));top:auto;z-index:6;max-width:none;pointer-events:none;align-items:center}.bar>.fx.speech.inbar .sp-bub{flex:1;min-width:0;background:color-mix(in srgb,#fff 94%,transparent)}.bar>.fx.speech.inbar .sp-face{width:40px;height:40px}#cmts.cmts-top .cmt:not(.troll){background:#2a2038}body:has(#cmts.cmts-top .cmt) #status .sh-turn{visibility:hidden}@media (prefers-reduced-motion:reduce){#cmts.cmts-top .cmt{animation:none}}
+/* 2026-10-31 下のボタンを1段4つに：左から メニュー・ポコチャレ・カード・サイコロ（一番右がサイコロで少し広く）。ボタンは48pxのまま */
+.btnrow{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr;gap:6px;width:100%}.btnrow:has(>#actMain[hidden]){display:none}
+html body.ingame .bar .btnrow>#actMain:not([hidden]),html body.ingame .bar .btnrow>#actMain:not([hidden])+.toprow,.btnrow>#actMain:not([hidden]),.btnrow>#actMain:not([hidden])+.toprow{display:contents!important}
+.btnrow #bMenu{order:1}.btnrow #bMis{order:2}.btnrow #bCard{order:3}.btnrow #bRoll{order:4}
+html body.ingame .bar .btnrow button{margin:0!important;padding:0 4px!important;min-width:0;width:100%}
+html body.ingame .bar .btnrow .toprow>button{flex-direction:column!important;gap:0!important;line-height:1.1}
+html body.ingame .bar .btnrow .toprow>button small{font-size:11px!important;letter-spacing:0}
+.btnrow #bMenu{font-size:19px}.btnrow #bMis .mis-i{display:none}.btnrow #bMis b{order:-1;font-size:13px;padding:2px 7px;margin-bottom:2px}
+html body.ingame #btnRow #actMain #bCard{font-size:14px!important;letter-spacing:0;padding:0 2px!important}html body.ingame #btnRow #actMain #bRoll{font-size:17px!important;letter-spacing:.04em;padding:0 2px!important}@media (orientation:landscape) and (max-height:600px) and (max-width:700px){html body.ingame .bar .btnrow .toprow>button small{font-size:10px!important;letter-spacing:-.06em}html body.ingame #btnRow #bMis small{display:none}html body.ingame #btnRow #bMis .mis-i{display:block!important;font-size:15px}html body.ingame #btnRow #actMain #bCard{font-size:11px!important}html body.ingame #btnRow #actMain #bRoll{font-size:13px!important;letter-spacing:0}}/* 横持ちで左の列が狭いとき */@media (max-width:374px){html body.ingame .bar .btnrow .toprow>button small{font-size:10.5px!important;letter-spacing:-.05em}html body.ingame #btnRow #actMain #bCard{font-size:12px!important}html body.ingame #btnRow #actMain #bRoll{font-size:14.5px!important;letter-spacing:0}}
 /* 持ち時間の警告：手番の文字と下の操作欄を赤く点滅 */body.timewarn #turnText{color:#d6304b!important;font-weight:900;animation:twarn .9s ease-in-out infinite}body.timewarn .bar{box-shadow:inset 0 0 0 3px #ff5a5f,0 -4px 18px rgba(255,60,80,.35)!important;animation:twbar .9s ease-in-out infinite}@keyframes twarn{50%{transform:scale(1.06)}}@keyframes twbar{50%{box-shadow:inset 0 0 0 3px #ff5a5f,0 -4px 26px rgba(255,60,80,.6)}}@media (prefers-reduced-motion:reduce){body.timewarn #turnText,body.timewarn .bar{animation:none}}
 /* 2026-10-31 地図を広く：上の順位の行を詰め、下の操作欄を小さく（ボタンは48pxを保つ）。行動ログはふだん閉じ、タップで履歴を開く */
 html body.ingame #status.rankview .pl{padding-block:0!important;min-height:0!important}html body.ingame #status.rankview{gap:2px!important;padding-bottom:2px!important}
@@ -786,8 +797,8 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 
 <div class="bar" id="bar" hidden>
   <div class="inner">
-    <div class="main" id="actMain"><button id="bCard" class="ghost" disabled>カード</button><button id="bRoll" disabled>サイコロ</button></div>
-    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><button type="button" class="misbtn" id="bMis" aria-haspopup="dialog" aria-label="ポコチャレ（タップで内容を見る）"><span class="mis-i" aria-hidden="true">🏅</span><small>ポコチャレ</small><b id="misCnt">0/3</b></button></div>
+    <div class="btnrow" id="btnRow"><div class="main" id="actMain"><button id="bCard" class="ghost" disabled>カード</button><button id="bRoll" disabled>サイコロ</button></div>
+    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><button type="button" class="misbtn" id="bMis" aria-haspopup="dialog" aria-label="ポコチャレ（タップで内容を見る）"><span class="mis-i" aria-hidden="true">🏅</span><small>ポコチャレ</small><b id="misCnt">0/3</b></button></div></div>
     <div id="actRoute" hidden><div class="routehead"><span class="routeinfo" id="routeInfo">進む方向をえらんでください</span><span class="routeleft" id="routeLeft"></span></div><div class="routeopts" id="routeOpts"></div><div class="main routectl"><button id="bUndo" class="ghost" disabled>↶ 1つ戻す</button><button id="bAuto" class="ghost">おまかせ（おすすめ）</button></div></div>
     <div id="actReward" hidden><div class="rwinfo" id="rwInfo"></div><div class="main"><button id="bRwCoin">ゴールド 3,000G</button><button id="bRwCard" class="ghost">カード1枚</button></div></div>
     <div id="actShop" hidden><div class="bl-h" id="shopHead">カードショップ</div><div class="baselist" id="shopList"></div><div class="main"><button id="bShopOk">何もせずに終了する</button><button id="bShopUndo" class="ghost" hidden>↶ 1つ戻す</button><button id="bShopSkip" class="ghost" hidden>全部取り消して終了</button></div></div>
@@ -2112,6 +2123,10 @@ const SE={
   goalBig:t=>{for(let i=0;i<20;i++)noise(AU.se,t+i*.05,.06,{bp:1800,v:.03+i*.009,pan:i%2?.3:-.3});for(let i=0;i<10;i++)timpani(AU.se,t+i*.09,55,.2,.05+i*.012);kick(AU.se,t+1,.8);crash(AU.se,t+1,.13);goalFanfare(t+1);
     const T=t+5.2;[[60,64,67,72],[62,65,69,74],[64,67,71,76],[65,69,72,77,81]].forEach((ch,k)=>{kick(AU.se,T+k*.42,.55);timpani(AU.se,T+k*.42,mtof(ch[0]-24),.5,.18);ch.forEach(n=>brass(T+k*.42,mtof(n),k===3?2:.38,.05))});snare(AU.se,T+1.26,.12);crash(AU.se,T+1.26,.12);
     [84,88,91,96,100,103,108].forEach((n,i)=>voice(AU.se,T+1.3+i*.08,mtof(n),1.4,{type:'sine',v:.07,rev:.7,pan:i%2?.5:-.5}));[72,79,84].forEach(n=>voice(AU.se,T+1.3,mtof(n),2.2,{type:'triangle',v:.06,rev:.6}))},
+  // 条件達成のお祝い（ポコチャレ達成・コアファンの節目・締めの条件クリアなど）：短いドラムロール→ブラスの和音4つ（ド→ファ→ソ→高いド）→シンバルと鐘のきらめき
+  celebrate:t=>{for(let i=0;i<8;i++)noise(AU.se,t+i*.035,.05,{bp:1800,v:.03+i*.008,pan:i%2?.3:-.3});const T=t+.3;
+    [[60,64,67,72],[65,69,72,77],[67,71,74,79],[72,76,79,84,88]].forEach((ch,k)=>{const at=T+k*.17;kick(AU.se,at,k===3?.6:.35);ch.forEach(n=>brass(at,mtof(n),k===3?1.3:.16,k===3?.05:.04))});
+    const E=T+.51;crash(AU.se,E,.11);snare(AU.se,E,.09);timpani(AU.se,E,mtof(48),.8,.16);[84,88,91,96,100,103].forEach((n,i)=>bell(E+.08+i*.06,n,.06,i%2?.5:-.5,1.1));noise(AU.se,E,.9,{bp:6000,sweep:12000,q:.8,v:.03,a:.05,rev:.4})},
   roulTick:t=>{rim(AU.se,t,.08,Math.random()*.6-.3);voice(AU.se,t,1760,.035,{wave:'pulse25',v:.035,lp:4000})},
   roulStop:t=>{[79,84,88].forEach((n,i)=>{mar(t+i*.09,n,.12,(i-1)*.3);bell(t+i*.09,n+12,.04,(i-1)*.3,.6)});crash(AU.se,t,.05)},
   goalOld:t=>{[67,72,76,79,84].forEach((n,i)=>voice(AU.se,t+i*.11,mtof(n),.35,{type:'square',v:.08,det:5,echo:.2}));[72,76,79].forEach(n=>voice(AU.se,t+.6,mtof(n),1.2,{type:'triangle',v:.1,rev:.5}));noise(AU.se,t+.6,.8,{hp:5000,v:.07})},
@@ -2165,7 +2180,7 @@ function goalFanfare(t){const ac=AU.ac;if(!ac)return;
   kick(AU.se,T+2.95,.7);crash(AU.se,T+2.95,.14);timpani(AU.se,T+2.95,65,2,.3);
 }
 // 効果音ごとのダッキング（曲をどれだけ・何秒下げるか）
-const SE_DUCK={dice:[.6,.5],station:[.55,.9],buy:[.6,.5],yell:[.6,.7],anti:[.6,.6],troll:[.45,.8],myturn:[.6,.5],card:[.65,.4],rankup:[.4,1.6],clock:[.5,1.8],roulStop:[.6,.6],firework:[.75,.9],rarN:[.7,.3],rarR:[.6,.6],rarSR:[.5,1]};
+const SE_DUCK={celebrate:[.4,2],dice:[.6,.5],station:[.55,.9],buy:[.6,.5],yell:[.6,.7],anti:[.6,.6],troll:[.45,.8],myturn:[.6,.5],card:[.65,.4],rankup:[.4,1.6],clock:[.5,1.8],roulStop:[.6,.6],firework:[.75,.9],rarN:[.7,.3],rarR:[.6,.6],rarSR:[.5,1]};
 function sfx(k,...a){if(AU.ac&&SET.se>0)try{const dk=SE_DUCK[k];if(dk&&SET.bgm>0)duckTo(dk[0],dk[1]);SE[k](AU.ac.currentTime+.02,...a)}catch{}}
 
 // ================= 共有（同期） =================
@@ -2249,7 +2264,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();aw
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
 function resetGame(){document.body.classList.remove('ingame');setWx(-1);{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
-  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[]}}
+  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[];cmtQ=[];clearTimeout(cmtT);cmtT=0;cmtLast=0}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
 const seatOnline=i=>grp?peers.some(p=>p.presence&&p.presence.seat===i):!!seats[i];
@@ -2524,7 +2539,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   else if(s.lastDice){rollCube(s.lastDice,s.lastDices,cardEv?cardEv.v:null);sfx('dice');await wait((meta.cpu||[]).includes(seat)?650:900);const path=s.lastPath||[];
     if(path.length>1){camAt(NODES[path[0]],ZM,400);stepLeft(seat,path[0],path.length-1)}await wait(SET.fast?200:450);
     const sw=SET.fast?170:360;
-    for(let i=1;i<path.length;i++){movePawn(seat,path[i],true);addTrail(seat,path[i]);dust(NODES[path[i]]);stepRing(NODES[path[i]],SEATC[seat],i===path.length-1);stepLeft(seat,path[i],path.length-1-i);camAt(NODES[path[i]],ZM,sw-20);sfx('step',i);await wait(sw)}
+    for(let i=1;i<path.length;i++){movePawn(seat,path[i],true);addTrail(seat,path[i]);dust(NODES[path[i]]);stepRing(NODES[path[i]],SEATC[seat],i===path.length-1);stepLeft(seat,path[i],path.length-1-i);camAt(NODES[path[i]],ZM,sw,false,i<path.length-1?'lin':'out');sfx('step',i);await wait(sw)}
     const last=NODES[path[path.length-1]];shock(last,SEATC[seat]);if(path.length>1)landName(last);await wait(SET.fast?350:800);stepLeft(seat,null,0)}
   dispState=s;drawPawns(s);render();if(code)saveRoom(code,{m:s.month,w:s.hour});
   const evs=s.ev||[];const m=evs.find(e=>e.k==='move');const t=m?m.t:'';const pNode=NODES[s.players[seat].pos],n0=pNode;
@@ -2547,13 +2562,13 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
   if(evs.some(e=>e.k==='newmis'))setTimeout(()=>{toast(`${s.hour}:00 新しいポコチャレが出ました（ポコチャレボタンで確認）`);const b=$('#bMis');if(b){b.classList.remove('ping');void b.offsetWidth;b.classList.add('ping')}},SET.fast?500:1200);
-  const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('rankup');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
+  const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('celebrate');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`物件${ft.v}件！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントのゴールドが＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
   const ru=evs.filter(e=>e.k==='rankup');if(ru.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankup',3);sfx('rankup');fireworks(2);pillar(pNode,'var(--rank)');banner('ランクアップ！','var(--rank)',ru.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?800:1900);
   const rd=evs.filter(e=>e.k==='rankdown');if(rd.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankdown',2);sfx('anti');shake();brokenHearts(pNode);banner('ランクダウン…','linear-gradient(90deg,#5d5470,#e5363d)',rd.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?900:2100);
   {const yr=evs.find(e=>e.k==='yellreset');if(yr)setTimeout(()=>toast(evs.some(e=>e.k==='monthend')?'💖 0:00の決算で、全員のコアファンが0人に戻りました（また今日から集め直し）':'💖 目的地が変わったので、全員のコアファンが0人に戻りました'),SET.fast?700:1700)}/* 記録の文（検算に使う）はそのまま、表示だけ読みやすく */
   {const we=evs.find(e=>e.k==='weather');if(we)setTimeout(()=>toast(we.t),SET.fast?600:1500)}
-  const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('yell');if(e.v!==seat)toast('🎉 '+e.t);/* 止まった人のボーナスは結果カードに出るので、お知らせは重ねない */chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
+  const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('celebrate');if(e.v!==seat)toast('🎉 '+e.t);/* 止まった人のボーナスは結果カードに出るので、お知らせは重ねない */chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
   {const g=evs.find(e=>e.k==='goal');if(g){if(localGoal===s.turn){localGoal=null;await wait(300)}else await goalShow(seat,pNode,g.v,s.goal)}}
   if(evs.some(e=>e.k==='mono'))setTimeout(()=>{comments('mono',6);sfx('rankup');pillar(pNode,'#ffcf3a');banner('独占！','#ffcf3a',(pNode.name||'')+' 決算'+(pNode.mono||2)+'倍');fireworks(2)},SET.fast?500:1100);
   if(evs.some(e=>e.k==='buy')){comments('buy',3);sfx('buy');houseRise(pNode,SEATC[seat]);burst('coin',pNode);banner('物件獲得！','var(--station)',pNode.name||'');coinsFly(pNode,seat,6,true)}
@@ -2562,7 +2577,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   const mi=evs.find(e=>e.k==='mischief');if(mi){sfx('troll');glitch();toast(/改心/.test(mi.t)?'😇 '+mi.t+(seat!=null?'（'+seatName(seat)+'）':''):'😈 '+(seat!=null?seatName(seat)+'に':'')+'荒らしのいたずら：'+mi.t.replace(/^荒らしラグ王が/,''));/* だれに起きたかを添える（記録の文はそのまま） */
     if(/浪費/.test(mi.t)){coinsFly(pNode,seat,8,true);floatNum(pNode,mi.t.replace(/.*−/,'−'),'var(--anti)')}else if(/荒らしコメント/.test(mi.t)){comments('troll',6);staticNoise(500)}
     else if(/売られた/.test(mi.t)){brokenHearts(pNode)}else if(/改心/.test(mi.t)){pillar(pNode,'#ffcf3a');burst('heart',pNode);comments('trollgone',3)}}
-  if(evs.some(e=>e.k==='monthend')&&s.report){music('closing');sfx('clock');comments('settle',6);
+  if(evs.some(e=>e.k==='monthend')&&s.report){music('closing');sfx('clock');comments('settle',6);if(s.report.some(x=>x.seat===mySeat()&&x.gain>0))setTimeout(()=>sfx('celebrate'),SET.fast?900:2100);/* 自分が締めの条件をクリアしたらお祝いの音 */
     const rows=s.report.map(x=>`<tr><td>${esc(seatName(x.seat))}</td><td>＋${x.inc.toLocaleString()}G${x.mono?`<small class="mono">独占${x.mono}</small>`:''}</td><td>＋${(x.pay||0).toLocaleString()}G</td><td>${x.before}${x.after!==x.before?' → <b>'+x.after+'</b>':''}<small class="mono">${x.gain?'＋'+x.gain+'pt':'ランクダウン'}</small></td></tr>`).join('');
     const cl=s.report.filter(x=>x.conds&&x.conds.length).map(x=>`${esc(seatName(x.seat))}：${x.conds.join('・')}`).join('<br>');const fl=s.fy?`<p class="muted" style="font-size:12px;margin:6px 0 0">💖 今日のコアファン：${s.report.map(x=>`${esc(seatName(x.seat))} ${x.ye}人`).join('・')}<br>決算のあと、全員のコアファンは0人に戻ります（また集め直し）</p>`:'';
     for(const x of s.report)if(x.inc>0)coinsFly(NODES[s.goal],x.seat,4);
@@ -2853,7 +2868,8 @@ let arrowT=0;function qArrow(){if(!arrowT)arrowT=setTimeout(()=>{arrowT=0;update
 let camLive=null;
 function camGeom(v,w,h){const k=Math.min(w/v[2],h/v[3]);return[k,(w-v[2]*k)/2-v[0]*k,(h-v[3]*k)/2-v[1]*k]}// 画面上の位置＝k×地図の座標＋ずれ
 function camUnion(a,b){const x0=Math.min(a[0],b[0]),y0=Math.min(a[1],b[1]);return[x0,y0,Math.max(a[0]+a[2],b[0]+b[2])-x0,Math.max(a[1]+a[3],b[1]+b[3])-y0]}
-function liveStart(a,b){if(reduce||!built)return null;const U=camUnion(a,b),r=Math.max(U[2]/Math.min(a[2],b[2]),U[3]/Math.min(a[3],b[3]));if(!(r<=1.9))return null;
+function liveStart(a,b){if(reduce||!built)return null;let U=camUnion(a,b),r=Math.max(U[2]/Math.min(a[2],b[2]),U[3]/Math.min(a[3],b[3]));if(!(r<=1.9))return null;
+  /* 進む向きに2歩先まで含めて描いておき、続けて1マスずつ動く間は描き直さずに使い回す（ぼやけすぎないよう表示範囲の1.6倍まで） */{const ah=[b[0]+(b[0]-a[0])*2,b[1]+(b[1]-a[1])*2,b[2],b[3]],U2=camUnion(U,ah),r2=Math.max(U2[2]/Math.min(a[2],b[2]),U2[3]/Math.min(a[3],b[3]));if(r2<=1.6){U=U2;r=r2}}
   const svg=$('#map');let R,B;try{R=svg.getBoundingClientRect();B=cv.getBoundingClientRect()}catch{return null}if(!R.width||!R.height)return null;
   svg.style.width=R.width+'px';svg.style.height=R.height+'px';/* 範囲の縦横比が変わっても地図の枠の大きさは変えない */svg.setAttribute('viewBox',U.map(x=>x.toFixed(1)).join(' '));const W=$('#mapwrap');W.style.transformOrigin='0 0';W.classList.add('camlive');
   camLive={U,w:R.width,h:R.height,ox:R.left-B.left,oy:R.top-B.top,g:camGeom(U,R.width,R.height)};fxSvg=[camLive.ox,camLive.oy,R.width,R.height];return camLive}
@@ -2869,7 +2885,7 @@ const ZN=1.75,ZM=2.25;let panned=false;
 let lastLS=0;function scaleMarks(z){const ls=Math.min(1.5,1.75/z),lp=Math.min(2.2,2/z);if(Math.abs(ls-lastLS)<.01&&!scaleMarks.dirty)return;lastLS=ls;scaleMarks.dirty=false;
   document.querySelectorAll('#map .lbl,#map .lbl2').forEach(g=>{const x=+g.dataset.x,y=+g.dataset.y,k=g.classList.contains('lbl2')?lp:ls;g.setAttribute('transform',`translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`)});
   document.querySelectorAll('#map .psc').forEach(g=>g.setAttribute('transform',`scale(${lp})`))}
-function camAt(n,z,ms,mid){if(!n)return;const w=400/z,h=VH/z;const to=[Math.max(0,Math.min(WW-w,n.x-w/2)),Math.max(0,Math.min(WH-h,n.y-h*(mid?.5:.4))),w,h];camGoal=to;camGoalAt=Date.now();if(!SET.cam||reduce||SET.fxq==='lite')setVB(to);else tween(to,SET.fast?ms/2:ms)}
+function camAt(n,z,ms,mid,ez){if(!n)return;const w=400/z,h=VH/z;const to=[Math.max(0,Math.min(WW-w,n.x-w/2)),Math.max(0,Math.min(WH-h,n.y-h*(mid?.5:.4))),w,h];camGoal=to;camGoalAt=Date.now();if(!SET.cam||reduce||SET.fxq==='lite')setVB(to);else tween(to,SET.fast?ms/2:ms,ez)}
 function camTo(n,z,ms){camAt(n,z,ms)}
 // 拡大率はそのままで、マスが画面の縦 fy（0〜1）の位置に来るようにカメラを動かす（結果カードを避けるため）
 function camPan(n,fy,ms){const g=camGoal||vb,w=g[2],h=g[3];const to=[Math.max(0,Math.min(WW-w,n.x-w/2)),Math.max(0,Math.min(WH-h,n.y-h*fy)),w,h];camGoal=to;camGoalAt=Date.now();if(!SET.cam||reduce||SET.fxq==='lite')setVB(to);else tween(to,SET.fast?ms/2:ms)}
@@ -2893,7 +2909,7 @@ function updateGoalArrow(){const a=$('#goalArrow'),s=dispState;if(!a||!s||s.goal
   let panEnd=0;box.addEventListener('click',ev=>{if(performance.now()-panEnd<350&&!ev.target.closest('button')){ev.stopPropagation();ev.preventDefault()}},{capture:true});const end=()=>{if(st&&moved)panEnd=performance.now();st=null};box.addEventListener('pointerup',end);box.addEventListener('pointercancel',()=>{st=null})})();
 function viewBtn(){const b=$('#bView'),t=SET.view==='all'?'現在地を見る':(panned?'現在地にもどる':'全体を見る');if(b.textContent!==t)b.textContent=t}
 $('#bView').onclick=e=>{e.stopPropagation();if(SET.view==='near'&&panned){camHome(400);viewBtn();return}SET.view=SET.view==='all'?'near':'all';try{localStorage.setItem('poco-set',JSON.stringify(SET))}catch{}camHome(500);viewBtn()};
-function tween(to,ms){cancelAnimationFrame(camAnim);clearTimeout(camCommitT);camCommitT=0;if(!(ms>0)){setVB(to);return}const from=vb.slice(),t0=performance.now();let live=null;if(liveFits(to))live=camLive;else{liveEnd();live=liveStart(from,to)}(function f(now){const k=Math.max(0,Math.min(1,(now-t0)/ms)),/* 描画フレームの時刻が開始時刻より前のとき、負の値で地図の表示範囲が飛ばないよう0〜1に収める */e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,v=from.map((x,i)=>x+(to[i]-x)*e);if(live&&camLive)liveSet(v);else setVB(v);if(k<1)camAnim=requestAnimationFrame(f);else if(camLive){clearTimeout(camCommitT);camCommitT=setTimeout(liveEnd,300)}})(t0)}
+function tween(to,ms,ez){cancelAnimationFrame(camAnim);clearTimeout(camCommitT);camCommitT=0;if(!(ms>0)){setVB(to);return}const from=vb.slice(),t0=performance.now();let live=null;if(liveFits(to))live=camLive;else{liveEnd();live=liveStart(from,to)}(function f(now){const k=Math.max(0,Math.min(1,(now-t0)/ms)),/* 描画フレームの時刻が開始時刻より前のとき、負の値で地図の表示範囲が飛ばないよう0〜1に収める */e=ez==='lin'?k:ez==='out'?1-(1-k)*(1-k):k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,/* 1マスずつ進む間は一定の速さ（lin）、最後のマスはゆっくり止まる（out）でカメラが止まったり動いたりしない */v=from.map((x,i)=>x+(to[i]-x)*e);if(live&&camLive)liveSet(v);else setVB(v);if(k<1)camAnim=requestAnimationFrame(f);else if(camLive){clearTimeout(camCommitT);camCommitT=setTimeout(liveEnd,300)}})(t0)}
 
 // 顔（オリジナル図形キャラ）
 function faceSvg(expr,hair){const eyes={ふつう:'<circle cx="32" cy="40" r="3"/><circle cx="48" cy="40" r="3"/>',うれしい:'<path d="M28 41 q4-5 8 0 M44 41 q4-5 8 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',かなしい:'<path d="M28 38 q4 4 8 0 M44 38 q4 4 8 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',びっくり:'<circle cx="32" cy="40" r="4.5"/><circle cx="48" cy="40" r="4.5"/>'}[expr]||'';
@@ -2971,7 +2987,7 @@ function wxwRebuild(){const wx=WXW.wx,q=wx<0?0:FXQ(),R=Math.random;
 // 動かすのは対戦画面が表示されている間だけ（豪華・ふつう30コマ/秒、控えめ・重いとき12コマ/秒）。動きを減らす設定では止まった絵を1枚だけ描く
 function wxwKick(){if(WXW.run||!$('#wxWin'))return;WXW.run=true;requestAnimationFrame(wxwFrame)}
 function wxwFrame(now){const c=$('#wxWin');WXW.run=false;if(!c||WXW.wx<0||document.hidden||!document.body.classList.contains('ingame'))return;
-  const fps=reduce?0:SET.fxq==='lite'||fxLow()?12:30;
+  const fps=reduce?0:SET.fxq==='lite'||fxLow()||fxBusyOn?10:20;/* 空の小窓はゆっくり動くので20コマ/秒で十分（演出中は10コマ/秒） */
   if(fps&&WXW.last&&now-WXW.last<1000/fps-2){WXW.run=true;requestAnimationFrame(wxwFrame);return}
   const dt=fps&&WXW.last?Math.min(4,(now-WXW.last)/33.3):0;WXW.last=fps?now:0;
   try{wxwDraw(c,now,dt)}catch{}if(fps){WXW.run=true;requestAnimationFrame(wxwFrame)}}
@@ -3008,7 +3024,8 @@ function wxwDraw(c,now,dt){const g=c.getContext('2d');if(!g)return;const d=Math.
   // 嵐の稲光：小窓の中だけで5〜11秒に1回。動きを減らす設定では出さない
   if(wx===3&&dt){if(now>WXW.next){WXW.fl=1;WXW.next=now+5000+R()*6000;const pts=[];let x=12+R()*48,y=0;while(y<30){pts.push([x,y]);x+=(R()-.5)*8;y+=4+R()*4}WXW.bolt=pts}
     if(WXW.fl>0){const on=WXW.fl>.8||(WXW.fl>.5&&WXW.fl<.65);g.globalAlpha=on?.35*WXW.fl:.06;g.fillStyle='#e8eeff';g.fillRect(0,0,W,H);if(on&&WXW.bolt){g.globalAlpha=WXW.fl;g.strokeStyle='#fff';g.lineWidth=1.1;g.lineJoin='round';g.beginPath();WXW.bolt.forEach(([px,py],i)=>i?g.lineTo(px,py):g.moveTo(px,py));g.stroke()}WXW.fl-=.05*dt}g.globalAlpha=1}}
-function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.splice(0,bursts.length-500);if(flashes.length>24)flashes.splice(0,flashes.length-24);
+let fxBusyOn=false;
+function frame(now){fxMeter(now||performance.now());{const b=animN>0;if(b!==fxBusyOn){fxBusyOn=b;document.body.classList.toggle('fxbusy',b)}}/* 演出中（コマの移動・カメラ）は地図の飾りの動きを止めて、見ている動きをなめらかに */if(bursts.length>500)bursts.splice(0,bursts.length-500);if(flashes.length>24)flashes.splice(0,flashes.length-24);
   const onlyAmb=!bursts.length&&!flashes.length&&!(performance.now()<staticUntil),hasVeh=VEH.length&&!fxLow();fxTick++;if(onlyAmb&&!fxDirty&&(fxTick&1)){if(!reduce)requestAnimationFrame(frame);return}
   // 枠の大きさは、変わったとき（ResizeObserver）か約0.5秒ごとにだけ測る（毎コマ測ると画面の再計算が起きて重い）
   if(!fxRO&&window.ResizeObserver&&cv.parentElement){fxRO=new ResizeObserver(()=>{fxSz=null});fxRO.observe(cv.parentElement)}if(!fxSz||!(fxTick%30)){const m=cv.parentElement;fxSz=[m?m.clientWidth:0,m?m.clientHeight:0];if(!camLive)fxSvg=null}
@@ -3106,13 +3123,21 @@ const CMT_POCO={
 for(const k in CMT_POCO)CMT[k]=[...new Set((CMT[k]||[]).concat(CMT_POCO[k]))];/* 同じ文の重複は1つに */
 {const u=[...new Set(CMT_NAME)];CMT_NAME.length=0;CMT_NAME.push(...u)}
 let cmtRecent=[];// 同じコメントが続けて出ないように最近の分を覚える
-function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!document.body.classList.contains('ingame'))return;const mb=$('#mapbox');if(!mb)return;let box=$('#cmts');if(!box||box.parentNode!==mb){if(box)box.remove();box=document.createElement('div');box.id='cmts';box.setAttribute('aria-hidden','true');mb.appendChild(box)}/* 地図（MAP表示欄）の上、右下のサイコロの上に重ねて出す */
+function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!document.body.classList.contains('ingame'))return;cmtBox();
+  /* 2026-10-31 リスナーコメントは上の順位欄の見出しの右側に、1件ずつ流れるように出す（地図のイベント表示と重ならない） */
   const L=CMT[kind]||CMT.good,troll=kind==='troll';let at=0;
-  for(let i=0;i<count;i++){at+=i?(SET.fast?260:420)+Math.random()*(SET.fast?320:560):0;const show=tries=>{if(!document.body.classList.contains('ingame'))return;
-    if(cmtRoom(mb,box)<1){if(tries<12)setTimeout(()=>show(tries+1),400);return}/* 結果カードで空きがないときは、カードが消えるまで待つ（約5秒で諦める） */
+  for(let i=0;i<count;i++){at+=i?(SET.fast?260:420)+Math.random()*(SET.fast?320:560):0;setTimeout(()=>{if(!document.body.classList.contains('ingame'))return;
     let t,k=0;do{t=L[Math.floor(Math.random()*L.length)];k++}while(cmtRecent.includes(t)&&k<8);cmtRecent.push(t);if(cmtRecent.length>14)cmtRecent.shift();
     const c=document.createElement('div');c.className='cmt'+(troll?' troll':'');const who=document.createElement('b');const N=troll?CMT_TROLL_NAME:CMT_NAME;who.textContent=N[Math.floor(Math.random()*N.length)];
-    c.append(who,document.createTextNode(' '+t));box.appendChild(c);c._k=setTimeout(()=>c.remove(),6200);cmtFit()};setTimeout(()=>show(0),at)}}
+    c.append(who,document.createTextNode(' '+t));cmtQ.push(c);if(cmtQ.length>5)cmtQ.shift();if(!cmtT)cmtT=setTimeout(cmtRun,Math.max(0,cmtLast+(SET.fast?1100:1800)-Date.now()))},at)}}/* 前のコメントを最低でも約1.8秒は見せてから次へ */
+let cmtQ=[],cmtT=0,cmtLast=0;
+// コメントの欄：順位欄の見出し（🏁目的地）の右側にぴったり重ねる。順位欄は描き直されるので、欄は body に置いて位置だけ合わせる
+function cmtBox(){let box=$('#cmts');if(!box||box.parentNode!==document.body){if(box)box.remove();box=document.createElement('div');box.id='cmts';box.className='cmts-top';box.setAttribute('aria-hidden','true');document.body.appendChild(box)}cmtPlace(box);return box}
+function cmtPlace(box){const h=document.querySelector('#status .st-head'),g=h&&h.querySelector('.sh-goal');if(!h||!h.offsetParent||!document.body.classList.contains('ingame')){box.style.display='none';return}
+  const r=h.getBoundingClientRect(),gr=g?g.getBoundingClientRect():r,l=Math.round(gr.right+8);box.style.display='';box.style.left=l+'px';box.style.top=Math.round(r.top)+'px';box.style.width=Math.max(60,Math.round(r.right-l))+'px';box.style.height=Math.max(20,Math.round(r.height))+'px'}
+// 1件ずつ順番に出す（前のコメントは次が来たら消える。最後の1件は約6秒で消える）
+function cmtRun(){cmtT=0;if(!document.body.classList.contains('ingame')){cmtQ=[];return}const box=cmtBox(),c=cmtQ.shift();if(!c)return;
+  [...box.children].forEach(x=>{clearTimeout(x._k);x.remove()});box.appendChild(c);cmtLast=Date.now();c._k=setTimeout(()=>c.remove(),6200);if(cmtQ.length)cmtT=setTimeout(cmtRun,SET.fast?1100:1800)}
 // コメントを出せる行数：地図の上の時刻欄より下、サイコロより上で、結果カード・駅の持ち主表示（消え始めるまで）と重ならない範囲
 // CPUの吹き出しが右側まで広がっているときは、コメント欄の下端を吹き出しの上に上げる（位置は登場アニメの拡大縮小に左右されない offsetTop で測る）
 function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4;let top=56,bot=66;
@@ -3122,12 +3147,12 @@ function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4
 // 入りきらない古いコメントから一時的に下げ、結果カードが消えて空きができたら出し直す（最大4件・地図が低い画面では3件、5秒待っても出せなければ消す）
 let cmtWait=[],cmtWT=0;
 // 駅名と重なったコメントは薄く透かして、下の駅名を読めるようにする（地図が動いても追従）
-function cmtSee(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!box.children.length)return;let M=null;try{M=$('#map').getScreenCTM()}catch{}if(!M||!M.a||!M.d)return;const k=lastLS||1;
+function cmtSee(){const mb=$('#mapbox'),box=$('#cmts');if(box&&box.parentNode===document.body){cmtPlace(box);return}if(!mb||!box||!box.children.length)return;let M=null;try{M=$('#map').getScreenCTM()}catch{}if(!M||!M.a||!M.d)return;const k=lastLS||1;
   // 札の位置は地図の座標で分かっている（n.plate）。拡大に合わせた縮小（scaleMarks）も同じ式で反映する
   for(const c of box.children){const r=c.getBoundingClientRect(),x0=(r.left+2-M.e)/M.a,x1=(r.right-2-M.e)/M.a,y0=(r.top+2-M.f)/M.d,y1=(r.bottom-2-M.f)/M.d;
     c.classList.toggle('see',NODES.some(n=>{const q=n.plate;if(!q)return false;const a=n.x+(q.x-n.x)*k,b=n.x+(q.x+q.w-n.x)*k,u=n.y+(q.y-n.y)*k,w=n.y+(q.y+q.h-n.y)*k;return a<x1&&b>x0&&u<y1&&w>y0}))}}
 setInterval(cmtSee,250);
-function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box)return;const n=cmtRoom(mb,box);
+function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(box&&box.parentNode===document.body){cmtPlace(box);return}if(!mb||!box)return;const n=cmtRoom(mb,box);
   while(box.children.length>n){const c=box.firstChild;clearTimeout(c._k);c._wait=Date.now();c.remove();cmtWait.push(c)}cmtWait=cmtWait.slice(-4);if(cmtWait.length&&!cmtWT)cmtWT=setTimeout(cmtFlush,400);cmtSee()}
 function cmtFlush(){cmtWT=0;const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!document.body.classList.contains('ingame')){cmtWait=[];return}
   cmtWait=cmtWait.filter(c=>Date.now()-c._wait<5000);if(cmtWait.length&&cmtRoom(mb,box)>box.children.length){/* 出し直しも1件ずつずらす */const c=cmtWait.shift();c._wait=0;box.appendChild(c);c._k=setTimeout(()=>c.remove(),6200)}
@@ -3142,7 +3167,8 @@ function banner(t,color,sub){const e=fxEl('banner',`<div class="bn" style="--c:$
 // ===== CPUキャラのひとりごと・会話（場面ごとに吹き出しで話す）=====
 let lastTalk=0;
 function say(seat,scene,delay=0){const c=cpuChar(seat);if(!c||!c.L[scene]||!SET.talk&&SET.talk!==undefined)return;setTimeout(()=>{if(!$('#mapbox'))return;const ds=dispState,p=ds&&ds.players[seat];
-  const e=fxEl('speech',`<span class="sp-face">${faceSvg(p?p.face:'ふつう',HAIR[seat])}</span><span class="sp-bub" style="--c:${SEATC[seat]}"><b>${esc(seatName(seat))}</b>${esc(c.L[scene])}</span>`,null,null,SET.fast?2300:3800);lastTalk=Date.now()},delay)}
+  /* 2026-10-31 CPUのひとことは地図ではなく下のメニュー欄に出す（地図のイベント表示と重ならない）。1人ずつ */const bar=$('#bar');if(!bar||bar.hidden)return;bar.querySelectorAll('.fx.speech').forEach(x=>x.remove());
+  const e=document.createElement('div');e.className='fx speech inbar';e.innerHTML=`<span class="sp-face">${faceSvg(p?p.face:'ふつう',HAIR[seat])}</span><span class="sp-bub" style="--c:${SEATC[seat]}"><b>${esc(seatName(seat))}</b>${esc(c.L[scene])}</span>`;bar.appendChild(e);setTimeout(()=>e.remove(),SET.fast?2300:3800);lastTalk=Date.now()},delay)}
 function cpuTalk(s,prev,seat,t){if(!meta||seat==null)return;const evs=s.ev||[],cpu=meta.cpu||[],isC=cpu.includes(seat),D0=SET.fast?300:700;
   const goal=evs.some(e=>e.k==='goal'),ee=evs.find(e=>e.k==='event'),card=evs.find(e=>e.k==='card');
   if(goal){if(isC)say(seat,'goal',D0);const o=cpu.filter(i=>i!==seat);if(o.length)say(o[Math.floor(Math.random()*o.length)],'rival',D0+(isC?2200:600))}
@@ -3551,7 +3577,7 @@ function finishChoice(base){if(!pending)return;const g=$('#ghost');if(g)g.innerH
   if(pv.canBuy){pending.stage='buy';pending.pv=pv;pending.base=base;{const B=pv.nd.bases,j=pv.own.map((x,j)=>x==null?j:-1).filter(j=>j>=0&&pv.coin>=B[j].price).sort((a,b)=>B[a].price-B[b].price)[0];pending.sel=new Set(j==null?[]:[j])}sfx('station');render()}else commitAction({...base,buy:false})}
 // ポコチャレを達成する手番なら、報酬（コイン／カード）を選んでから確定
 function commitAction(b){const{auto,shopDone,goalShown,...clean}=b;const snap={},pv=applyTurn(pending.st,{...clean,reward:'coin'},meta.seed,{noForce:true,snap}),m=pv.ev.filter(e=>e.k==='mission');
-  if(m.length&&pending.st.players[curSeat(pending.st)].hand.length<HANDMAX){pending.stage='reward';if(snap.end)pending.view=snap.end;pending.base=clean;$('#bRwCoin').textContent='ゴールド '+(BASEPT[pending.st.players[curSeat(pending.st)].rank]*4).toLocaleString()+'G';$('#rwInfo').textContent=`🏅 ポコチャレ達成！「${m.map(e=>MIS[e.v].t).join('」「')}」\n報酬を1つ選んでください（どちらも＋コアファン2人・ランク＋20pt）`;sfx('rankup');burst('star',NODES[pv.players[curSeat(pending.st)].pos]);render();return}
+  if(m.length&&pending.st.players[curSeat(pending.st)].hand.length<HANDMAX){pending.stage='reward';if(snap.end)pending.view=snap.end;pending.base=clean;$('#bRwCoin').textContent='ゴールド '+(BASEPT[pending.st.players[curSeat(pending.st)].rank]*4).toLocaleString()+'G';$('#rwInfo').textContent=`🏅 ポコチャレ達成！「${m.map(e=>MIS[e.v].t).join('」「')}」\n報酬を1つ選んでください（どちらも＋コアファン2人・ランク＋20pt）`;sfx('celebrate');burst('star',NODES[pv.players[curSeat(pending.st)].pos]);render();return}
   finalize(clean)}
 function takeReward(kind){if(!pending||pending.stage!=='reward')return;finalize({...pending.base,reward:kind})}
 // 確定の直前：この手番のあとでゴールドがマイナスなら、物件を売ってから確定する

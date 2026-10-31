@@ -1,4 +1,4 @@
-// リスナーコメント（2026-10-29）：場面ごとのコメント・画面右上・少しずつずらして表示・約6秒で消える（jsdom・端末内モード）
+// リスナーコメント（2026-10-29、2026-10-31に表示位置を変更）：場面ごとのコメント・順位欄の見出しの右に1件ずつ・少しずつずらして表示・約6秒で消える（jsdom・端末内モード）
 const {JSDOM,VirtualConsole}=require('jsdom');const fs=require('fs'),assert=require('assert');
 const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>{if(!e.message.includes('Not implemented'))errors.push(e.message)});
 const html=fs.readFileSync('index.html','utf8'),s=html.replace(/<script[^>]+src=[^>]+><\/script>/g,'');
@@ -13,26 +13,19 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   for(const k of kinds)assert(E(`new Set(CMT["${k}"]).size===CMT["${k}"].length`),'同じ場面に同じ文が重複：'+k);
   // Pocochaらしい言葉が入っている
   const all=E('Object.values(CMT).flat().join("／")');for(const w of ['ライバー','リスナー','枠','ランクメーター','時間ダイヤ','イベントポイント','いいね'])assert(all.includes(w),'Pocochaの言葉がない：'+w);
-  // 地図（MAP表示欄）の上・右下寄り（サイコロの上）に重ねて表示
-  assert(/#cmts\{position:absolute;right:8px;bottom:66px;/.test(html),'表示位置が地図の上ではない');
-  // 少しずつずらして出る・約5秒で消える
-  // 進行中のゲームのコメントと区別するため、試験用の場面を追加して数える
-  E('SET.fast=false;CMT.__test=["試験A","試験B","試験C","試験D"];window.__t=[];new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains("cmt")&&/試験/.test(n.textContent))window.__t.push(performance.now())}))).observe(document.body,{subtree:true,childList:true});comments("__test",3)');
-  await wait(100);assert.equal(E('window.__t.length'),1,'最初の1件');assert.equal(d.querySelector('#cmts').parentNode.id,'mapbox','コメントが地図の中にない');
-  await wait(2200);const t=E('window.__t');assert.equal(t.length,3,'3件出ない：'+t.length);assert(t[1]-t[0]>=300&&t[2]-t[1]>=300,'ずらして出ていない');
-  const first=[...d.querySelectorAll('#cmts .cmt')].find(c=>/試験/.test(c.textContent));await wait(3800);assert(first.isConnected,'6秒より前に消えた');await wait(1600);assert(!first.isConnected,'約6秒で消えない');/* 2026-10-31 表示時間を約5秒→約6秒に延長 */
-  assert(/cmtout \.7s ease-in 5\.5s/.test(html),'フェードアウトの指定（5.5秒から0.7秒）');
-  // 場面に合ったコメント：プラスマスならプラス用の文から選ばれる
+  // 2026-10-31：上の順位欄の見出しの右側に1件ずつ（地図には出さない）
+  assert(/#cmts\.cmts-top\{position:fixed;/.test(html),'表示位置の指定が順位欄の見出しではない');
+  // 少しずつずらして1件ずつ出る・最後の1件は約6秒で消える
+  E('window.__origC=comments;comments=(k,n)=>/^(__|minus$|good$)/.test(k)?__origC(k,n):null;/* 進行中の対戦のコメントは止めて、試験のコメントだけ数える */cmtQ.length=0;clearTimeout(cmtT);cmtT=0;cmtLast=0;SET.fast=false;CMT.__test=["試験A","試験B","試験C"];window.__t=[];new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.classList&&n.classList.contains("cmt")&&/試験/.test(n.textContent))window.__t.push(performance.now())}))).observe(document.body,{subtree:true,childList:true});comments("__test",3)');
+  await wait(100);assert.equal(E('window.__t.length'),1,'最初の1件');assert.equal(d.querySelector('#cmts').parentNode,d.body,'コメント欄が順位欄の上（body直下）にない');assert(!d.querySelector('#mapbox #cmts'),'コメントが地図の中にある');
+  await wait(4400);const t=E('window.__t');assert.equal(t.length,3,'3件出ない：'+t.length);assert(t[1]-t[0]>=1000&&t[2]-t[1]>=1000,'1件ずつ間をあけて出ていない');
+  assert.equal(d.querySelectorAll('#cmts .cmt').length,1,'同時に2件以上出ている');
+  const last=d.querySelector('#cmts .cmt');await wait(3800);assert(last.isConnected,'6秒より前に消えた');await wait(2400);assert(!last.isConnected,'約6秒で消えない');
+  assert(/cmtout \.6s ease-in 5\.6s/.test(html),'フェードアウトの指定（5.6秒から0.6秒）');
+  // 場面に合ったコメント：マイナスマスならマイナス用の文から選ばれる
   E('document.querySelector("#cmts").innerHTML="";comments("minus",1)');await wait(30);const txt=[...d.querySelectorAll('#cmts .cmt')].pop().childNodes[1].textContent.trim();assert(E('CMT.minus').includes(txt),'場面に合わない：'+txt);
-  // 一度に出るのは最大4件
-  E('comments("good",8)');let mx=0;for(let i=0;i<30;i++){await wait(200);mx=Math.max(mx,d.querySelectorAll('#cmts .cmt').length)}assert(mx<=4,'同時に4件を超えた：'+mx);
-  // 結果カードと重ならない：カードの下からサイコロの上までに入る件数だけ出し、空きがなければカードが消えるまで待つ
-  E('document.querySelector("#cmts").innerHTML="";const mb=document.querySelector("#mapbox");Object.defineProperty(mb,"clientHeight",{value:300,configurable:true});Object.defineProperty(mb,"clientWidth",{value:390,configurable:true});window.__rp=fxEl("respop","<b>試験カード</b>",null,null,5600);Object.defineProperty(__rp,"offsetTop",{value:44});Object.defineProperty(__rp,"offsetHeight",{value:150,configurable:true})');
-  assert.equal(E('cmtRoom(document.querySelector("#mapbox"),document.querySelector("#cmts"))'),1,'カードの下の空きで出せる件数が違う');
-  E('Object.defineProperty(__rp,"offsetHeight",{value:200})');assert.equal(E('cmtRoom(document.querySelector("#mapbox"),document.querySelector("#cmts"))'),0,'空きがないのに出せる扱い');
-  E('CMT.__x=["試験X"];comments("__x",1)');await wait(300);assert.equal(d.querySelectorAll('#cmts .cmt').length,0,'空きがないのにカードに重ねて出した');
-  E('__rp.remove()');await wait(900);assert([...d.querySelectorAll('#cmts .cmt')].some(c=>/試験X/.test(c.textContent)),'カードが消えた後に出ない');
-  E('Object.defineProperty(document.querySelector("#mapbox"),"clientHeight",{value:0,configurable:true})');
+  // たくさん来ても同時に出るのは1件だけ（待ちは最大5件）
+  E('comments("good",8)');let mx=0;for(let i=0;i<20;i++){await wait(200);mx=Math.max(mx,d.querySelectorAll('#cmts .cmt').length)}assert(mx<=1,'同時に2件以上：'+mx);assert(E('cmtQ.length')<=5,'待ちが多すぎる');
   if(errors.length)throw Error(errors.join('\n'));
-  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・地図の上・結果カードと重ならない・ずらして表示・約6秒で消える）`);dom.window.close();
+  console.log(`PASS リスナーコメント（${kinds.length}場面・${total}種類・順位欄の見出しの右・1件ずつ・ずらして表示・約6秒で消える）`);dom.window.close();
 }catch(e){console.error(e);dom.window.close();process.exitCode=1;}},100);
