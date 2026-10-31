@@ -553,6 +553,7 @@ button.small,.chip{box-shadow:none}
 .mr-card{max-width:360px;width:min(92vw,360px);padding:14px 16px;text-align:left;align-items:stretch}
 .mr-card>small{text-align:center}
 .respop{flex-direction:column;align-items:stretch;gap:6px;padding:10px 14px;width:min(94%,380px)}
+/* コマに重なるときは地図の下端・画面の上下に寄せる（2026-10-31） */.fx.respop.at-bot{top:auto;bottom:8px}.myres.at-bot{align-items:flex-end;padding-bottom:calc(16px + env(safe-area-inset-bottom))}.myres.at-top{align-items:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}.myres.at-l{justify-content:flex-start}.myres.at-r{justify-content:flex-end}.myres .mr-sl{max-height:20vh;overflow:auto}
 .respop .rc-ico{width:36px;height:36px;font-size:20px}.respop .rc-ttl b{font-size:17px}.respop .rc-msg{font-size:13px;font-weight:600}.respop .rc-pill{font-size:13.5px;padding:3px 9px}
 .mr-sl .sl-r:nth-child(n+6){display:none}
 /* 第25版：4人の状況パネル（2列×2行・常に上部に固定） */
@@ -2751,7 +2752,7 @@ function drawPawns(s){if(!s||!built)return;s.players.forEach((p,i)=>movePawn(i,p
     o.forEach((x,j)=>{const cx=n.x+(j-(o.length-1)/2)*7,cy=n.y+12.5;g+=`<circle cx="${cx}" cy="${cy}" r="3" fill="${x==null?'#fff':SEATC[x]}" stroke="var(--ink)" stroke-width=".8"/>`});return g}).join('');
   if(s.troll!=null){const n=NODES[s.players[s.troll].pos];const big=lateGame(s);$('#trollMark').innerHTML=`<g class="lbl2" data-x="${n.x}" data-y="${n.y}"><g transform="translate(${n.x+12} ${n.y-22}) scale(${big?1.3:1})"><g class="bob"><rect x="-9" y="-7" width="18" height="13" rx="3" fill="${big?'var(--anti)':'#5d5470'}"/><rect x="-7" y="-5" width="14" height="9" rx="1" fill="#1d1726"/><rect x="-6" y="-3" width="9" height="1" fill="#fff"/><rect x="-4" y="0" width="10" height="1" fill="#fff"/><rect x="-2" y="6" width="4" height="3" fill="${big?'var(--anti)':'#5d5470'}"/></g></g></g>`}else $('#trollMark').innerHTML='';scaleMarks.dirty=true;scaleMarks(400/vb[2])}
 // カメラ（移動中は自分の駒に寄って追いかける）
-let VH=560,vb=[0,0,400,560],camAnim=null;// 画面に映す範囲（縦横比は常に400:560）
+let VH=560,vb=[0,0,400,560],camAnim=null,camGoal=null,camGoalAt=0;// 画面に映す範囲（縦横比は常に400:560）
 // カメラが動く間は毎コマ呼ばれる。ここで画面の大きさを測ると地図全体の再計算が起きて重いので、測る処理（目的地の矢印）は約0.1秒に1回にまとめる
 let arrowT=0;function qArrow(){if(!arrowT)arrowT=setTimeout(()=>{arrowT=0;updateGoalArrow()},90)}
 // ===== カメラを軽く動かす（第39版）=====
@@ -2777,8 +2778,10 @@ const ZN=1.75,ZM=2.25;let panned=false;
 let lastLS=0;function scaleMarks(z){const ls=Math.min(1.5,1.75/z),lp=Math.min(2.2,2/z);if(Math.abs(ls-lastLS)<.01&&!scaleMarks.dirty)return;lastLS=ls;scaleMarks.dirty=false;
   document.querySelectorAll('#map .lbl,#map .lbl2').forEach(g=>{const x=+g.dataset.x,y=+g.dataset.y,k=g.classList.contains('lbl2')?lp:ls;g.setAttribute('transform',`translate(${x} ${y}) scale(${k}) translate(${-x} ${-y})`)});
   document.querySelectorAll('#map .psc').forEach(g=>g.setAttribute('transform',`scale(${lp})`))}
-function camAt(n,z,ms,mid){if(!n)return;const w=400/z,h=VH/z;const to=[Math.max(0,Math.min(WW-w,n.x-w/2)),Math.max(0,Math.min(WH-h,n.y-h*(mid?.5:.4))),w,h];if(!SET.cam||reduce||SET.fxq==='lite')setVB(to);else tween(to,SET.fast?ms/2:ms)}
+function camAt(n,z,ms,mid){if(!n)return;const w=400/z,h=VH/z;const to=[Math.max(0,Math.min(WW-w,n.x-w/2)),Math.max(0,Math.min(WH-h,n.y-h*(mid?.5:.4))),w,h];camGoal=to;camGoalAt=Date.now();if(!SET.cam||reduce||SET.fxq==='lite')setVB(to);else tween(to,SET.fast?ms/2:ms)}
 function camTo(n,z,ms){camAt(n,z,ms)}
+// 拡大率はそのままで、マスが画面の縦 fy（0〜1）の位置に来るようにカメラを動かす（結果カードを避けるため）
+function camPan(n,fy,ms){const g=camGoal||vb,w=g[2],h=g[3];const to=[Math.max(0,Math.min(WW-w,n.x-w/2)),Math.max(0,Math.min(WH-h,n.y-h*fy)),w,h];camGoal=to;camGoalAt=Date.now();if(!SET.cam||reduce||SET.fxq==='lite')setVB(to);else tween(to,SET.fast?ms/2:ms)}
 function focusSeat(){const s=dispState;if(!s)return 0;return curSeat(pending&&pending.st?pending.st:s)}
 const ALLVB={slice(){const w=Math.max(WW,WH*400/VH),h=w*VH/400;return[(WW-w)/2,(WH-h)/2,w,h]}};
 function camHome(ms=650){panned=false;const s=dispState;if(SET.view==='all'||!s||!built){if(!SET.cam||reduce)return setVB(ALLVB.slice());return tween(ALLVB.slice(),SET.fast?300:ms)}
@@ -3022,7 +3025,7 @@ function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!do
 // コメントを出せる行数：地図の上の時刻欄より下、サイコロより上で、結果カード・駅の持ち主表示（消え始めるまで）と重ならない範囲
 // CPUの吹き出しが右側まで広がっているときは、コメント欄の下端を吹き出しの上に上げる（位置は登場アニメの拡大縮小に左右されない offsetTop で測る）
 function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4;let top=56,bot=66;
-  mb.querySelectorAll('.fx.respop,.fx.stinfo').forEach(e=>{if(Date.now()-(+e.dataset.t||0)>4200||!e.offsetHeight)return;top=Math.max(top,e.offsetTop+e.offsetHeight+6)});
+  mb.querySelectorAll('.fx.respop,.fx.stinfo').forEach(e=>{if(Date.now()-(+e.dataset.t||0)>4200||!e.offsetHeight)return;if(e.classList.contains('at-bot'))bot=Math.max(bot,H-e.offsetTop+6);else top=Math.max(top,e.offsetTop+e.offsetHeight+6)});
   mb.querySelectorAll('.fx.speech').forEach(e=>{if(e.offsetHeight&&e.offsetLeft+e.offsetWidth>W*.44)bot=Math.max(bot,H-e.offsetTop+4)});
   box.style.bottom=bot+'px';const row=((box.lastElementChild&&box.lastElementChild.offsetHeight)||24)+4;return Math.max(0,Math.min(H<340?3:4,Math.floor((H-bot-top+4)/row)))}
 // 入りきらない古いコメントから一時的に下げ、結果カードが消えて空きができたら出し直す（最大4件・地図が低い画面では3件、5秒待っても出せなければ消す）
@@ -3233,8 +3236,16 @@ function resultHTML(r,who){const kind=r.kind&&r.kind!==r.title?r.kind:'',lines=r
   +(r.note?`<div class="rc-note">${esc(r.note)}</div>`:'')+`</div>`}
 function resultPop(s,prev,seat,t,n){if(seat==null||!s.lastPath)return;const r=resultInfo(s,prev,seat,t,n);if(!r.title&&!r.msg)return;
   if(seat===mySeat()){myResult(r,n,s);return}
-  const e=fxEl('respop',resultHTML(r,`<span class="rp-who" style="background:${SEATC[seat]}">${esc(seatName(seat))}</span> `),null,null,5600);if(e)e.style.setProperty('--c',r.c);
+  const e=fxEl('respop',resultHTML(r,`<span class="rp-who" style="background:${SEATC[seat]}">${esc(seatName(seat))}</span> `),null,null,5600);if(e){e.style.setProperty('--c',r.c);resPlace(e,n)}
 }
+// 結果カードが止まったマス（コマ）に重ならないように置く（2026-10-31）：カメラの移動先からコマの位置を求め、上の定位置で重なるなら地図の下端に寄せる
+function resSpot(n){const mb=$('#mapbox');if(!mb||!n)return null;const R=mb.getBoundingClientRect();if(!R.width||!R.height)return null;
+  const v=camGoal&&Date.now()-camGoalAt<1500?camGoal:null;if(!v){const p=mapPt(n);return{x:p.x,y:p.y,R}}return{x:(n.x-v[0])/v[2]*R.width,y:(n.y-v[1])/v[3]*R.height,R}}
+function resPlace(e,n){const q=resSpot(n),H=e.parentElement?e.parentElement.clientHeight:0,h=e.offsetHeight;if(!q||!H||!h)return;const m=26,T=44,B=H-8-h;
+  const gap=(a,b)=>q.y<a?a-q.y:q.y>b?q.y-b:0;/* コマとカードの縦の距離（重なると0） */if(gap(T,T+h)>=m||B<=T)return;
+  const bot=gap(B,B+h)>gap(T,T+h);if(bot){e.classList.add('at-bot');cmtFit()}if(gap(bot?B:T,(bot?B:T)+h)<m)resAvoid(n,bot?B:T,bot?B+h:T+h,H)}
+// 置き場所を変えてもカードがマスに重なるときは、カードのない広い側の真ん中にマスが来るようにカメラを動かす（ct・cb：地図の中でのカードの上端・下端）
+function resAvoid(n,ct,cb,H){const up=Math.max(0,ct),dn=Math.max(0,H-cb);if(Math.max(up,dn)<36)return;camPan(n,(up>=dn?up/2:cb+dn/2)/H,300)}
 // 駅（物件マス）に止まったら、その駅の物件の持ち主一覧を出す
 function stationList(s,k,seat){const n=NODES[k],o=own(s,k),mono=o.every(x=>x!=null&&x===o[0]),free=o.filter(x=>x==null).length;
   return`<div class="sl-h"><b>🏠 ${esc(n.name)}駅の物件</b><small>${mono?`<em style="background:${SEATC[o[0]]}">${esc(seatName(o[0]))}が独占中（決算${n.mono}倍）</em>`:free?`空き${free}件・独占で${n.mono}倍`:'全部だれかの物件'}</small></div>`+
@@ -3243,7 +3254,13 @@ function stationList(s,k,seat){const n=NODES[k],o=own(s,k),mono=o.every(x=>x!=nu
 function myResult(r,n,s){const old=$('#myRes');if(old)old.remove();
   const e=document.createElement('div');e.id='myRes';e.className='myres';e.style.setProperty('--c',r.c);
   e.innerHTML=`<div class="mr-card"><small>${esc(seatName(mySeat()))}の結果（タップで閉じる）</small>${resultHTML(r)}${n.type==='station'&&n.bases&&s?`<div class="mr-sl">${stationList(s,NODES.indexOf(n))}</div>`:''}</div>`;
-  document.body.appendChild(e);e.onclick=()=>e.remove();setTimeout(()=>e.remove(),SET.fast?2600:4800);vib(40)}
+  document.body.appendChild(e);myResPlace(e,n);e.onclick=()=>e.remove();setTimeout(()=>e.remove(),SET.fast?2600:4800);vib(40)}
+// 自分の結果カードも、真ん中だとコマに重なるときは、コマから遠い側（画面の上か下）に寄せる
+function myResPlace(e,n){const q=resSpot(n),c=e.firstElementChild;if(!q||!c)return;const M=q.R,y=M.top+q.y,x=M.left+q.x;
+  /* 真ん中→下→上→左→右の順に試し、マスから縦・横に26px以上離れる置き場所を使う。どこも重なるなら一番離れる場所にして、カメラも動かす */
+  const r=()=>({top:c.offsetTop,bottom:c.offsetTop+c.offsetHeight,left:c.offsetLeft,right:c.offsetLeft+c.offsetWidth}),/* 登場アニメの拡大縮小に左右されない位置（#myRes は画面全体に固定） */d=()=>{const a=r();return Math.max(a.top-y,y-a.bottom,a.left-x,x-a.right)};let best='',bd=d();
+  for(const k of ['at-bot','at-top','at-l','at-r']){if(bd>=26)break;e.classList.add(k);const v=d();if(v>bd){bd=v;best=k}e.classList.remove(k)}
+  if(best)e.classList.add(best);if(bd<26){const a=r();resAvoid(n,a.top-M.top,a.bottom-M.top,M.height)}}
 // 大きい数は「12.3万」のように短く
 // コアファンの人数（内部の値がそのまま人数）
 function kpp(k){return[(Math.round((+k||0)*10)/10).toLocaleString(),'人']}
