@@ -13,6 +13,7 @@
 /* 分かれ道がいくつあっても全部の行き先を見られる（第31版） */
 .routeopts:not(:empty){display:grid!important;grid-template-columns:1fr 1fr;gap:6px;max-height:min(30vh,260px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px}
 .routeopts.n1{grid-template-columns:1fr}.routeopts .optbtn{min-height:58px;padding:6px 7px}.routeopts .optbtn small{font-size:11px;line-height:1.35;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+/* 「コアファン/マス」のような単語の途中での改行を防ぎ、「止まる：」の後ろで折り返す */.optbtn .ob-k{word-break:keep-all;overflow-wrap:anywhere}
 .routeopts .optbtn em.rec{font-style:normal;background:#2ecc71;color:#fff;border-radius:999px;padding:0 6px;font-size:10.5px;font-weight:800}
 #bAuto small{display:block;font-size:11px;font-weight:700;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* プレイヤー欄をコンパクトにして地図を広く（第31版） */
@@ -553,7 +554,7 @@ button.small,.chip{box-shadow:none}
 .mr-card{max-width:360px;width:min(92vw,360px);padding:14px 16px;text-align:left;align-items:stretch}
 .mr-card>small{text-align:center}
 .respop{flex-direction:column;align-items:stretch;gap:6px;padding:10px 14px;width:min(94%,380px)}
-/* コマに重なるときは地図の下端・画面の上下に寄せる（2026-10-31） */.fx.respop.at-bot{top:auto;bottom:8px}.myres.at-bot{align-items:flex-end;padding-bottom:calc(16px + env(safe-area-inset-bottom))}.myres.at-top{align-items:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}.myres.at-l{justify-content:flex-start}.myres.at-r{justify-content:flex-end}.myres .mr-sl{max-height:20vh;overflow:auto}
+/* コマに重なるときは地図の下端・画面の上下に寄せる（2026-10-31） */.respop.tight .rc-note,.respop.tight .rc-mult,.respop.tight .rc-lines li:nth-child(n+3){display:none}.respop.tight{gap:4px;padding-block:7px}.fx.respop.at-bot{top:auto;bottom:8px}.myres.at-bot{align-items:flex-end;padding-bottom:calc(16px + env(safe-area-inset-bottom))}.myres.at-top{align-items:flex-start;padding-top:calc(16px + env(safe-area-inset-top))}.myres.at-l{justify-content:flex-start}.myres.at-r{justify-content:flex-end}.myres .mr-sl{max-height:20vh;overflow:auto}
 .respop .rc-ico{width:36px;height:36px;font-size:20px}.respop .rc-ttl b{font-size:17px}.respop .rc-msg{font-size:13px;font-weight:600}.respop .rc-pill{font-size:13.5px;padding:3px 9px}
 .mr-sl .sl-r:nth-child(n+6){display:none}
 /* 第25版：4人の状況パネル（2列×2行・常に上部に固定） */
@@ -685,16 +686,24 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
  .ingame:not(.stream) #status>*{flex-shrink:0}
  .ingame:not(.stream) .bar{right:auto;width:calc(var(--lc) + var(--lp) + 4px);max-height:100dvh;overflow-y:auto;border-radius:0 22px 0 0;padding-left:var(--lp)!important;box-sizing:border-box}
  .ingame:not(.stream) .bar .inner{max-width:none;margin:0}
+ /* 道選びでは順位が隠れて左の列が空くので、道の候補を縦いっぱいまで使って全部見えるようにする */
+ .ingame:not(.stream) .routeopts:not(:empty){max-height:calc(100dvh - 170px)}
+ /* 4人目の順位まで見えるよう、ボタンと順位の行を少し低くする（ボタンは48pxを保つ） */
+ .ingame:not(.stream) .bar #actMain button,.ingame:not(.stream) .bar .toprow>button{height:48px!important;min-height:48px!important}
+ .ingame:not(.stream) #status .pl{padding-block:0!important;min-height:0!important}
 }
 /* お知らせ：画面幅いっぱいまで広げて、3行に折れないように */
+/* お知らせは押せないので、下のボタン（物件・ショップなど）のタップを邪魔しない */.toast{pointer-events:none}
 .toast{width:max-content!important;max-width:calc(100vw - 32px)!important;box-sizing:border-box;border-radius:16px!important;text-align:center;line-height:1.45;font-size:13.5px!important}
 /* 決算表：見出しを1行に、名前は折り返しても読めるように */
 .overlay .card table{width:100%;border-collapse:collapse;font-size:13px}
 .overlay .card table tr:first-child td{white-space:nowrap;font-size:11.5px}
 .overlay .card table td{padding:7px 4px;vertical-align:middle}
 .overlay .card table td:first-child{word-break:keep-all;overflow-wrap:anywhere}
+/* 最終結果では自分の行を目立たせる */.overlay .card table tr.me td{font-weight:900;color:var(--pink);background:color-mix(in srgb,var(--pink) 10%,transparent)}
 /* 閉じるボタン（右上） */
 .sheet>.xclose{position:sticky!important;top:0;align-self:flex-end;float:right;margin:-6px -6px -34px 8px}
+/* 右上の×と見出しが重ならないよう、×のあるカードの見出しは左右に×の幅だけ余白をとる（中央そろえは保つ） */.card>.xclose~h3,.card:has(>.xclose)>h3{padding-inline:46px;font-size:clamp(17px,5.8vw,24px)}
 .xclose{position:absolute;top:8px;right:8px;width:40px;height:40px;min-height:40px!important;padding:0!important;border-radius:999px;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;z-index:3}
 </style>
 
@@ -721,7 +730,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
     <div class="seats" id="seats"></div>
     <label class="row lvrow" for="selDays"><span class="muted">遊ぶ長さ</span><select id="selDays"><option value="1">1日（18:00→0:00・6周）</option><option value="2">2日（30周）</option><option value="3">3日（54周）</option><option value="7">7日（150周）</option><option value="14">14日（318周）</option><option value="30">30日（702周）</option><option value="60">60日（1,422周）</option><option value="90">90日（2,142周）</option><option value="120">120日（2,862周）</option><option value="365">365日（8,742周）</option><option value="0">無制限（好きなときに終える）</option></select></label>
     <label class="row lvrow" for="selLv"><span class="muted">CPUの強さ</span><select id="selLv"><option value="weak">弱い</option><option value="normal">普通</option><option value="strong">強い</option></select></label>
-    <fieldset id="timeoutSettings" hidden style="border:1px solid var(--line);border-radius:12px;padding:10px"><legend>接続・待ち時間</legend><label class="row" for="selDisconnect">切断と判断するまで<select id="selDisconnect"><option value="45">45秒（初期値）</option><option value="60">1分</option><option value="90">1分30秒</option><option value="120">2分</option><option value="180">3分</option><option value="300">5分</option></select></label><label class="row" for="selCpuTimeout">操作待ち・CPU代行まで<select id="selCpuTimeout"><option value="60">1分</option><option value="90">1分30秒（初期値）</option><option value="120">2分</option><option value="180">3分</option><option value="300">5分</option><option value="600">10分</option></select></label><p class="muted">ホストが開始前に設定します。切断判定は最後の通信確認から、CPU代行は手番開始から数えます。接続中でも操作待ちの時間を超えると代行します。ホストの切断時は進行を停止します。</p></fieldset><div class="row namerow"><input type="text" id="iMyName" maxlength="10" placeholder="表示名（10字まで）" aria-label="自分の表示名（10文字まで）" enterkeyhint="done" autocomplete="nickname"><button id="bMyName" class="ghost">名前を変える</button></div>
+    <fieldset id="timeoutSettings" hidden style="border:1px solid var(--line);border-radius:12px;padding:10px"><legend>接続・待ち時間</legend><label class="row" for="selDisconnect">切断と判断するまで<select id="selDisconnect"><option value="45">45秒（初期値）</option><option value="60">1分</option><option value="90">1分30秒</option><option value="120">2分</option><option value="180">3分</option><option value="300">5分</option></select></label><label class="row" for="selCpuTimeout">操作待ち・CPU代行まで<select id="selCpuTimeout"><option value="60">1分</option><option value="90">1分30秒（初期値）</option><option value="120">2分</option><option value="180">3分</option><option value="300">5分</option><option value="600">10分</option></select></label><p class="muted">ホストが開始前に設定します。切断判定は最後の通信確認から、CPU代行は手番開始から数えます。接続中でも操作待ちの時間を超えると代行します。ホストの切断時は進行を停止します。</p></fieldset><div class="row namerow"><input type="text" id="iMyName" maxlength="10" placeholder="名前を入力" aria-label="自分の表示名（10文字まで）" enterkeyhint="done" autocomplete="nickname"><button id="bMyName" class="ghost">名前を変える</button></div>
     <div class="row"><button id="bReady" class="ghost">準備OK</button><button id="bStart" hidden>空席をCPUで埋めて開始</button></div>
     <p class="muted" id="roomNote">参加を待っています。</p><button id="bLeaveRoom" class="ghost" type="button">部屋から退出</button>
   </section>
@@ -814,7 +823,7 @@ body.gfs-shake .wrap{animation:shk .45s}
 </style>
 <style id="v35ui">
 /* ===== 第35版：下のボタン（サイコロ・カード・メニュー・ポコチャレ）を同じ大きさの2×2にそろえる ===== */
-.ingame .bar #actMain,.bar .toprow{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;width:100%}
+/* 道選び・物件・ショップ・報酬のときは隠す（hidden を上書きしない） */.ingame .bar #actMain:not([hidden]),.bar .toprow{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;width:100%}
 .ingame .bar #actMain button,.bar #actMain button,.bar .toprow>button{flex:none!important;width:100%;min-width:0;height:50px!important;min-height:50px!important;padding:0 8px!important;border-radius:16px!important;border-width:2.5px!important;font-size:16px!important;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
 .bar #actMain button#bRoll{font-size:17px!important}
 #actMain[hidden]+.toprow{display:none!important}/* 獲得・ショップなどの画面では従来どおり隠す */
@@ -826,7 +835,7 @@ body.gfs-shake .wrap{animation:shk .45s}
 .misbtn.ping{animation:misping .7s ease-in-out 3}@keyframes misping{50%{transform:scale(1.04);box-shadow:0 0 0 4px color-mix(in srgb,var(--rank) 45%,transparent)}}
 @media (prefers-reduced-motion:reduce){.misbtn.ping{animation:none}}
 .stream #bMis{display:none!important}.stream .bar .toprow{grid-template-columns:1fr}
-@media (max-width:350px){.bar .toprow>button small{font-size:14px!important}.misbtn b{font-size:12px;padding:2px 5px}}
+/* 狭い画面（〜389px）でも「ポコチャレ 0/3」がボタンからはみ出さないよう、文字・すき間を幅に合わせて縮める */@media (max-width:389px){.bar .toprow>button{gap:clamp(2px,1vw,6px)}.bar .toprow>button small{font-size:clamp(12.5px,3.9vw,15px)!important}.bar .toprow>button.misbtn{letter-spacing:0;padding:0 5px!important}.misbtn b{font-size:12px;padding:2px 5px}}
 /* ポコチャレの内容（ボタンから開く） */
 .missheet h3{margin:0}.ms-who{margin:2px 0 10px;font-size:13px;font-weight:700;color:var(--muted)}
 .ms-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left}
@@ -2091,7 +2100,7 @@ let metaWait=[],sentTip=null;/* sentTip：操作を送った手番。結果が�
 const use=n=>window.claude&&window.claude.use?window.claude.use(n):Promise.resolve(null);
 function toast(t){const e=$('#toast');e.textContent=typeof nameize==='function'?nameize(t):t;e.style.top='';e.hidden=false;if(document.body.classList.contains('ingame')){const sb=$('#status'),r=sb&&sb.offsetParent?sb.getBoundingClientRect():null;if(r&&r.bottom>0&&r.bottom<innerHeight*.5)e.style.top=Math.round(r.bottom+8)+'px'}/* 対戦中は順位表の下に出して、目的地・順位を隠さない */clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,Math.min(7000,Math.max(2600,e.textContent.length*90)))}/* 長いお知らせ（エラーの理由など）は読み切れるよう長めに出す */
 // エラーの理由：通信（Firebase）のコードやゲーム処理の英語の理由を、日本語の説明にする。調べやすいようにコードも括弧で添える
-const ERRJA={'permission-denied':'権限がありません（部屋の決まりで許可されていない操作か、ホストの接続が切れています）','unavailable':'サーバーにつながりません（電波・回線を確認してください）','deadline-exceeded':'通信が時間切れになりました（回線が遅い可能性があります）','unauthenticated':'ログインが切れました（ページを再読み込みしてください）','not-found':'対象のデータが見つかりません（部屋が閉じられた可能性があります）','already-exists':'同じデータがすでにあります','failed-precondition':'今の状態ではできない操作です','aborted':'ほかの操作と重なりました（もう一度どうぞ）','resource-exhausted':'操作が多すぎます（少し待ってからどうぞ）','cancelled':'操作が取り消されました','invalid-argument':'送った内容が正しくありません','internal':'サーバー内部のエラーです','unknown':'原因不明のエラーです','network-request-failed':'ネットワークにつながりません（電波・回線を確認してください）','too-many-requests':'操作が多すぎます（少し待ってからどうぞ）','operation-not-allowed':'この接続方法は許可されていません（匿名ログインが無効の可能性があります）',
+const ERRJA={/* ゲームの決まりに合わない操作（盤面が先に進んだ・二重の操作など）。英語のまま出さない */'bad route':'選んだ道が今の盤面と合いません（盤面が先に進んだ可能性があります）','route short':'進むマスの数がサイコロの目と合いません','bad action':'今はできない操作です','bad buy':'その物件は獲得できません（盤面が先に進んだ可能性があります）','bad shop':'そのカードは買えません（ゴールド不足か、カードがいっぱいです）','no coin':'ゴールドが足りません','permission-denied':'権限がありません（部屋の決まりで許可されていない操作か、ホストの接続が切れています）','unavailable':'サーバーにつながりません（電波・回線を確認してください）','deadline-exceeded':'通信が時間切れになりました（回線が遅い可能性があります）','unauthenticated':'ログインが切れました（ページを再読み込みしてください）','not-found':'対象のデータが見つかりません（部屋が閉じられた可能性があります）','already-exists':'同じデータがすでにあります','failed-precondition':'今の状態ではできない操作です','aborted':'ほかの操作と重なりました（もう一度どうぞ）','resource-exhausted':'操作が多すぎます（少し待ってからどうぞ）','cancelled':'操作が取り消されました','invalid-argument':'送った内容が正しくありません','internal':'サーバー内部のエラーです','unknown':'原因不明のエラーです','network-request-failed':'ネットワークにつながりません（電波・回線を確認してください）','too-many-requests':'操作が多すぎます（少し待ってからどうぞ）','operation-not-allowed':'この接続方法は許可されていません（匿名ログインが無効の可能性があります）',
  'bad sell':'売る物件の指定が正しくありません','extra sell':'売る必要のない物件が含まれています','need sell':'ゴールドがマイナスのため、物件を売る必要があります','removed action':'この操作は今の版では使えません','no card':'そのカードを持っていません','nothing to steal':'奪えるカードがありません','no troll':'取りつく相手がいません','already home':'すでに出発地にいます','no shop':'ショップのマスではありません','same place':'同じ場所には移動できません','bad just':'「ちょうど」の指定が正しくありません'};
 function errReason(e){const raw=String(e&&e.code||'').replace(/^(firestore|auth|functions)\//,''),msg=String(e&&e.message!=null?e.message:(typeof e==='string'?e:'')).trim(),ja=/[ぁ-んァ-ヶ一-龠]/.test(msg)?msg:'';
   if(ja&&!ERRJA[raw])return ja;const k=ERRJA[raw]?raw:ERRJA[msg]?msg:'';if(k)return ERRJA[k]+'（'+k+'）';return (raw||msg)?'原因不明のエラー（'+(raw||msg).slice(0,80)+'）':'原因不明のエラー'}
@@ -2164,7 +2173,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();aw
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
 function resetGame(){document.body.classList.remove('ingame');setWx(-1);{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
-  animGen++;animN=0;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[]}}
+  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[]}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
 const seatOnline=i=>grp?peers.some(p=>p.presence&&p.presence.seat===i):!!seats[i];
@@ -2490,10 +2499,13 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const has=k=>evs.some(e=>e.k===k);let hold=3800;if(has('event')||has('buy')||has('shopbuy'))hold=4800;if(has('mono')||evs.some(e=>e.k==='mission'&&e.seat==null))hold=5400;if(has('mischief'))hold=Math.max(hold,4400);if(n0.type==='station')hold=Math.max(hold,4800);
    if(!s.lastPath||s.lastPath.length<=1)hold=Math.min(hold,1400);await wait(hold)}
   if(!s.finished){camHome(450);await wait(350)}
-  if(s.finished){saveRoom(code,{done:true});music('ending');fireworks(8);cannon();setTimeout(cannon,1500);const rows=s.final.map((f,i)=>`<tr><td>${['1位','2位','3位','4位'][i]} ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}G</td></tr>`).join('');
-    const earn=[0,1,2,3].sort((a,b)=>s.players[b].earned-s.players[a].earned)[0];const rk=[0,1,2,3].sort((a,b)=>RANKS.indexOf(s.players[b].rank)-RANKS.indexOf(s.players[a].rank))[0];
-    comments('final',10);await showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">全国編</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
+  if(s.finished){saveRoom(code,{done:true});music('ending');fireworks(8);cannon();setTimeout(cannon,1500);await showFinal(s)}
   }finally{if(gen===animGen){animN--;animIdleAt=Date.now();tipSeenAt.set(r.id,Date.now());setTimeout(tick,SET.fast?140:270)}}})}
+// 最終結果のカード。閉じたあとも下の「最終結果」ボタンで見直せる
+let finalSeen=false;
+function showFinal(s){const me=mySeat(),rows=s.final.map((f,i)=>`<tr${f.seat===me?' class="me"':''}><td>${['1位','2位','3位','4位'][i]} ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}G</td></tr>`).join('');
+    const earn=[0,1,2,3].sort((a,b)=>s.players[b].earned-s.players[a].earned)[0];const rk=[0,1,2,3].sort((a,b)=>RANKS.indexOf(s.players[b].rank)-RANKS.indexOf(s.players[a].rank))[0];
+    if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">全国編</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
 function showOverlay(html,ms,kind){return new Promise(res=>{const o=$('#ov');o.innerHTML=`<div class="card${kind?' '+kind:''}">${html}<button class="ghost" id="ovClose">${ms?'とじる':'OK'}</button></div>`;o.hidden=false;const rb=$('#bRematch');if(rb)rb.onclick=()=>{rematch()};
   o.querySelectorAll('[data-count]').forEach(el=>countUp(el,0,+el.dataset.count,'＋'));
   const done=()=>{o.hidden=true;o.innerHTML='';clearTimeout(t);res()};$('#ovClose').onclick=done;o.onclick=e=>{if(e.target===o)done()};const t=ms?setTimeout(done,SET.fast?ms/2:ms):null})}
@@ -3239,9 +3251,12 @@ function resultPop(s,prev,seat,t,n){if(seat==null||!s.lastPath)return;const r=re
   const e=fxEl('respop',resultHTML(r,`<span class="rp-who" style="background:${SEATC[seat]}">${esc(seatName(seat))}</span> `),null,null,5600);if(e){e.style.setProperty('--c',r.c);resPlace(e,n)}
 }
 // 結果カードが止まったマス（コマ）に重ならないように置く（2026-10-31）：カメラの移動先からコマの位置を求め、上の定位置で重なるなら地図の下端に寄せる
-function resSpot(n){const mb=$('#mapbox');if(!mb||!n)return null;const R=mb.getBoundingClientRect();if(!R.width||!R.height)return null;
-  const v=camGoal&&Date.now()-camGoalAt<1500?camGoal:null;if(!v){const p=mapPt(n);return{x:p.x,y:p.y,R}}return{x:(n.x-v[0])/v[2]*R.width,y:(n.y-v[1])/v[3]*R.height,R}}
-function resPlace(e,n){const q=resSpot(n),H=e.parentElement?e.parentElement.clientHeight:0,h=e.offsetHeight;if(!q||!H||!h)return;const m=26,T=44,B=H-8-h;
+function resSpot(n){const mb=$('#mapbox'),svg=$('#map');if(!mb||!n||!svg)return null;const R=mb.getBoundingClientRect();if(!R.width||!R.height)return null;
+  const v=camGoal&&Date.now()-camGoalAt<1500?camGoal:null,W=svg.clientWidth,H=svg.clientHeight;if(!v||!W||!H){const p=mapPt(n);return{x:p.x,y:p.y,R}}
+  /* 移動先の表示範囲 v での位置を、地図の枠の大きさだけから求める（カメラ移動中の一時的な拡大縮小に左右されない。縦横比が違うときは中央そろえ） */
+  const k=Math.min(W/v[2],H/v[3]);return{x:mb.clientLeft+(W-v[2]*k)/2+(n.x-v[0])*k,y:mb.clientTop+(H-v[3]*k)/2+(n.y-v[1])*k,R}}
+function resPlace(e,n){const q=resSpot(n),H=e.parentElement?e.parentElement.clientHeight:0;let h=e.offsetHeight;if(!q||!H||!h)return;
+  if(h>H*.5){e.classList.add('tight');h=e.offsetHeight}/* 地図が低くてカードが半分以上を占めるときは、内訳を2行にし補足・倍率を省く（増減の大きな数字は残す） */const m=26,T=44,B=H-8-h;
   const gap=(a,b)=>q.y<a?a-q.y:q.y>b?q.y-b:0;/* コマとカードの縦の距離（重なると0） */if(gap(T,T+h)>=m||B<=T)return;
   const bot=gap(B,B+h)>gap(T,T+h);if(bot){e.classList.add('at-bot');cmtFit()}if(gap(bot?B:T,(bot?B:T)+h)<m)resAvoid(n,bot?B:T,bot?B+h:T+h,H)}
 // 置き場所を変えてもカードがマスに重なるときは、カードのない広い側の真ん中にマスが来るようにカメラを動かす（ct・cb：地図の中でのカードの上端・下端）
@@ -3343,7 +3358,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   $('#turnText').textContent=st.finished?'ゲーム終了':`${vs.month}日目 ${vs.hour}:00・第${vs.turn+1}手番（${vs.maxTurn?'全'+vs.maxTurn+'手':'無制限'}）`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':'（考え中…）'))+(lag||isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`)}
   LAYER.drums=cs===me&&!st.finished;const fin=finalStretch(st);LAYER.tempo=fin?1.04:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos],near=!st.finished&&NODES[st.goal]&&st.players.some(p=>{const v=D(st.goal)[p.pos];return v>0&&v<=5});if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):near?'goalrun':fin?'climax':cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':'@pop');
   const fs=pending&&pending.stage==='fsell',act=pending&&pending.stage==='act',buy=pending&&pending.stage==='buy',shp=pending&&pending.stage==='shop',rt=pending&&pending.stage==='route',rw=pending&&pending.stage==='reward';$('#actMain').hidden=buy||rt||rw||shp||fs;$('#actFsell').hidden=!fs;$('#actShop').hidden=!shp;$('#bar').classList.toggle('routing',!!rt);$('#bar').classList.toggle('picking',!!(buy||shp||fs||rw));$('#actReward').hidden=!rw;$('#actBuy').hidden=!buy;$('#actRoute').hidden=!rt;document.body.classList.toggle('routeview',!!rt);
-  $('#bRoll').disabled=!act;$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
+  const fin2=!act&&!pending&&ds&&ds.finished&&!animating()&&$('#ov').hidden;/* ゲーム終了後は「最終結果」を見直すボタンにする */$('#bRoll').disabled=!act&&!fin2;$('#bRoll').textContent=fin2?'🏆 最終結果':'サイコロ';$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
   if(buy)drawBaseList();
   const bad=verifyChain(chain,meta.seed);$('#verify').textContent=broken?'記録の到着待ち':bad.length?'検算の不一致 '+bad.length+'件':'全手番の検算OK';$('#verify').style.color=bad.length?'var(--anti)':'var(--good)';
   const L=$('#log');L.innerHTML='';chain.slice(-8).reverse().forEach(r=>{if(!r.parent)return;const li=document.createElement('li');const n=document.createElement('span');n.className='n';n.textContent='#'+r.turn;
@@ -3432,7 +3447,7 @@ function showChoices(opts,left){const g=$('#choices');if(!g)return;const st=pend
   {const sr=smartRoute(st,pending.cur,left,pending.seen),e=sr.route.length?sr.route[sr.route.length-1]:pending.cur;pending.recFirst=sr.route[0];$('#bAuto').innerHTML=`おまかせ<small>→${esc(landLabel(st,e))}</small>`}
   $('#routeOpts').className='routeopts n'+opts.length;$('#routeOpts').innerHTML=opts.map((x,k)=>{const I=info[k],n=NODES[x],ang=Math.atan2(n.y-c.y,n.x-c.x)*180/Math.PI,tw=I.toward!=null?NODES[I.toward].name:'',e=I.stop!=null&&!I.fork?NODES[I.stop]:null;
     const exact=bestPath(x,left-1,st.goal,new Set([...pending.seen,x])),ex=!e&&(exact.length?exact[exact.length-1]:x)===st.goal;
-    const land=e?(I.stop===st.goal?'<em class="goalhit">🏁 目的地にぴったり着く！</em>':`止まる：${e.type==='station'?esc(e.name)+'駅':SQNAME[e.type]||''}`):(I.fork?'この先にも分かれ道':'');
+    const land=e?(I.stop===st.goal?'<em class="goalhit">🏁 目的地にぴったり着く！</em>':`止まる：<span class="ob-k">${e.type==='station'?esc(e.name)+'駅':SQNAME[e.type]||''}</span>`):(I.fork?'この先にも分かれ道':'');
     return`<button type="button" class="optbtn" data-x="${x}" style="--c:${OPTC[k]}"><span class="ob-l">${OPTL[k]}</span>${dg[x]===best&&opts.some(y=>dg[y]!==best)?'<i class="ob-near">近道</i>':''}<span class="ob-t"><b>${tw?esc(tw)+'方面':'この道'}</b><small>目的地まで${dg[x]}</small><small>${land}${ex?' <em class="goalhit">🎯ぴったり着ける</em>':''}${x===pending.recFirst?' <em class="rec">👍おすすめ</em>':''}</small></span></button>`}).join('');
   $('#routeOpts').querySelectorAll('.optbtn').forEach(b=>b.onclick=()=>chooseOpt(+b.dataset.x));
   pending.waiting=true;$('#bUndo').disabled=!pending.forks.length;sfx('station');vib(20);
@@ -3482,7 +3497,7 @@ function showAutoConfirm(){const st=pending.st,seat=curSeat(st),left=pending.d-p
   $('#routeOpts').className='routeopts n1';$('#routeOpts').innerHTML=`<div class="autoconf"><div class="ac-h">🧭 おまかせルートの結果</div><div class="ac-end">${esc(landLabel(st,end))}</div><div class="ac-why">${esc(landReason(st,seat,end))}</div>${via.length?`<div class="ac-via">通る駅：${via.map(esc).join(' → ')}</div>`:''}<div class="ac-btns"><button type="button" id="acOk">この道で進む</button><button type="button" class="ghost" id="acNo">ほかの道をえらぶ</button></div></div>`;
   $('#acOk').onclick=()=>{if(!pending||pending.stage!=='route')return;pending.autoMode=true;pending.autoPlan=(pending.autoConfirm||[]).slice();clearChoices();stepRoute()};
   $('#acNo').onclick=()=>{if(!pending||pending.stage!=='route')return;clearChoices();stepRoute()};sfx('step',2)}
-$('#bRoll').onclick=()=>choose({type:'roll'});
+$('#bRoll').onclick=()=>{if(!pending&&dispState&&dispState.finished){showFinal(dispState).then(render);render();return}choose({type:'roll'})};
 $('#bCard').onclick=()=>{if(!pending)return;unlock();const h=pending.st.players[curSeat(pending.st)].hand;const cnt={};h.forEach(k=>cnt[k]=(cnt[k]||0)+1);const o=$('#ov');
   const me=curSeat(pending.st),atHome=pending.st.players[me].pos===START;
   const ks=Object.keys(cnt);o.innerHTML=`<div class="card cardsheet"><h3>カード</h3>${ks.length?GENRES.filter(g=>ks.some(k=>CARDG[k]===g[0])).map(g=>`<div class="cg-h"><span>${g[1]} ${g[0]}系</span><small>${g[2]}</small></div>`+ks.filter(k=>CARDG[k]===g[0]).map(k=>{const why=cardBlocked(pending.st,me,k);return`<button class="cardbtn cg-${g[0]}" data-k="${k}" ${why?'disabled':''}><b><i class="rar r-${CARDR[k]}">${LEGACY[k]?'旧':CARDR[k]}</i>${CARDN[k]}</b>×${cnt[k]}<small>${CARDD[k]}${why?'（'+why+'）':''}</small></button>`}).join('')).join(''):'<p class="muted">カードを持っていません。黄色のカードマスやカードショップで手に入ります。</p>'}<div class="justpick" id="justPick" hidden><p>出す目をえらんでください</p><div>${[1,2,3,4,5,6].map(n=>`<button class="jbtn" data-n="${n}">${n}</button>`).join('')}</div></div><button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;
