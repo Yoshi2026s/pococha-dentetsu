@@ -18,7 +18,7 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
   const mid=await pg.evaluate(()=>({state:AU.ac&&AU.ac.state,max:__max,live:liveNow(),se:__se,songs:__songs,err:__err}));
   await pg.evaluate(()=>{SET.bgm=0;music(null);SET.se=0});await pg.waitForTimeout(4000);const after=await pg.evaluate(()=>liveNow());
   // 演出の量「控えめ」でも動くこと
-  await pg.evaluate(()=>{SET.se=70;SET.bgm=40;SET.fxq='lite';sfx('goalBig');music('kyushu')});await pg.waitForTimeout(3000);const lite=await pg.evaluate(()=>({live:liveNow(),max:__max}));
+  await pg.evaluate(()=>{SET.se=70;SET.bgm=40;SET.fxq='lite';sfx('goalBig');music('pop')});await pg.waitForTimeout(3000);const lite=await pg.evaluate(()=>({live:liveNow(),max:__max}));
   await b.close();const res={seconds:SEC,audioState:mid.state,maxLiveNodes:mid.max,liveAfterStop:after,liteLive:lite.live,seCalls:mid.se,songs:mid.songs,seErrors:mid.err,pageErrors:errs};
   fs.writeFileSync('audio-live-results.json',JSON.stringify(res,null,1));console.log(JSON.stringify(res,null,1));
   const fail=[];if(mid.state!=='running')fail.push('AudioContextが動作していない');if(errs.length||mid.err.length)fail.push('例外あり');if(after>12)fail.push('停止後も発音ノードが残る '+after);if(!Object.keys(mid.se).length)fail.push('効果音が呼ばれていない');

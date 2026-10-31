@@ -146,7 +146,6 @@
 .ingame .status .pl .pl-coin,.ingame .status .pl .pl-coin .coin{color:var(--ink)!important;opacity:1!important}
 .bar .main button#bRoll{text-shadow:0 1px 0 rgba(0,0,0,.45),0 0 6px rgba(0,0,0,.25)}
 .ob-t small{opacity:1!important}
-.isnight .glows{opacity:.4!important}
 .lbl text,.lbl2 text{paint-order:stroke}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .mis b{color:#c9b6ff}:root:not([data-theme="light"]) .bar .main button#bRoll{background:#d92f7f!important;color:#fff!important}:root:not([data-theme="light"]) .pl-coin{color:#fff}:root:not([data-theme="light"]) .ingame .status .pl:not(.turn){background:#2a2138}:root:not([data-theme="light"]) .ob-t small{color:#e6dcf2}:root:not([data-theme="light"]) #turnText{color:#e6dcf2!important}}
 :root[data-theme="dark"] .mis b{color:#c9b6ff}:root[data-theme="dark"] .bar .main button#bRoll{background:#d92f7f!important;color:#fff!important}:root[data-theme="dark"] .pl-coin{color:#fff}:root[data-theme="dark"] .ingame .status .pl:not(.turn){background:#2a2138}:root[data-theme="dark"] .ob-t small{color:#e6dcf2}:root[data-theme="dark"] #turnText{color:#e6dcf2!important}
@@ -211,8 +210,7 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 .mapbox{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
 .mapbox svg{display:block;width:100%;height:auto}
 .mapbox canvas{position:absolute;left:0;top:0;pointer-events:none}
-.sky{position:absolute;left:0;right:0;top:0;height:58px;pointer-events:none;transition:background 1.2s}
-.skylabel{position:absolute;top:8px;left:10px;font-family:var(--f-display);font-weight:800;font-size:13px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}.skylabel .wx{display:block;width:max-content;margin-top:3px;font-size:11px;padding:1px 8px;border-radius:99px;background:rgba(0,0,0,.28)}
+.skylabel{position:absolute;top:8px;left:8px;z-index:4;display:grid;grid-template-columns:auto auto;align-items:center;column-gap:6px;row-gap:3px;min-height:48px;box-sizing:border-box;padding:4px 8px 4px 4px;border-radius:14px;font-family:var(--f-display);font-weight:800;font-size:13px;line-height:1.2;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}.skylabel .wx{display:block;width:max-content;margin-top:3px;font-size:11px;padding:1px 8px;border-radius:99px;background:rgba(0,0,0,.28)}.skylabel .sk2{display:block;font-size:11px;opacity:.95}#skyWx{grid-column:1/3}#skyWx .wx{margin-top:0}.skylabel .wxwin{position:relative;pointer-events:none;display:block;width:66px;height:44px;border-radius:10px;border:2px solid rgba(255,255,255,.9);box-sizing:border-box;background:#59b7ff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}#skyLabel:focus-visible{outline:3px solid #ffcc33;outline-offset:2px}
 .dicebox{position:absolute;right:12px;bottom:12px;perspective:300px;width:46px;height:46px}
 .cube{width:46px;height:46px;position:relative;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.2,.9,.3,1.2)}
 .face{position:absolute;inset:0;background:#fff;border:2px solid var(--pink);border-radius:10px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:6px;box-sizing:border-box}
@@ -254,8 +252,6 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 .hop{animation:hop .2s ease-out}@keyframes hop{50%{transform:translateY(-5px)}}
 .bob{animation:bob 1.2s ease-in-out infinite}
 .tr{animation:fade 2.6s forwards}@keyframes fade{from{opacity:.8}to{opacity:0}}
-.glows{opacity:0;transition:opacity 1.2s}.isnight .glows{opacity:1}.isnight .clouds{opacity:0}.clouds{transition:opacity 1.2s}
-.isnight .sky::after{content:"";position:absolute;inset:0;background-image:radial-gradient(1.5px 1.5px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 45% 20%,#fff,transparent),radial-gradient(1.5px 1.5px at 70% 40%,#fff,transparent),radial-gradient(1px 1px at 85% 15%,#fff,transparent),radial-gradient(1px 1px at 10% 60%,#fff,transparent)}
 .shake{animation:shk .4s}@keyframes shk{20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
 .eyebrow{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:600}
 .card.night{background:linear-gradient(#0e0b2b,#3b2a6b);color:#fff;border-color:#ffcc33}.card.night h3{color:#ffcc33}.card.night .muted,.card.night td{color:#e9e2ff}
@@ -741,8 +737,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
     <div class="turnbar" id="turnBar"></div>
     <div class="mapbox" id="mapbox">
       <div id="mapwrap"><svg id="map" viewBox="0 0 400 560" role="img" aria-label="西日本のすごろく地図"></svg></div>
-      <div class="atmo tp" aria-hidden="true"></div><div class="atmo wx" aria-hidden="true"></div>
-      <div class="sky" id="sky"></div><div class="skylabel" id="skyLabel"></div>
+      <div class="skylabel" id="skyLabel" role="button" tabindex="0" aria-label="時間帯と天気"><canvas class="wxwin" id="wxWin" width="132" height="88" aria-hidden="true"></canvas><div id="skyTxt"></div><div id="skyWx"></div></div>
       <canvas id="fx" width="900" height="700"></canvas>
       <button type="button" class="mapbtn" id="bView">全体を見る</button><div class="goalarrow" id="goalArrow" hidden></div>
       <div class="dicebox"><div class="cube" id="cube"></div></div>
@@ -844,18 +839,6 @@ button.ghost:not(.cardbtn),.mapbtn{background-image:linear-gradient(180deg,var(-
 /* 地図：ふちの内側にうっすら影を入れて奥行きを出す */
 .mapbox::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(110% 80% at 15% 0%,var(--sunC,rgba(255,240,205,.18)),transparent 50%),radial-gradient(150% 120% at 50% 45%,rgba(20,10,30,0) 60%,rgba(20,10,30,.14) 100%);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 10px 22px -10px rgba(0,0,0,.35),inset 0 -14px 26px -14px rgba(0,0,0,.3);z-index:3}
 .stream .mapbox::after{display:none}
-/* 時間帯と天気の雰囲気：地図に色を重ねる（掛け合わせなので明るい所は明るいまま）。演出の粒・空の帯・ボタンより下 */
-.atmo{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:0;transition:opacity 1.5s}
-#mapbox[data-tp="morning"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(165deg,#ffd9e2,#fff3e6 45%,#fbfdff)}
-#mapbox[data-tp="night"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(180deg,#8f9ee0,#aab6ea)}
-#mapbox[data-tp="late"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(180deg,#7482c8,#8e9ad8)}
-#mapbox[data-tp="evening"] .atmo.tp{opacity:var(--atA,1);background:linear-gradient(170deg,#ffd4b0,#ffe8d6 50%,#f7e6ee)}
-#mapbox[data-wx="1"] .atmo.wx{opacity:var(--atA,1);background:#d6dae4}
-#mapbox[data-wx="2"] .atmo.wx{opacity:var(--atA,1);background:#c6cedb}
-#mapbox[data-wx="3"] .atmo.wx{opacity:var(--atA,1);background:linear-gradient(180deg,#7d829c,#9499b0)}
-#mapbox[data-tp="morning"]{--sunC:rgba(255,236,190,.38)}#mapbox[data-tp="evening"]{--sunC:rgba(255,160,90,.18)}#mapbox[data-tp="night"],#mapbox[data-tp="late"]{--sunC:transparent}
-#mapbox[data-wx="1"]{--sunC:rgba(255,244,214,.06)}#mapbox[data-wx="2"],#mapbox[data-wx="3"]{--sunC:transparent}
-.stream .atmo{display:none}
 #map{background:linear-gradient(180deg,var(--sea),var(--seaDeep))}
 /* サイコロ：角の丸い立体の目 */
 .face{background:radial-gradient(120% 120% at 30% 20%,#fff 0,#fff 45%,#f3eef8 100%);box-shadow:inset 0 -4px 0 #ffe0ee,inset 0 2px 0 #fff,inset 0 0 0 1px rgba(0,0,0,.04)}
@@ -1833,15 +1816,9 @@ function dsWarm(){if(!dsOK())return;const J=[dsStep,dsKick,dsSnare,()=>dsHat(fal
 const timpani=(o,t,f,d=1,v=.3)=>{voice(o,t,f,d,{type:'sine',v,a:.006,bend:1.08,bendT:.04,rev:.3});voice(o,t,f*1.5,d*.6,{type:'sine',v:v*.25,rev:.3});noise(o,t,.05,{lp:500,v:v*.4})};
 // 曲データ：8分音符ごとのメロディ（MIDI番号、-1は休み）と小節ごとのコード。A・Bの2部分を form の順に演奏する。すべてオリジナル。
 const SONGS={
- title:{name:'タイトル',bpm:120,form:'AABA',lead:{type:'square',v:.06,det:7,echo:.22,rev:.12},arp:true,pad:true,drums:'pop',
+ title:{name:'タイトル',bpm:124,form:'AABA',lead:{type:'square',v:.06,det:7,echo:.22,rev:.12},arp:true,pad:true,drums:'pop',stab:'off',hat16:true,
   A:{m:[72,76,79,76,77,76,74,72,74,-1,71,74,79,77,76,74,72,76,81,79,76,74,72,71,69,72,77,76,74,-1,79,-1],c:[[48,52,55],[43,47,50],[45,48,52],[41,45,48]]},
   B:{m:[69,72,76,-1,74,72,71,72,77,-1,76,74,72,-1,69,-1,72,76,79,-1,81,79,76,74,74,76,77,79,-1,79,83,84],c:[[45,48,52],[41,45,48],[48,52,55],[43,47,50]]}},
- map:{name:'西日本（昼）',bpm:112,form:'AABA',lead:{type:'triangle',v:.16,echo:.18,rev:.12},arp:true,pad:true,bass:'walk',
-  A:{m:[65,69,72,-1,74,72,69,67,69,-1,65,69,74,72,-1,69,70,74,77,74,72,70,69,67,69,67,65,-1,64,-1,67,-1],c:[[41,45,48],[38,41,45],[43,46,50],[36,40,43]]},
-  B:{m:[70,-1,74,72,70,69,67,-1,72,-1,76,74,72,70,69,67,69,72,76,-1,74,72,69,-1,74,-1,72,70,69,-1,65,-1],c:[[46,50,53],[48,52,55],[45,48,52],[38,41,45]]}},
- night:{name:'夜',bpm:92,swing:.18,form:'AB',bass:'walk',lead:{type:'epiano',v:.15,echo:.35,rev:.3},arp:true,pad:true,drums:'brush',
-  A:{m:[65,69,72,-1,74,72,69,67,69,-1,65,69,74,72,-1,69,70,74,77,74,72,70,69,67,69,67,65,-1,64,-1,67,-1],c:[[41,45,48,52],[38,41,45,48],[43,46,50,53],[36,40,43,46]]},
-  B:{m:[70,-1,74,72,70,69,67,-1,72,-1,76,74,72,70,69,67,69,72,76,-1,74,72,69,-1,74,-1,72,70,69,-1,65,-1],c:[[46,50,53,57],[48,52,55,58],[45,48,52,55],[38,41,45,48]]}},
  sea:{name:'航路・沖縄',bpm:100,form:'AABA',bass:'sync',lead:{type:'pluck',v:.2,echo:.25,rev:.2},arp:false,pad:true,drums:'shaker',
   A:{m:[72,76,77,79,83,79,77,76,77,-1,76,72,76,77,79,-1,79,83,84,83,79,77,76,77,76,72,71,72,-1,-1,72,-1],c:[[48,52,55],[41,45,48],[43,47,50],[48,52,55]]},
   B:{m:[77,79,83,84,-1,83,79,77,79,-1,77,76,72,-1,71,72,76,77,79,83,84,-1,83,79,77,76,72,-1,72,-1,-1,-1],c:[[41,45,48],[43,47,50],[48,52,55],[48,52,55]]}},
@@ -1857,74 +1834,83 @@ const SONGS={
  ending:{name:'エンディング',bpm:96,form:'AB',lead:{type:'triangle',v:.17,echo:.3,rev:.35},arp:true,pad:true,
   A:{m:[72,76,79,76,77,76,74,72,74,-1,71,74,79,77,76,74,72,76,81,79,76,74,72,71,69,72,77,76,74,-1,79,-1],c:[[48,52,55,59],[43,47,50,53],[45,48,52,55],[41,45,48,52]]},
   B:{m:[69,72,76,-1,74,72,71,72,77,-1,76,74,72,-1,69,-1,72,76,79,-1,81,79,76,74,72,-1,-1,-1,-1,-1,-1,-1],c:[[45,48,52,55],[41,45,48,52],[48,52,55,59],[48,52,55,60]]}},
- hokkaido:{name:'北海道（雪原）',bpm:96,form:'AABA',lead:{type:'bell',v:.13,echo:.3,rev:.45},harm:'bell',arp:true,pad:true,drums:'waltz',bass:'drone',
-  A:{m:[74,-1,78,81,-1,79,78,76,74,-1,71,74,-1,76,78,-1,79,-1,78,76,74,-1,71,-1,73,-1,76,78,-1,76,73,-1],h:[69,-1,74,78,-1,76,74,72,71,-1,67,71,-1,72,74,-1,74,-1,74,72,71,-1,67,-1,69,-1,73,74,-1,73,69,-1],c:[[50,54,57],[47,50,54],[43,47,50],[45,49,52]]},
-  B:{m:[78,-1,81,83,-1,81,78,-1,76,-1,74,76,78,-1,74,-1,79,-1,81,83,86,-1,83,81,81,-1,78,76,74,-1,-1,-1],c:[[43,47,50],[50,54,57],[47,50,54],[45,49,52]]}},
- tohoku:{name:'東北（民謡風）',bpm:104,form:'AABA',lead:{type:'flute',v:.15,echo:.2,rev:.3},arp:false,pad:true,drums:'taiko',bass:'drone',
-  A:{m:[74,-1,76,79,-1,76,74,-1,71,74,-1,69,67,-1,69,-1,74,-1,76,79,81,-1,79,76,74,-1,-1,71,74,-1,-1,-1],c:[[50,55,57],[43,50,55],[45,50,52],[50,55,57]]},
-  B:{m:[81,-1,79,81,83,-1,81,79,76,-1,79,76,74,-1,71,-1,74,76,79,-1,81,79,76,74,71,-1,69,71,74,-1,-1,-1],c:[[45,52,57],[43,50,55],[40,47,52],[50,55,57]]}},
- kanto:{name:'関東（シティ）',bpm:118,form:'AABA',lead:{type:'epiano',v:.14,echo:.2,rev:.15},arp:true,pad:true,drums:'city',bass:'sync',
-  A:{m:[72,-1,76,77,-1,76,72,69,72,-1,74,76,-1,74,72,-1,69,72,74,-1,72,69,67,-1,64,-1,67,69,-1,67,64,-1],c:[[41,45,48,52],[40,43,47,50],[38,41,45,48],[36,40,43,47]]},
-  B:{m:[70,72,74,-1,77,-1,76,74,72,-1,69,72,76,-1,74,72,70,-1,74,77,79,-1,77,74,76,-1,72,-1,79,-1,-1,-1],c:[[46,50,53,57],[45,48,52,55],[43,46,50,53],[48,52,55,58]]}},
- chubu:{name:'中部（山なみ）',bpm:108,form:'AABA',lead:{type:'flute',v:.14,echo:.25,rev:.3},harm:'flute',arp:true,pad:true,drums:'shaker',bass:'walk',
-  A:{m:[67,71,74,-1,74,76,74,71,72,-1,76,72,69,-1,72,-1,74,-1,78,74,72,-1,71,69,67,-1,71,74,79,-1,-1,-1],h:[64,67,71,-1,71,72,71,67,69,-1,72,69,65,-1,69,-1,71,-1,74,71,69,-1,67,66,64,-1,67,71,74,-1,-1,-1],c:[[43,47,50],[48,52,55],[50,54,57],[43,47,50]]},
-  B:{m:[76,-1,79,76,74,-1,71,-1,72,74,76,-1,72,-1,69,-1,71,72,74,-1,78,-1,81,-1,79,-1,74,-1,71,-1,67,-1],c:[[40,43,47],[48,52,55],[50,54,57],[43,47,50]]}},
- kinki:{name:'関西（都の調べ）',bpm:96,form:'AABA',lead:{type:'koto',v:.17,echo:.3,rev:.35},arp:false,pad:true,drums:'brush',bass:'drone',
-  A:{m:[76,-1,77,-1,81,-1,77,76,71,-1,72,-1,76,-1,-1,-1,81,-1,83,84,-1,83,81,77,76,-1,72,71,76,-1,-1,-1],c:[[40,47,52],[41,48,53],[45,52,57],[40,47,52]]},
-  B:{m:[84,-1,83,81,77,-1,76,-1,77,-1,81,-1,83,-1,81,-1,76,77,81,-1,77,76,72,-1,71,-1,72,-1,76,-1,-1,-1],c:[[45,52,57],[41,48,53],[45,52,57],[40,47,52]]}},
  sky:{name:'空路',bpm:126,form:'AABA',lead:{type:'brass',v:.09,echo:.2,rev:.2},harm:'bell',arp:true,pad:true,drums:'pop',bass:'walk',
   A:{m:[72,-1,79,-1,76,77,79,-1,81,-1,79,77,76,-1,72,-1,74,-1,77,-1,81,79,77,76,74,-1,76,77,79,-1,-1,-1],h:[-1,-1,84,-1,-1,-1,88,-1,-1,-1,84,-1,-1,-1,79,-1,-1,-1,81,-1,-1,-1,84,-1,-1,-1,-1,-1,86,-1,-1,-1],c:[[48,52,55],[45,48,52],[41,45,48],[43,47,50]]},
   B:{m:[77,-1,81,-1,84,-1,81,79,76,-1,79,-1,84,-1,79,76,74,-1,77,81,83,-1,84,86,84,-1,-1,-1,79,-1,-1,-1],c:[[41,45,48],[48,52,55],[43,47,50],[48,52,55]]}},
  wait:{name:'待合室',bpm:90,form:'A',lead:{type:'sine',v:.14,echo:.4,rev:.4},arp:true,pad:true,
   A:{m:[67,-1,-1,-1,72,-1,-1,-1,71,-1,-1,-1,69,-1,-1,-1,65,-1,-1,-1,69,-1,-1,-1,67,-1,-1,-1,-1,-1,-1,-1],c:[[48,52,55,59],[45,48,52,55],[41,45,48,52],[43,47,50,53]]}},
 };
-// 地方ごとのBGM：いま手番の人がいる場所（いちばん近い駅の県）で決まる
-const REGION={'北海道':'hokkaido','青森':'tohoku','岩手':'tohoku','秋田':'tohoku','宮城':'tohoku','山形':'tohoku','福島':'tohoku','東京':'kanto','神奈川':'kanto','千葉':'kanto','埼玉':'kanto','栃木':'kanto','茨城':'kanto','群馬':'kanto',
-  '新潟':'chubu','富山':'chubu','石川':'chubu','福井':'chubu','長野':'chubu','山梨':'chubu','岐阜':'chubu','静岡':'chubu','愛知':'chubu','三重':'kinki','滋賀':'kinki','京都':'kinki','大阪':'kinki','兵庫':'kinki','奈良':'kinki','和歌山':'kinki'};
-let NREG=null;function regionSong(k){if(!NREG){const S=NODES.map((n,i)=>i).filter(i=>NODES[i].type==='station');NREG=NODES.map(n=>{let b=S[0],bd=1e9;for(const i of S){const d=(NODES[i].x-n.x)**2+(NODES[i].y-n.y)**2;if(d<bd){bd=d;b=i}}return REGION[FD.st2p[NODES[b].id]]||'map'})}return NREG[k]||'map'}
-// 第34版で追加した曲（オリジナル）：九州（祭り囃子風）・沖縄（琉球音階・三線風）
+// 第34版で追加した曲（オリジナル）：沖縄（琉球音階・三線風）
 Object.assign(SONGS,{
- kyushu:{name:'九州（祭り囃子）',bpm:124,form:'AABA',lead:{type:'flute',v:.15,echo:.2,rev:.25},harm:'koto',arp:false,pad:true,drums:'matsuri',bass:'sync',
-  A:{m:[74,-1,76,78,81,-1,78,76,74,76,78,-1,76,-1,71,-1,69,71,74,-1,76,78,76,74,71,-1,74,-1,76,-1,-1,-1],h:[-1,-1,-1,-1,74,-1,-1,-1,-1,-1,74,-1,-1,-1,67,-1,-1,-1,69,-1,-1,-1,71,-1,-1,-1,69,-1,73,-1,-1,-1],c:[[50,54,57],[47,50,54],[43,47,50],[45,49,52]]},
-  B:{m:[78,-1,81,83,86,-1,83,81,78,-1,76,78,81,-1,-1,-1,83,81,78,76,74,76,78,81,76,-1,-1,73,76,-1,-1,-1],h:[74,-1,-1,-1,78,-1,-1,-1,74,-1,-1,-1,78,-1,-1,-1,79,-1,-1,-1,71,-1,-1,-1,73,-1,-1,-1,69,-1,-1,-1],c:[[43,47,50],[50,54,57],[47,50,54],[45,49,52]]}},
  okinawa:{name:'沖縄（島の風）',bpm:104,form:'AABA',lead:{type:'sanshin',v:.19,echo:.22,rev:.25},arp:false,pad:true,drums:'island',bass:'sync',
   A:{m:[72,-1,76,77,79,-1,77,76,72,-1,71,72,76,-1,-1,-1,77,79,83,-1,84,-1,83,79,77,-1,76,77,79,-1,-1,-1],c:[[48,52,55],[48,52,55],[41,45,48],[43,47,50]]},
   B:{m:[84,-1,83,79,77,-1,79,-1,76,77,79,-1,72,-1,-1,-1,71,72,76,-1,77,76,72,-1,71,-1,-1,72,72,-1,-1,-1],c:[[41,45,48],[48,52,55],[43,47,50],[48,52,55]]}}});
-['福岡','佐賀','長崎','熊本','大分','宮崎','鹿児島'].forEach(p=>REGION[p]='kyushu');
-function music(key){if(!AU.ac)return;const ac=AU.ac,now=ac.currentTime;if(SET.bgm===0)key=null;if(key===songKey)return;
+// 2026.10.31 追加曲（オリジナル）：普段の対戦はPOPの2曲（日目の奇数・偶数で交代）。場面の曲は「目的地まであと少し」「終盤」のときだけ
+// 曲の書き方：form＝部分の並び、up＝部分ごとの転調（半音）、各部分の e＝盛り上がり（0＝前奏で軽め、1＝ふつう、2＝サビ）
+// stab＝裏拍の和音の刻み、cm＝対旋律、sparkle＝サビのきらめき、riser＝サビ前の盛り上げの音、resume＝場面の曲から戻ると前回の続きの部分から
+Object.assign(SONGS,{
+ pop:{name:'ポコ電ごきげん旅（いつもの曲）',bpm:138,form:'IAABCC',up:[0,0,0,0,0,2],lead:{type:'square',v:.06,det:6,echo:.2,rev:.14},stab:'off',sparkle:true,riser:true,resume:true,arp:true,pad:true,drums:'dance',hat16:true,bass:'oct',cmi:{type:'bell',v:.055},
+  I:{e:0,m:[84,-1,79,-1,81,79,76,-1,77,-1,76,74,72,-1,74,-1,76,-1,72,-1,74,72,69,-1,71,-1,72,74,-1,-1,-1,-1],c:[[48,52,55],[43,47,50],[45,48,52],[43,47,50]]},
+  A:{m:[72,-1,72,74,76,-1,72,-1,71,-1,71,72,74,-1,67,-1,69,-1,69,71,72,-1,76,-1,77,76,74,72,74,-1,-1,-1],c:[[48,52,55],[43,47,50],[45,48,52],[41,45,48]]},
+  B:{m:[77,-1,77,76,77,-1,81,-1,79,-1,76,-1,72,-1,-1,-1,74,-1,74,76,77,-1,74,-1,79,-1,-1,-1,79,81,83,-1],c:[[41,45,48],[40,43,47],[38,41,45],[43,47,50]]},
+  C:{e:2,m:[84,-1,81,79,-1,81,79,77,79,-1,74,-1,74,76,77,-1,76,-1,79,84,-1,83,81,79,81,-1,79,76,-1,74,72,-1],
+     cm:[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,86,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,88,-1,86,-1],c:[[41,45,48],[43,47,50],[48,52,55],[45,48,52]]}},
+ pop2:{name:'各駅ポップ（いつもの曲2）',bpm:126,form:'AABCC',lead:{type:'epiano',v:.15,echo:.2,rev:.15},stab:'push',sparkle:true,riser:true,resume:true,arp:true,pad:true,drums:'city',hat16:true,bass:'oct',cmi:{type:'marimba',v:.08},
+  A:{m:[71,-1,74,-1,79,-1,78,79,78,-1,74,-1,69,-1,-1,-1,71,-1,74,76,-1,74,71,-1,72,-1,71,69,-1,67,69,-1],c:[[43,47,50],[50,54,57],[40,43,47],[48,52,55]]},
+  B:{m:[76,-1,76,74,76,-1,79,-1,78,-1,76,74,-1,74,76,78,79,-1,78,74,-1,71,-1,74,76,-1,-1,-1,74,76,78,-1],c:[[48,52,55],[50,54,57],[47,50,54],[50,54,57]]},
+  C:{e:2,m:[79,-1,79,81,83,-1,81,79,81,-1,78,-1,74,-1,78,81,83,-1,83,81,79,-1,74,76,79,-1,78,76,-1,74,76,-1],
+     cm:[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,86,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,83,-1,-1,-1],c:[[48,52,55],[50,54,57],[43,47,50],[40,43,47]]}},
+ goalrun:{name:'ラストスパート（目的地まであと少し）',bpm:150,form:'AABB',lead:{type:'square',v:.06,det:8,echo:.18,rev:.1},stab:'push',riser:true,sparkle:true,arp:true,pad:true,drums:'chase',bass:'oct',
+  A:{m:[74,-1,78,-1,81,-1,78,74,76,-1,73,-1,69,-1,73,76,78,-1,74,-1,71,-1,74,78,79,-1,78,76,74,-1,76,-1],c:[[50,54,57],[45,49,52],[47,50,54],[43,47,50]]},
+  B:{e:2,m:[79,-1,79,81,83,-1,79,-1,81,-1,81,83,85,-1,81,-1,86,-1,85,83,81,-1,78,-1,76,-1,78,-1,81,-1,85,-1],c:[[43,47,50],[45,49,52],[50,54,57],[45,49,52]]}},
+ climax:{name:'最終電車（終盤）',bpm:144,form:'AABB',lead:{type:'brass',v:.09,echo:.2,rev:.2},harm:'bell',stab:'off',riser:true,sparkle:true,arp:true,pad:true,drums:'chase',bass:'oct',
+  A:{m:[76,-1,76,77,76,-1,72,-1,77,-1,77,79,77,-1,72,-1,79,-1,79,81,79,-1,74,-1,80,-1,76,-1,71,-1,68,-1],c:[[45,48,52],[41,45,48],[43,47,50],[40,44,47]]},
+  B:{e:2,m:[81,-1,-1,79,77,-1,76,77,79,-1,-1,77,76,-1,74,76,76,-1,80,83,-1,80,76,-1,81,-1,-1,-1,-1,-1,-1,-1],h:[-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,88,-1,-1,-1,-1,-1,-1,-1],c:[[41,45,48],[43,47,50],[40,44,47],[45,48,52]]}}});
+const SPOS={};
+// 終盤：手番の上限がある対戦は残り8手番（4人×2周）以内、ない対戦は最終日の21時以降
+const finalStretch=st=>!st.finished&&((st.maxTurn&&st.maxTurn-st.turn<=8)||(st.month===st.days&&st.hour>=21));
+function music(key){if(!AU.ac)return;const ac=AU.ac,now=ac.currentTime;if(SET.bgm===0)key=null;if(key===songKey)return;if(songKey&&SONGS[songKey]&&SONGS[songKey].resume)SPOS[songKey]=mStep;
   if(songGain){const old=songGain;old.gain.cancelScheduledValues(now);old.gain.setValueAtTime(old.gain.value,now);old.gain.linearRampToValueAtTime(0,now+.9);setTimeout(()=>{try{old.disconnect()}catch{}},1300)}
   songKey=key;clearInterval(mTimer);mTimer=null;songGain=null;if(!key)return;
   // こだまの間隔を曲のテンポ（付点8分）に合わせる
   const sg=SONGS[key];if(sg&&AU.dl){const q=60/sg.bpm*.75;AU.dl.delayTime.setTargetAtTime(q,now,.05);AU.dr.delayTime.setTargetAtTime(q,now,.05)}
-  songGain=ac.createGain();songGain.gain.setValueAtTime(0,now);songGain.gain.linearRampToValueAtTime(SONG_GAIN[key]||1,now+.9);songGain.connect(AU.bgm);mStep=0;mNext=now+.12;mTimer=setInterval(sched,25)}
+  songGain=ac.createGain();songGain.gain.setValueAtTime(0,now);songGain.gain.linearRampToValueAtTime(SONG_GAIN[key]||1,now+.9);songGain.connect(AU.bgm);mStep=sg&&sg.resume?(SPOS[key]||0)-(SPOS[key]||0)%32:0;mNext=now+.12;mTimer=setInterval(sched,25)}
 // 曲ごとの音量合わせ（test-audio.cjsで測った平均音量を約-29dBにそろえる係数）
-const SONG_GAIN={title:0.58,map:0.68,night:0.65,sea:0.79,pinch:0.69,superpinch:0.58,closing:0.6,ending:0.63,hokkaido:0.91,tohoku:0.75,kanto:0.6,chubu:0.63,kinki:0.97,sky:0.57,wait:0.6,kyushu:0.69,okinawa:0.76};
+const SONG_GAIN={title:0.58,sea:0.79,pinch:0.69,superpinch:0.58,closing:0.6,ending:0.63,sky:0.57,wait:0.6,okinawa:0.76,pop:0.52,pop2:0.5,goalrun:0.47,climax:0.46};
 // メロディの下に、コードの音から3度・6度下の音を自動で重ねる（ハモリ）
 function harmBelow(m,ch){let b=-1;for(const c of ch)for(let k=-2;k<=4;k++){const x=c+12*k;if(x<m-2&&x>=m-9&&x>b)b=x}return b}
 function leadNote(out,L,t,f,dur,v,pan,n){const type=L.type==='square'?'chip':L.type,LL={...L,v};
   if(type==='pluck'){voice(out,t,f,.34,{wave:'pulse25',v:v*.5,lp:3800,lpEnd:320,echo:L.echo,rev:L.rev,pan});voice(out,t,f,.45,{type:'triangle',v,rev:L.rev,pan})}
   else if(!inst(out,type,t,f,dur*(L.hold||1),LL,pan))voice(out,t,f,dur,{type,v,det:L.det,echo:L.echo,rev:L.rev,lp:L.lp,pan,a:.01,s:.75,dc:.1,r:.08,vib:n>=3?.006:0,vibD:.2})}
 function sched(){const s=SONGS[songKey];if(!s||!AU.ac||!songGain)return;const out=songGain,e=60/(s.bpm*LAYER.tempo)/2,ac=AU.ac;
-  while(mNext<ac.currentTime+.15){const per=32,FL=s.form.length,fi=Math.floor(mStep/per)%FL,sk=s.form[fi],sec=s[sk],i=mStep%per,bar=Math.floor(i/8),beat=i%8,ch=sec.c[bar],m=sec.m[i];
+  while(mNext<ac.currentTime+.15){const per=32,FL=s.form.length,fi=Math.floor(mStep/per)%FL,sk=s.form[fi],sec=s[sk],i=mStep%per,bar=Math.floor(i/8),beat=i%8,tr=s.up&&s.up[fi]||0,ch=tr?sec.c[bar].map(x=>x+tr):sec.c[bar],m=sec.m[i]>0?sec.m[i]+tr:sec.m[i],en=sec.e==null?1:sec.e;
     const t=mNext+(beat%2===1&&s.swing?s.swing*e:0),lastBar=bar===3&&fi===FL-1,nextK=s.form[(fi+1)%FL],prevK=s.form[(fi-1+FL)%FL],hum=()=>.93+Math.random()*.14,dr=s.drums||(LAYER.drums?'pop':null);
     // メロディ：次の休みまで音を伸ばす（レガート）。拍頭は少し強く、人が弾いたような強弱をつける
     if(m>0){const L=s.lead;let n=1;while(n<4&&i+n<per&&sec.m[i+n]===-1)n++;const v=L.v*(beat===0?1.08:beat%2?.9:1)*hum(),dur=e*n*.92;leadNote(out,L,t,mtof(m),dur,v,-.1,n);
-      if(s.harm&&sec.h&&sec.h[i]>0)inst(out,s.harm,t,mtof(sec.h[i]),e*.9,{v:L.v*.5,echo:L.echo,rev:L.rev},.3);
+      if(s.harm&&sec.h&&sec.h[i]>0)inst(out,s.harm,t,mtof(sec.h[i]+tr),e*.9,{v:L.v*.5,echo:L.echo,rev:L.rev},.3);
       else if(rich()&&!auBusy()&&n>=2&&(sk==='B'||fi>=2)&&!s.glitch){const hb=harmBelow(m,ch);if(hb>0)leadNote(out,L,t,mtof(hb),dur,v*.36,.32,n)}}
     // ベース：やわらかいノコギリ波＋同じ高さのサイン波（スマホのスピーカーでも聞こえる）
     {const r=ch[0]-12,bs=s.bass||'basic',B=(n,d,v=.2)=>{voice(out,t,mtof(n),d,{wave:'warm',v:v*.75*hum(),a:.006,lp:rich()?1100:700,lpEnd:280,lpT:.16,q:1.1,s:.55,dc:.12,r:.05,pan:.05});voice(out,t,mtof(n),d,{type:'sine',v:v*.6,a:.008,s:.8,dc:.1,r:.05})};
-     if(bs==='sync'){const pat={0:r,3:r+12,4:r,6:r+7,7:r+12};if(pat[beat]!=null)B(pat[beat],e*.9,.21)}
+     if(bs==='oct'){if(en>0||beat%4===0)B(beat===7&&bar===3?r+7:beat%2?r+12:r,e*.8,.19)}
+     else if(bs==='sync'){const pat={0:r,3:r+12,4:r,6:r+7,7:r+12};if(pat[beat]!=null)B(pat[beat],e*.9,.21)}
      else if(bs==='drone'){if(beat===0){voice(out,t,mtof(r),e*7.5,{wave:'organ',v:.11,a:.08,s:.85,r:.4,lp:900});voice(out,t,mtof(r+7),e*7.5,{type:'sine',v:.06,a:.12,s:.9,r:.4})}}
      else if(bs==='walk'){if(beat%2===0)B([r,r+4,r+7,r+9][beat/2],e*1.7,.2)}
      else if(beat%2===0)B(r+(beat===6?7:0),e*1.8,.2)}
     // パッド：ストリングス風（なめらかに立ち上がり、次の小節へつながる）
     if(s.pad&&beat===0&&!auBusy())ch.forEach((n,k)=>rich()?voice(out,t,mtof(n+12),e*7.6,{wave:'warm',v:.02,a:.35,s:.9,dc:.3,r:.55,det:9,lp:1700,rev:.5,pan:k%2?.4:-.4}):voice(out,t,mtof(n+12),e*7.6,{type:'sine',v:.035,a:.2,det:4,pan:k%2?.35:-.35}));
+    // POP曲の飾り：裏拍の和音の刻み（push＝3・3・2のノリ）、対旋律、サビのきらめき、サビ前の盛り上げの音
+    if(s.stab&&en>0&&!auBusy()&&(s.stab==='push'?beat===0||beat===3||beat===6:beat%2===1))ch.forEach((n,k)=>voice(out,t,mtof(n+12),e*.45,{wave:'pulse25',v:.016*(en>1?1.25:1)*hum(),a:.003,lp:3400,lpEnd:900,lpT:.12,pan:k%2?.3:-.3,rev:.12}));
+    if(sec.cm&&sec.cm[i]>0&&!auBusy()){const ci=s.cmi||{type:'bell',v:.06};inst(out,ci.type,t,mtof(sec.cm[i]+tr),e*1.6,{v:ci.v,echo:.25,rev:.3},.35)}
+    if(s.sparkle&&en>1&&beat%2===0&&rich()&&!auBusy()){const n=ch[(i>>1)%ch.length]+36;voice(out,t,mtof(n),.3,{type:'sine',v:.022*hum(),a:.002,echo:.3,rev:.25,pan:(i>>1)%2?.5:-.5})}
+    if(s.riser&&bar===3&&beat===0&&nextK!==sk&&(s[nextK].e==null?1:s[nextK].e)>en)noise(out,t,e*7.6,{bp:700,sweep:6500,q:.9,v:.04,a:e*7,rev:.2});
     if(s.arp&&beat%2===1&&!auBusy()){const n=ch[(i>>1)%ch.length]+24;voice(out,t,mtof(n),e*.8,{type:'triangle',v:.032*hum(),echo:.28,rev:.15,pan:(i>>1)%2?.45:-.45})}
     // ドラム：部分の切り替わりでシンバル、部分の終わりでタムのフィルイン
     if(dr&&i===0&&dr!=='tick'&&dr!=='brush'&&(mStep%(per*FL)===0||sk!==prevK))crash(out,t,dr==='waltz'?.04:.065);
-    const fill=dr&&bar===3&&beat>=6&&(nextK!==sk||lastBar)&&['pop','city','taiko','matsuri','shaker','island'].includes(dr);
+    const fill=dr&&bar===3&&beat>=6&&(nextK!==sk||lastBar)&&['pop','city','taiko','matsuri','shaker','island','dance','chase'].includes(dr);
     if(fill){tom(out,t,beat===6?190:140,.22,-.2);tom(out,t+e/2,beat===6?165:115,.2,.2)}
-    if(dr==='pop'){if(beat%4===0||(sk==='B'&&beat===3))kick(out,t,beat===3?.32:.5);if((beat===2||beat===6)&&!fill){snare(out,t);if(sk==='B'&&rich())clap(out,t,.05)}hat(out,t,(beat%2?.028:.04)*hum(),beat%2?.3:-.3);if(beat===7&&bar%2===1)ohat(out,t,.025,.3)}
+    if(dr==='pop'){if(beat%4===0||(sk==='B'&&beat===3))kick(out,t,beat===3?.32:.5);if(s.hat16&&rich())hat(out,t+e/2,.012,.35);if((beat===2||beat===6)&&!fill){snare(out,t);if(sk==='B'&&rich())clap(out,t,.05)}hat(out,t,(beat%2?.028:.04)*hum(),beat%2?.3:-.3);if(beat===7&&bar%2===1)ohat(out,t,.025,.3)}
+    else if(dr==='dance'){if(beat%2===0)kick(out,t,en===0?.34:.5);if((beat===2||beat===6)&&!fill&&en>0){snare(out,t,.11);clap(out,t,en>1?.07:.045,.1)}hat(out,t,(beat%2?.04:.022)*hum(),beat%2?.3:-.3);if(s.hat16&&rich())hat(out,t+e/2,.014,.35);if(beat%2===1&&en>1)ohat(out,t,.018,.4)}
+    else if(dr==='chase'){if(beat===0||beat===3||beat===4||(beat===6&&en>1))kick(out,t,.48);if((beat===2||beat===6)&&!fill){snare(out,t,.13);if(rich())clap(out,t,.05,-.1)}hat(out,t,(beat%2?.03:.045)*hum(),beat%2?.3:-.3);if(rich())hat(out,t+e/2,.016,-.3);if(bar===3&&beat>=4&&!fill&&en>0)snare(out,t+e/2,.06,.2)}
     else if(dr==='brush'){hat(out,t,.022*hum(),beat%2?.4:-.4);if(beat===2||beat===6)noise(out,t,.22,{bp:3000,v:.045,a:.03});if(beat===0)kick(out,t,.18);if(beat===5&&bar%2)rim(out,t,.03)}
     else if(dr==='shaker'){shaker(out,t,(beat%2?.03:.045)*hum(),.4);if(beat===0)kick(out,t,.3);if(beat===6&&!fill)rim(out,t,.04)}
     else if(dr==='taiko'){if(beat===0||beat===3||beat===4)taiko(out,t,beat===0?.4:.32);if((beat===6||beat===7)&&!fill)voice(out,t,180,.12,{type:'triangle',v:.12,glide:.6});if(beat%2===1)noise(out,t,.03,{bp:4500,v:.03,pan:.5})}
@@ -2609,7 +2595,6 @@ function forestArt(LP){try{if(typeof Path2D!=='function')return'';const ctx=docu
   return'<g class="forest" pointer-events="none">'+out.join('')+'</g>'}catch(e){return''}}
 function buildMap(){const L=[];setTimeout(()=>{const m=$('#map');if(m&&!$('#stepleft')){const g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='stepleft';m.appendChild(g)}camHome(0)},0);
   L.push(`<defs><linearGradient id="seaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sea)"/><stop offset="1" stop-color="var(--seaDeep)"/></linearGradient>
-    <radialGradient id="glow"><stop offset="0" stop-color="#ffd27a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
     <linearGradient id="snowG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--snow)"/><stop offset="1" stop-color="var(--snow2)"/></linearGradient>${texPat('landTex','grain',34,'<pattern id="landTex" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="4" cy="5" r="1" fill="#7a5a3a" opacity=".10"/><circle cx="15" cy="14" r="1.3" fill="#7a5a3a" opacity=".08"/><path d="M9 19 l2-3 2 3" stroke="#3f8a52" stroke-width=".9" fill="none" opacity=".18"/></pattern>')}${texPat('landMacro','macro',300,'')}<linearGradient id="landG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--land)"/><stop offset="1" stop-color="var(--land2)"/></linearGradient>
     <pattern id="landBlot" width="160" height="140" patternUnits="userSpaceOnUse"><ellipse cx="40" cy="36" rx="34" ry="20" fill="var(--forest)" opacity=".10"/><ellipse cx="120" cy="96" rx="28" ry="16" fill="var(--forest)" opacity=".08"/><ellipse cx="104" cy="22" rx="18" ry="10" fill="#fff" opacity=".25"/><ellipse cx="30" cy="112" rx="22" ry="9" fill="#fff" opacity=".2"/></pattern>
     <radialGradient id="treeG" cx=".34" cy=".3" r=".75"><stop offset="0" style="stop-color:color-mix(in srgb,var(--forest) 70%,#fff6c0)"/><stop offset=".55" stop-color="var(--forest)"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--forest) 55%,#000)"/></radialGradient><symbol id="tree" viewBox="-6 -9 12 13" overflow="visible"><ellipse cx="1.6" cy="3.2" rx="4.8" ry="1.4" fill="#000" opacity=".2"/><rect x="-.7" y="-.6" width="1.4" height="3.6" rx=".5" fill="#6e4520"/><circle cx="1.8" cy="-1.4" r="2.5" fill="url(#treeG)"/><circle cx="-1.6" cy="-1.6" r="2.6" fill="url(#treeG)"/><circle cy="-3.6" r="3.6" fill="url(#treeG)"/><circle cx="-1.2" cy="-5" r="1" fill="#fff" opacity=".22"/></symbol>
@@ -2647,11 +2632,9 @@ function buildMap(){const L=[];setTimeout(()=>{const m=$('#map');if(m&&!$('#step
   VEH=matchMedia('(prefers-reduced-motion: reduce)').matches?[]:ROUTES.map((r,i)=>{const P=r.ids.map(k=>[NODES[k].x,NODES[k].y]),C=[0];for(let j=1;j<P.length;j++)C.push(C[j-1]+Math.hypot(P[j][0]-P[j-1][0],P[j][1]-P[j-1][1]));return{P,C,len:C[C.length-1]||1,air:r.k===2,dur:r.ids.length*(r.k===2?1.6:3.2),beg:-(h32('v'+i)%40)}});
   L.push('<g id="trail"></g>');
   NODES.forEach(n=>{if(n.type==='station')return;L.push(`<use href="#sq-${n.type}" x="${(n.x-9).toFixed(1)}" y="${(n.y-9).toFixed(1)}" width="18" height="18"/>`)});
-  L.push(`<rect id="nightLayer" x="-700" y="-900" width="${WW+1400}" height="${WH+1800}" fill="#0b0826" opacity="0" style="transition:opacity 1.2s;pointer-events:none"/>`);
   L.push('<g class="hubnames" pointer-events="none">'+NODES.filter(n=>n.hub).map((n,_i)=>{const S=NODES[SIDX[n.hub]],dx=n.x-S.x,dy=n.y-S.y,L=Math.hypot(dx,dy)||1,w=(n.name.length+1)*7.6,box=(x,y,a)=>{const x0=a==='start'?x:a==='end'?x-w:x-w/2;return{x0,x1:x0+w,y0:y-8,y1:y+2}};
     const cands=[[n.x+dx/L*13,n.y+dy/L*13+3,dx>8?'start':dx<-8?'end':'middle'],[n.x,n.y+17,'middle'],[n.x,n.y-11,'middle']];const P=(drawHubBox.list=_i===0?[]:drawHubBox.list||[]);
     let [tx,ty,anc]=cands.find(([x,y,a])=>{const b=box(x,y,a);return!P.some(q=>b.x0<q.x1&&q.x0<b.x1&&b.y0<q.y1&&q.y0<b.y1)})||cands[0];P.push(box(tx,ty,anc));return`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anc}" font-size="7.5" font-weight="800" fill="${n.type==='port'?'#1d4f86':'var(--air,#6c5cff)'}" stroke="#fff" stroke-width="2.4" paint-order="stroke">${n.type==='port'?'⚓':'✈'}${n.name}</text>`}).join('')+'</g>');
-  L.push('<g id="glows" class="glows">'+NODES.filter(n=>n.type==='station').map(n=>`<circle cx="${n.x}" cy="${n.y}" r="20" fill="url(#glow)"/>`).join('')+'</g>');
   L.push('<g id="owners"></g><g id="goalMark"></g>');
   // 駅名の札は、マスや他の札と重ならない向き（右・左・上・下）を自動で選ぶ
   const plates=[],hit=(r,x,y,rad)=>x+rad>r.x&&x-rad<r.x+r.w&&y+rad>r.y&&y-rad<r.y+r.h,over=(r,q)=>r.x<q.x+q.w&&q.x<r.x+r.w&&r.y<q.y+q.h&&q.y<r.y+r.h;
@@ -2734,11 +2717,9 @@ function faceSvg(expr,hair){const eyes={ふつう:'<circle cx="32" cy="40" r="3"
   const mouth={ふつう:'<path d="M35 52 q5 3 10 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',うれしい:'<path d="M33 50 q7 9 14 0z" fill="#e8357f"/>',かなしい:'<path d="M34 55 q6-5 12 0" stroke="#2a2135" stroke-width="2.5" fill="none"/>',びっくり:'<ellipse cx="40" cy="54" rx="4" ry="5" fill="#2a2135"/>'}[expr]||'';
   return`<svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="44" r="24" fill="#ffe2cf"/><path d="M16 40 a24 24 0 0 1 48 0 q-10-14-24-8 q-14-6-24 8z" fill="${hair}"/><path d="M12 44 a28 28 0 0 1 56 0" stroke="#2a2135" stroke-width="4" fill="none"/><rect x="8" y="40" width="9" height="16" rx="4" fill="${hair}"/><rect x="63" y="40" width="9" height="16" rx="4" fill="${hair}"/><g fill="#2a2135">${eyes}</g>${mouth}<circle cx="27" cy="49" r="3" fill="#ffb3c9"/><circle cx="53" cy="49" r="3" fill="#ffb3c9"/></svg>`}
 
-// 空・夜景・季節の粒・花火（3か月モード＝10月〜12月）
-const SKY=['linear-gradient(#ffd3a8dd,#9fd4ff00)','linear-gradient(#59b7ffcc,#bfe6ff00)','linear-gradient(#ff7e5fdd,#6b4fa000)','linear-gradient(#0e0b2bf2,#3b2a6b00)'];
+// 花火・紙吹雪などの演出（時間帯・天気・季節の演出は、地図ではなく左上の小窓の中だけで描く）
 // 演出キャンバス：地図の枠と同じ大きさ×画面の解像度で描く（以前は世界全体を1/2.5の粗さで描いて拡大していたため、粒がぼやけていた）
-const cv=$('#fx');const cx=cv.getContext('2d'),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let parts=[],pkind='leaf',bursts=[],flashes=[],fxW=0,fxH=0,fxD=1,fxDirty=true;
-function setSeason(m){const k=m>=3?'snow':'leaf';if(k!==pkind||!parts.length){pkind=k;parts=Array.from({length:reduce?0:Math.round(9*FXQ())},()=>({x:Math.random()*400,y:Math.random()*600,v:.25+Math.random()*.6,r:2+Math.random()*2.5,a:Math.random()*6,c:['#ff9d5c','#ffb347','#f2661a','#ffcf5c'][Math.random()*4|0]}))}}
+const cv=$('#fx');const cx=cv.getContext('2d'),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let bursts=[],flashes=[],fxW=0,fxH=0,fxD=1,fxDirty=true;
 const FXQ=()=>({rich:1,normal:.6,lite:.25}[SET.fxq]||1)*(document.body&&document.body.classList.contains('lowfx')?.5:1);
 function vib(p){try{if(SET.vib&&navigator.vibrate)navigator.vibrate(p)}catch{}}
 function burst(kind,at){if(reduce)return;const x0=at?at.x:200,y0=at?at.y:280;const C=kind==='coin'?['#ffcc33','#ffb81c']:kind==='star'?['#ffcc33','#fff','#ffe36a']:kind==='heart'?['#ff5fa8','#ff8fc0','#ff3d8b']:['#ff5fa8','#3fb6ff','#ffcc33','#33d17a','#9d7bff','#ff8a3d'];
@@ -2788,34 +2769,71 @@ function drawVeh(now){if(!VEH.length||fxLow())return;if(!VEHP.plane){try{VEHP.pl
 // 動きの重さを測る：60コマ/秒が出ず重いとき（平均28ms超が約4秒続く）は、飾りのアニメを止めて粒を減らす（lowfx）。ゲームの進行・結果には影響しない
 let fxLast=0,fxAvg=16,fxSlow=0,fxTick=0,fxSz=null,fxRO=null;const fxLow=()=>document.body.classList.contains('lowfx');
 function fxMeter(now){const dt=now-fxLast;fxLast=now;if(dt<=0||dt>250||document.hidden||SET.fxq==='lite'||fxLow())return;fxAvg=fxAvg*.95+dt*.05;
-  if(fxAvg>28&&document.body.classList.contains('ingame')){if(++fxSlow>240){document.body.classList.add('lowfx');bursts.length=Math.min(bursts.length,120);parts.length=Math.min(parts.length,4)}}else fxSlow=Math.max(0,fxSlow-2)}
-// 時間帯と天気の雰囲気（見た目だけ。ゲームの計算には関係しない）：朝焼け・夕焼け・夜・深夜の色、くもりの雲の影、雨すじ、嵐の稲光
-let wxp=[],wxCl=[],wxk=-1,wxFl=0,wxNext=0,wxBolt=null;
-function setAtmo(h,wx){const m=$('#mapbox');if(!m)return;const tp=h>=5&&h<10?'morning':h>=10&&h<16?'day':h>=16&&h<19?'evening':h>=1&&h<5?'late':'night';
-  if(m.dataset.tp!==tp)m.dataset.tp=tp;if(m.dataset.wx!==String(wx))m.dataset.wx=String(wx);const nl=$('#nightLayer');if(nl&&(tp==='night'||tp==='late'))nl.setAttribute('opacity',tp==='late'?.3:.2);setWx(wx)}
-function setWx(wx){if(wx===wxk)return;wxk=wx;wxFl=0;const q=reduce||wx<0?0:FXQ(),W=fxW||400,H=fxH||560;
-  wxp=wx>=2?Array.from({length:Math.round((wx===3?150:55)*q)},()=>({x:Math.random()*(W+160),y:Math.random()*H,v:(wx===3?13:9)+Math.random()*5,l:(wx===3?14:8)+Math.random()*12})):[];
-  wxCl=q?Array.from({length:[1,3,3,3][wx]||0},(_,i)=>({x:Math.random()*W,y:(i+.5)*H/3+(Math.random()-.5)*60,r:.45+Math.random()*.3,v:(wx===3?.5:.12)+Math.random()*.1})):[];wxNext=performance.now()+(wx===3?1500:4000);wxBolt=null;fxDirty=true}
-// 嵐の稲光：遠くの空に稲妻が走り、2段に光る。5〜11秒に1回だけで、画面全体の光は弱め（点滅が苦手な人への配慮。動きを減らす設定では出さない）
-function drawWx(W,H,sp){if(!document.body.classList.contains('ingame'))return;
-  if(wxCl.length){const im=shadeSpr();if(im){cx.globalAlpha=[.1,.15,.2,.24][wxk]||.15;for(const c of wxCl){c.x+=c.v*sp;const r=W*c.r;if(c.x-r>W)c.x=-r;cx.drawImage(im,c.x-r,c.y-r*.6,r*2,r*1.2)}}}
-  if(wxp.length){const wind=wxk===3?.62:.18;cx.globalAlpha=wxk===3?.55:.4;cx.strokeStyle='#dce9ff';cx.lineWidth=1;cx.beginPath();for(const d of wxp){d.y+=d.v*sp;d.x-=d.v*wind*sp;if(d.y>H+20){d.y=-20;d.x=Math.random()*(W+160)}if(d.x<-80)d.x+=W+160;cx.moveTo(d.x,d.y);cx.lineTo(d.x+d.l*wind,d.y-d.l)}cx.stroke()}
-  if(wxk===3&&!reduce){const now=performance.now();if(now>wxNext){wxFl=1;wxNext=now+5000+Math.random()*6000;const pts=[];let x=W*(.15+Math.random()*.7),y=-5;while(y<H*(.45+Math.random()*.25)){pts.push([x,y]);x+=(Math.random()-.5)*34;y+=10+Math.random()*16}const br=pts.length>3?pts.slice(2+Math.floor(Math.random()*(pts.length-3))).slice(0,1).map(([bx,by])=>{const q=[[bx,by]];for(let i=0;i<4;i++){bx+=8+Math.random()*16;by+=10+Math.random()*12;q.push([bx,by])}return q}):[];wxBolt={pts,br}}if(wxFl>0){const on=wxFl>.82||(wxFl>.5&&wxFl<.66);cx.globalAlpha=on?.3*wxFl:.05;cx.fillStyle='#e8eeff';cx.fillRect(0,0,W,H);if(wxBolt&&on){cx.globalCompositeOperation='lighter';cx.lineJoin='round';cx.lineCap='round';for(const [lw,al] of [[7,.25],[2.2,.95]]){cx.globalAlpha=al*wxFl;cx.strokeStyle=lw>3?'#9fb4ff':'#ffffff';cx.lineWidth=lw;for(const ln of [wxBolt.pts,...wxBolt.br]){cx.beginPath();ln.forEach(([px,py],i)=>i?cx.lineTo(px,py):cx.moveTo(px,py));cx.stroke()}}cx.globalCompositeOperation='source-over'}wxFl-=.035*sp}}
-  cx.globalAlpha=1}
+  if(fxAvg>28&&document.body.classList.contains('ingame')){if(++fxSlow>240){document.body.classList.add('lowfx');bursts.length=Math.min(bursts.length,120)}}else fxSlow=Math.max(0,fxSlow-2)}
+// 時間帯と天気の小窓（見た目だけ。ゲームの計算には関係しない）：地図全体には色や粒を重ねず、左上の小窓の中だけで
+// 空の色（朝・昼・夕・夜・深夜）・太陽／月と星・山と町あかり・ときどき走る電車・雲・雨・嵐の稲光・舞う葉を描く
+const WXW={tp:'',h:-1,wx:-1,cl:[],rn:[],lf:[],st:[],fl:0,next:0,bolt:null,run:false,last:0,tr:12};
+const WXSKY={morning:['#7cc3ff','#ffe0b8','#ffb08a'],day:['#2f9bff','#7cc8ff','#d4f0ff'],evening:['#4b3a8f','#d8607a','#ffb062'],night:['#0b0a2a','#231a55','#3d2c70'],late:['#04031a','#100c33','#1f1748']};
+const WXHILL={morning:['#7bc27a','#5aa35f'],day:['#6fd07a','#45b35a'],evening:['#7a4a6a','#563553'],night:['#1d1740','#140f2e'],late:['#140f30','#0c0920']};
+const tpOf=h=>h>=5&&h<10?'morning':h>=10&&h<16?'day':h>=16&&h<19?'evening':h>=1&&h<5?'late':'night';
+function setAtmo(h,wx){const tp=tpOf(h);if(tp!==WXW.tp||h!==WXW.h){WXW.tp=tp;WXW.h=h}setWx(wx)}
+function setWx(wx){if(wx===WXW.wx){wxwKick();return}WXW.wx=wx;wxwRebuild()}
+// 粒を作り直す（天気が変わったとき・演出の量を変えたとき）
+function wxwRebuild(){const wx=WXW.wx,q=wx<0?0:FXQ(),R=Math.random;
+  WXW.cl=Array.from({length:wx<0?0:[1,3,4,4][wx]||0},(_,i)=>({x:R()*90-10,y:4+i*5+R()*6,r:5+R()*4,v:(wx===3?.12:.04)+R()*.03}));
+  WXW.rn=wx>=2?Array.from({length:Math.max(6,Math.round((wx===3?34:18)*q))},()=>({x:R()*100-10,y:R()*48,v:wx===3?2.4+R():1.6+R()*.6,l:wx===3?6+R()*3:4+R()*2})):[];
+  WXW.lf=wx>=0&&wx<2?Array.from({length:Math.max(1,Math.round(3*q))},()=>({x:R()*72,y:R()*48,v:.12+R()*.12,a:R()*6,c:['#ff9d5c','#ffb347','#f2661a','#ffcf5c'][R()*4|0]})):[];
+  WXW.st=Array.from({length:14},(_,i)=>({x:(i*37%71)+1,y:(i*13%26)+2,p:R()*6,r:i%4?.6:1}));
+  WXW.fl=0;WXW.bolt=null;WXW.next=performance.now()+1200;wxwKick()}
+// 動かすのは対戦画面が表示されている間だけ（豪華・ふつう30コマ/秒、控えめ・重いとき12コマ/秒）。動きを減らす設定では止まった絵を1枚だけ描く
+function wxwKick(){if(WXW.run||!$('#wxWin'))return;WXW.run=true;requestAnimationFrame(wxwFrame)}
+function wxwFrame(now){const c=$('#wxWin');WXW.run=false;if(!c||WXW.wx<0||document.hidden||!document.body.classList.contains('ingame'))return;
+  const fps=reduce?0:SET.fxq==='lite'||fxLow()?12:30;
+  if(fps&&WXW.last&&now-WXW.last<1000/fps-2){WXW.run=true;requestAnimationFrame(wxwFrame);return}
+  const dt=fps&&WXW.last?Math.min(4,(now-WXW.last)/33.3):0;WXW.last=fps?now:0;
+  try{wxwDraw(c,now,dt)}catch{}if(fps){WXW.run=true;requestAnimationFrame(wxwFrame)}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){WXW.last=0;wxwKick()}});
+function wxGlow(g,x,y,r,c){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,c);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}
+function wxwDraw(c,now,dt){const g=c.getContext('2d');if(!g)return;const d=Math.min(2,devicePixelRatio||1),pw=Math.round((c.clientWidth||62)*d),ph=Math.round((c.clientHeight||40)*d);if(c.width!==pw||c.height!==ph){c.width=pw;c.height=ph}
+  const W=72,H=48,T=dt?now/1000:0,tp=WXW.tp||'day',wx=Math.max(0,WXW.wx),h=WXW.h,sk=WXSKY[tp],night=tp==='night'||tp==='late',R=Math.random;
+  g.setTransform(pw/W,0,0,ph/H,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
+  // 空の色
+  let gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,sk[0]);gr.addColorStop(.6,sk[1]);gr.addColorStop(1,sk[2]);g.fillStyle=gr;g.fillRect(0,0,W,H);
+  // 星（夜・深夜。雨と嵐では見えない）
+  if(night&&wx<2){g.fillStyle='#fff';for(const t of WXW.st){g.globalAlpha=(wx?.35:.85)*(.55+.45*Math.sin(T*2+t.p));g.fillRect(t.x,t.y,t.r+.4,t.r+.4)}g.globalAlpha=1}
+  // 太陽（時刻で高さが変わる）・月
+  if(wx<2){if(night){const mx=54,my=11;g.globalAlpha=wx?.5:1;wxGlow(g,mx,my,11,'rgba(255,246,200,.35)');g.fillStyle='#fff6c8';g.beginPath();g.arc(mx,my,5,0,7);g.fill();g.fillStyle=sk[0];g.beginPath();g.arc(mx+2.4,my-1.6,4.3,0,7);g.fill()}
+    else{const u=Math.min(1,Math.max(0,(h-5)/14)),sx=8+u*56,sy=40-Math.sin(u*Math.PI)*30,col=tp==='evening'?'#ff8a3d':tp==='morning'?'#ffd36a':'#ffe75a';g.globalAlpha=wx?.55:1;
+      if(!wx){g.save();g.translate(sx,sy);g.rotate(T*.4);g.strokeStyle=col;g.lineWidth=1.2;g.lineCap='round';for(let k=0;k<8;k++){g.rotate(Math.PI/4);g.beginPath();g.moveTo(7.5,0);g.lineTo(10,0);g.stroke()}g.restore()}
+      wxGlow(g,sx,sy,13,col+'66');g.fillStyle=col;g.beginPath();g.arc(sx,sy,5.5,0,7);g.fill();g.fillStyle='rgba(255,255,255,.6)';g.beginPath();g.arc(sx-1.6,sy-1.6,1.8,0,7);g.fill()}
+    g.globalAlpha=1}
+  // くもり・雨・嵐は空を暗くする
+  if(wx){g.fillStyle=['','rgba(120,128,150,.25)','rgba(70,80,105,.42)','rgba(30,32,55,.58)'][wx];g.fillRect(0,0,W,H)}
+  // 山と町あかり（夕方から点く）
+  const hc=WXHILL[tp];g.fillStyle=hc[0];g.beginPath();g.moveTo(0,H);g.lineTo(0,34);g.quadraticCurveTo(14,24,28,33);g.quadraticCurveTo(44,22,60,31);g.quadraticCurveTo(67,28,72,30);g.lineTo(72,H);g.fill();
+  g.fillStyle=hc[1];g.beginPath();g.moveTo(0,H);g.lineTo(0,40);g.quadraticCurveTo(20,33,40,39);g.quadraticCurveTo(56,35,72,38);g.lineTo(72,H);g.fill();
+  if(night||tp==='evening'){g.fillStyle='#ffd86a';for(let k=0;k<7;k++){g.globalAlpha=(tp==='evening'?.6:.95)*(.7+.3*Math.sin(T*3+k*1.7));g.fillRect(5+k*9.5,40.5+(k%3),1.3,1.3)}g.globalAlpha=1}
+  // 線路と電車（ときどき左から右へ走る。夜は窓とライトが光る）
+  g.fillStyle='rgba(40,25,30,.55)';g.fillRect(0,44.5,W,1);
+  WXW.tr+=dt*.55;if(WXW.tr>W+60)WXW.tr=-40-R()*40;{const x=WXW.tr;if(x>-24&&x<W+2){g.fillStyle='#ff5fa8';g.beginPath();if(g.roundRect)g.roundRect(x,38.5,20,6,2);else g.rect(x,38.5,20,6);g.fill();g.fillStyle=night?'#ffe9a0':'#d9f2ff';for(let k=0;k<4;k++)g.fillRect(x+2+k*4.5,39.8,3,2.2);g.fillStyle='#2b2236';g.fillRect(x+2,44.2,2,1.2);g.fillRect(x+16,44.2,2,1.2);if(night)wxGlow(g,x+21,41.5,5,'rgba(255,240,170,.5)')}}
+  // 雲（雨・嵐は灰色、夜は暗い色）
+  for(const q of WXW.cl){q.x+=q.v*dt;if(q.x-q.r*2>W)q.x=-q.r*2.2;g.globalAlpha=wx>=2?.95:.88;g.fillStyle=wx>=2?(wx===3?'#5d6278':'#8e97aa'):night?'#5b5a86':'#ffffff';g.beginPath();g.arc(q.x,q.y+2,q.r*.75,0,7);g.arc(q.x+q.r*.8,q.y,q.r,0,7);g.arc(q.x+q.r*1.7,q.y+2,q.r*.7,0,7);g.fill()}g.globalAlpha=1;
+  // 雨すじ（嵐は強い横風）
+  if(WXW.rn.length){const wind=wx===3?.45:.15;g.strokeStyle='#dce9ff';g.globalAlpha=wx===3?.75:.6;g.lineWidth=.7;g.beginPath();for(const r of WXW.rn){r.y+=r.v*dt;r.x-=r.v*wind*dt;if(r.y>H+4){r.y=-4-R()*8;r.x=R()*(W+20)}if(r.x<-8)r.x+=W+20;g.moveTo(r.x,r.y);g.lineTo(r.x+r.l*wind,r.y-r.l)}g.stroke();g.globalAlpha=1}
+  // 舞う葉（晴れ・くもり）
+  for(const p of WXW.lf){p.y+=p.v*dt;p.a+=.03*dt;p.x+=Math.sin(p.a)*.25*dt;if(p.y>H+3){p.y=-3;p.x=R()*W}g.save();g.translate(p.x,p.y);g.rotate(p.a);g.scale(1,Math.cos(p.a*1.3)*.5+.6);g.globalAlpha=.85;g.fillStyle=p.c;g.beginPath();g.moveTo(-2.4,0);g.quadraticCurveTo(0,-1.7,2.4,0);g.quadraticCurveTo(0,1.7,-2.4,0);g.fill();g.restore()}g.globalAlpha=1;
+  // 嵐の稲光：小窓の中だけで5〜11秒に1回。動きを減らす設定では出さない
+  if(wx===3&&dt){if(now>WXW.next){WXW.fl=1;WXW.next=now+5000+R()*6000;const pts=[];let x=12+R()*48,y=0;while(y<30){pts.push([x,y]);x+=(R()-.5)*8;y+=4+R()*4}WXW.bolt=pts}
+    if(WXW.fl>0){const on=WXW.fl>.8||(WXW.fl>.5&&WXW.fl<.65);g.globalAlpha=on?.35*WXW.fl:.06;g.fillStyle='#e8eeff';g.fillRect(0,0,W,H);if(on&&WXW.bolt){g.globalAlpha=WXW.fl;g.strokeStyle='#fff';g.lineWidth=1.1;g.lineJoin='round';g.beginPath();WXW.bolt.forEach(([px,py],i)=>i?g.lineTo(px,py):g.moveTo(px,py));g.stroke()}WXW.fl-=.05*dt}g.globalAlpha=1}}
 function frame(now){fxMeter(now||performance.now());if(bursts.length>500)bursts.splice(0,bursts.length-500);if(flashes.length>24)flashes.splice(0,flashes.length-24);
   const onlyAmb=!bursts.length&&!flashes.length&&!(performance.now()<staticUntil),hasVeh=VEH.length&&!fxLow();fxTick++;if(onlyAmb&&!fxDirty&&(fxTick&1)){if(!reduce)requestAnimationFrame(frame);return}
   // 枠の大きさは、変わったとき（ResizeObserver）か約0.5秒ごとにだけ測る（毎コマ測ると画面の再計算が起きて重い）
   if(!fxRO&&window.ResizeObserver&&cv.parentElement){fxRO=new ResizeObserver(()=>{fxSz=null});fxRO.observe(cv.parentElement)}if(!fxSz||!(fxTick%30)){const m=cv.parentElement;fxSz=[m?m.clientWidth:0,m?m.clientHeight:0];if(!camLive)fxSvg=null}
   const w=fxSz[0],h=fxSz[1],d=Math.min(2,devicePixelRatio||1);
   if(w&&h&&(w!==fxW||h!==fxH||d!==fxD)){fxW=w;fxH=h;fxD=d;cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv.style.width=w+'px';cv.style.height=h+'px';fxDirty=true}
-  const busy=parts.length||bursts.length||flashes.length||hasVeh||wxp.length||wxCl.length||performance.now()<staticUntil;
+  const busy=bursts.length||flashes.length||hasVeh||performance.now()<staticUntil;
   if(busy||fxDirty){cx.setTransform(1,0,0,1,0,0);cx.globalAlpha=1;cx.clearRect(0,0,cv.width,cv.height);fxDirty=!!busy}
-  if(busy){// まわりを舞う葉・雪（画面の座標）
-    cx.setTransform(d,0,0,d,0,0);const W=fxW||400,H=fxH||560;
-    const sp=onlyAmb?2:1;for(const p of parts){p.y+=p.v*sp;p.x+=Math.sin(p.a+=.02*sp)*.5*sp;if(p.y>H+8){p.y=-8;p.x=Math.random()*W}if(p.x>W+8)p.x=-8;if(p.x<-8)p.x=W+8;
-      if(pkind==='snow'){cx.globalAlpha=.35;cx.fillStyle='#fff';cx.beginPath();cx.arc(p.x,p.y,p.r*1.3,0,7);cx.fill();cx.globalAlpha=.8;cx.beginPath();cx.arc(p.x,p.y,p.r*.6,0,7);cx.fill()}
-      else{cx.globalAlpha=.55;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.scale(1,Math.cos(p.a*1.3)*.5+.6);cx.fillStyle=p.c;cx.beginPath();cx.moveTo(-p.r*1.6,0);cx.quadraticCurveTo(0,-p.r*1.1,p.r*1.6,0);cx.quadraticCurveTo(0,p.r*1.1,-p.r*1.6,0);cx.fill();cx.strokeStyle='rgba(120,50,0,.35)';cx.lineWidth=.6;cx.beginPath();cx.moveTo(-p.r*1.3,0);cx.lineTo(p.r*1.3,0);cx.stroke();cx.restore()}}
-    drawWx(W,H,sp);
+  if(busy){
     if(bursts.length||flashes.length||hasVeh){const T=fxMap(d);cx.setTransform(T[0],0,0,T[1],T[2],T[3]);if(hasVeh)drawVeh(now||performance.now());
       flashes=flashes.filter(f=>f.life-->0);for(const f of flashes){const t=1-f.life/f.max;cx.globalCompositeOperation='lighter';
         if(f.full){cx.save();cx.setTransform(1,0,0,1,0,0);cx.globalAlpha=(1-t)*.09;cx.fillStyle=f.c;cx.fillRect(0,0,cv.width,cv.height);cx.restore()}
@@ -3190,7 +3208,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   if(!built){buildMap();built=true;requestAnimationFrame(frame);drawPawns(dispState)}
   const{chain,broken}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip){$('#turnText').textContent='盤面を読み込み中…';return}
   const st=tip.state,ds=dispState||st;if(!dispState){dispState=st;drawPawns(st);camHome(0)}
-  setSeason(1);const night=isNight(ds.hour),hh=ds.hour,sk=night?3:hh<10?0:hh<16?1:2;$('#sky').style.background=SKY[sk];{const w=WEATHER[ds.weather||0];$('#skyLabel').innerHTML=`${ds.month}日目 ${ds.hour}:00　決算まで${(24-ds.hour)%24||24}時間<small class="wx">${w[0]} ${w[1]}・${TZN[TZ(ds.hour)]}<span class="wxi">ⓘ 倍率</span></small>`};$('#mapbox').classList.toggle('isnight',night);const nl=$('#nightLayer');if(nl)nl.setAttribute('opacity',night?.38:0);setAtmo(hh,ds.weather||0);drawPawnLabels();
+  {const w=WEATHER[ds.weather||0],left=(24-ds.hour)%24||24,tz=TZN[TZ(ds.hour)];$('#skyTxt').innerHTML=`${ds.month}日目 ${ds.hour}:00<span class="sk2">決算まで${left}時間</span>`;$('#skyWx').innerHTML=`<small class="wx">${w[0]} ${w[1]}・${tz}<span class="wxi">ⓘ 倍率</span></small>`;$('#skyLabel').setAttribute('aria-label',`${ds.month}日目 ${ds.hour}時、決算まで${left}時間、天気は${w[1]}、${tz}。押すと倍率を表示`)}setAtmo(ds.hour,ds.weather||0);drawPawnLabels();
   const ts=st.finished?-1:curSeat(ds);document.body.classList.add('ingame');if(!render.fitQ){render.fitQ=1;requestAnimationFrame(()=>{render.fitQ=0;fitMap()})}
   // プレイヤー欄（第30版）：総Gの多い順に1人1段・4段で表示。順位が入れかわったら、なめらかに並びかえる
   // 自分の手番で目的地の賞金・止まったマスの結果が出たら、獲得・ショップの画面を待たずに表示へ反映する（表示用の写し pending.view）
@@ -3217,7 +3235,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   // 演出中（表示中の盤面が最新より前）は、上の「いまの番」と同じく動いている人を出す（演出中に次の人の番と出て順番がずれて見えるのを防ぐ）
   {const lag=!st.finished&&ds!==st&&ds.turn<st.turn,vs=lag?ds:st,vc=lag?curSeat(ds):cs,vCpu=(meta.cpu||[]).includes(vc);
   $('#turnText').textContent=st.finished?'ゲーム終了':`${vs.month}日目 ${vs.hour}:00・第${vs.turn+1}手番（${vs.maxTurn?'全'+vs.maxTurn+'手':'無制限'}）`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':'（考え中…）'))+(lag||isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`)}
-  LAYER.drums=cs===me&&!st.finished;LAYER.tempo=st.month===st.days&&st.hour>=21?1.05:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos];if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':isNight(ds.hour)?'night':regionSong(st.players[cs].pos));
+  LAYER.drums=cs===me&&!st.finished;const fin=finalStretch(st);LAYER.tempo=fin?1.04:1;const evo=lateGame(st),cn=NODES[st.players[cs].pos],near=!st.finished&&NODES[st.goal]&&st.players.some(p=>{const v=D(st.goal)[p.pos];return v>0&&v<=5});if(!document.querySelector('#ov:not([hidden]) .night'))music(st.finished?'ending':st.troll===cs?(evo?'superpinch':'pinch'):near?'goalrun':fin?'climax':cn.air?'sky':cn.oki?'okinawa':cn.sea?'sea':st.month%2?'pop':'pop2');
   const fs=pending&&pending.stage==='fsell',act=pending&&pending.stage==='act',buy=pending&&pending.stage==='buy',shp=pending&&pending.stage==='shop',rt=pending&&pending.stage==='route',rw=pending&&pending.stage==='reward';$('#actMain').hidden=buy||rt||rw||shp||fs;$('#actFsell').hidden=!fs;$('#actShop').hidden=!shp;$('#bar').classList.toggle('routing',!!rt);$('#bar').classList.toggle('picking',!!(buy||shp||fs||rw));$('#actReward').hidden=!rw;$('#actBuy').hidden=!buy;$('#actRoute').hidden=!rt;document.body.classList.toggle('routeview',!!rt);
   $('#bRoll').disabled=!act;$('#bCard').disabled=!act;if(act){const hn=pending.st.players[cs].hand.length;$('#bCard').textContent=`カード${hn}`}else $('#bCard').textContent='カード';
   if(buy)drawBaseList();
@@ -3407,7 +3425,7 @@ $('#bPause').onclick=()=>{unlock();const o=$('#ov');o.innerHTML=`<div class="car
   {const e=$('#pzEnd');if(e)e.onclick=()=>{o.innerHTML=`<div class="card"><h3>ゲームを終えますか？</h3><p style="text-align:left">今の手番が終わったところで最終決算をして、順位を決めます。元には戻せません。</p><button id="pzEnd2">終える</button><button class="ghost" id="ovClose">やめる</button></div>`;
     $('#ovClose').onclick=()=>{o.hidden=true;o.innerHTML=''};$('#pzEnd2').onclick=async()=>{o.hidden=true;o.innerHTML='';try{await db.doc('games/'+code).update({endReq:{by:myId,seat:mySeat(),at:Date.now()}});toast('次の手番のあとで最終決算をします')}catch(e){toast('終了の連絡に失敗しました。理由：'+errReason(e)+'。もう一度お試しください')}}}}};
 $('#bSet').onclick=()=>{unlock();const o=$('#ov');o.innerHTML=`<div class="card sheet"><h3>音と設定</h3><label for="sB">BGM<input type="range" id="sB" min="0" max="100" value="${SET.bgm}"></label><label for="sS">効果音<input type="range" id="sS" min="0" max="100" value="${SET.se}"></label><label for="sUi"><input type="checkbox" id="sUi" ${SET.ui!==false?'checked':''}> ボタンを押した音</label><label for="sF"><input type="checkbox" id="sF" ${SET.fast?'checked':''}> 演出を速くする</label><label for="sCam"><input type="checkbox" id="sCam" ${SET.cam?'checked':''}> 地図をなめらかに動かす</label><label for="sView"><input type="checkbox" id="sView" ${SET.view!=='all'?'checked':''}> ふだんは現在地のまわりを大きく表示</label><label for="sQ" class="sqrow"><span style="white-space:nowrap">演出の量</span><select id="sQ"><option value="rich">豪華</option><option value="normal">ふつう</option><option value="lite">控えめ（古いスマホ向け）</option></select></label><label for="sV"><input type="checkbox" id="sV" ${SET.vib?'checked':''}> 振動（Androidのみ）</label><label for="sStr"><input type="checkbox" id="sStr" ${SET.stream?'checked':''}> 配信モード（操作を隠して地図を大きく。Pocochaに映す用）</label><p class="muted" style="text-align:left">iPhoneのマナーモード中でも鳴るようにしています。音が出ないときは、本体の音量ボタンで音量を上げてください。</p><button class="ghost" id="sT">テスト音を鳴らす</button><label for="sBgmT">曲を試聴<select id="sBgmT"><option value="">（ゲームに合わせる）</option>${Object.entries(SONGS).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('')}</select></label><p class="muted" style="text-align:left">演出の見本（対戦中に押すと地図の上で見られます）</p><div class="row" id="demoRow" style="justify-content:center"></div><button id="sC">とじる</button></div>`;o.hidden=false;
-  const save=()=>{try{localStorage.setItem('poco-set',JSON.stringify(SET))}catch{}};$('#sB').oninput=e=>{SET.bgm=+e.target.value;setVol();if(SET.bgm===0)music(null);else render();save()};$('#sS').oninput=e=>{SET.se=+e.target.value;setVol();sfx('stamp');save()};$('#sUi').onchange=e=>{SET.ui=e.target.checked;save()};$('#sF').onchange=e=>{SET.fast=e.target.checked;save()};$('#sCam').onchange=e=>{SET.cam=e.target.checked;save();camHome(0)};$('#sView').onchange=e=>{SET.view=e.target.checked?'near':'all';save();camHome(400)};$('#sQ').value=SET.fxq;$('#sQ').onchange=e=>{SET.fxq=e.target.value;parts=[];save()};$('#sV').onchange=e=>{SET.vib=e.target.checked;save();vib(40)};$('#sStr').onchange=e=>{SET.stream=e.target.checked;save();applyStream()};$('#sT').onclick=()=>{unlock();setTimeout(()=>sfx('myturn'),150)};$('#sBgmT').onchange=e=>{unlock();const k=e.target.value;if(k){if(SET.bgm===0)toast('BGMの音量が0です');music(k)}else render()};[['コアファン','yell'],['プラス','plus'],['マイナス','minus'],['物件獲得','buy'],['ランクアップ','rank'],['ゴール','goal'],['お邪魔','troll'],['自分の番','turn']].forEach(([n,k])=>{const b=document.createElement('button');b.className='small';b.textContent=n;b.disabled=!dispState;b.onclick=()=>{o.hidden=true;o.innerHTML='';unlock();setTimeout(()=>demoFx(k),200)};$('#demoRow').appendChild(b)});$('#sC').onclick=()=>{const pv=$('#sBgmT')&&$('#sBgmT').value;o.hidden=true;o.innerHTML='';if(pv)render()}};
+  const save=()=>{try{localStorage.setItem('poco-set',JSON.stringify(SET))}catch{}};$('#sB').oninput=e=>{SET.bgm=+e.target.value;setVol();if(SET.bgm===0)music(null);else render();save()};$('#sS').oninput=e=>{SET.se=+e.target.value;setVol();sfx('stamp');save()};$('#sUi').onchange=e=>{SET.ui=e.target.checked;save()};$('#sF').onchange=e=>{SET.fast=e.target.checked;save()};$('#sCam').onchange=e=>{SET.cam=e.target.checked;save();camHome(0)};$('#sView').onchange=e=>{SET.view=e.target.checked?'near':'all';save();camHome(400)};$('#sQ').value=SET.fxq;$('#sQ').onchange=e=>{SET.fxq=e.target.value;wxwRebuild();save()};$('#sV').onchange=e=>{SET.vib=e.target.checked;save();vib(40)};$('#sStr').onchange=e=>{SET.stream=e.target.checked;save();applyStream()};$('#sT').onclick=()=>{unlock();setTimeout(()=>sfx('myturn'),150)};$('#sBgmT').onchange=e=>{unlock();const k=e.target.value;if(k){if(SET.bgm===0)toast('BGMの音量が0です');music(k)}else render()};[['コアファン','yell'],['プラス','plus'],['マイナス','minus'],['物件獲得','buy'],['ランクアップ','rank'],['ゴール','goal'],['お邪魔','troll'],['自分の番','turn']].forEach(([n,k])=>{const b=document.createElement('button');b.className='small';b.textContent=n;b.disabled=!dispState;b.onclick=()=>{o.hidden=true;o.innerHTML='';unlock();setTimeout(()=>demoFx(k),200)};$('#demoRow').appendChild(b)});$('#sC').onclick=()=>{const pv=$('#sBgmT')&&$('#sBgmT').value;o.hidden=true;o.innerHTML='';if(pv)render()}};
 
 // ================= メニュー（第24.4版）：音・設定・スタンプ・中断・タイトルに戻る =================
 // ===== システム説明（タイトル画面・プレイ中のメニューから見られる）=====
@@ -3435,7 +3453,7 @@ const SYS=[
  ['🏅 ポコチャレ','ポコチャレ',`<p>0:00・6:00・12:00・18:00に、全員共通の3つのお題（ポコチャレ）が出ます。上のバーで進み具合を確認できます。</p><h4>達成の報酬</h4><ul><li>ゴールド（基本ゴールドの4倍）か、カード1枚のどちらかを選べます。</li><li>どちらを選んでも<b>コアファン＋2人・ランク＋20pt</b>。</li><li>「マイナス0回」のお題は、6時間の締めのときに判定します。</li></ul>`],
  ['👾 お邪魔','お邪魔キャラ',`<p>誰かが目的地に着くと、お邪魔キャラ「荒らしラグ王」が誰かに取りつくことがあります。取りつかれると、いたずらをされます。</p><p>防御系や策略系のカードで追い払ったり、ほかの人に押し付けたりできます。</p>`],
  ['🤖 CPU','CPUキャラと名前',`<ul><li>空いた席には、えらんだ強さ（弱い・普通・強い）のCPUキャラが入ります。強さごとに10人いて、毎回ランダムで決まります。</li><li>キャラごとに、出身地・職業・性格などのプロフィールと、カードをよく使う・物件を買いまくる・最短で目的地を目指すなどの<b>プレイのクセ</b>があります。</li><li>キャラは方言やくせのある話し方で、場面ごとにひとりごとを言います。</li><li>上のプレイヤー欄をタップすると、プロフィールを見たり、<b>名前を変えたり</b>できます（自分の名前と、CPUの名前）。ホストはCPUキャラの入れかえもできます。</li><li>部屋の画面でも、自分の表示名を変えられます。</li></ul>`],
- ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMは、いま手番の人がいる地方で変わります（九州は祭り囃子、沖縄は島の風、北海道は雪原など17曲・すべてオリジナル）。効果音が鳴る間はBGMを少し下げて聞きやすくします。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li></ul>`],
+ ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMは、ふだんは軽快なPOPの曲（日目ごとに2曲で交代）。目的地まであと少し・終盤・お邪魔が取りついた番・空路・海路・沖縄のときだけ、その場面の曲に変わり、終わるといつもの曲の続きに戻ります（全13曲・すべてオリジナル）。</li><li>時間帯と天気は、地図の左上の小窓の中だけで空の色・太陽や月・雲・雨・稲光として表示します（地図には色を重ねません）。効果音が鳴る間はBGMを少し下げて聞きやすくします。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li></ul>`],
  ['⏸ 中断','中断と再開・対戦',`<ul><li>部屋を作ると4文字の部屋コードができます。最大4人で参加し、開始時の空席はCPUになります。開始後は新規参加できません。同じブラウザの匿名IDが残っていれば復帰できます。</li><li>途中でやめるときはメニューの「中断する」。次はタイトル画面の「続きから遊ぶ」か部屋コードで、続きから遊べます。</li><li>ゲームが更新されたときは、全員ページを開き直してから遊んでください。</li></ul>`]];
 let sysI=0;
 // 地図の左上の時刻・天気をタップ：いまの時間帯と天気で、マスでもらえる量が何倍になるか
@@ -3464,7 +3482,7 @@ function openMenu(){unlock();const o=$('#ov'),inG=!!(meta&&meta.phase==='playing
   $('#mnTitle').onclick=()=>{if(!inG){close();leaveRoom();return}
     o.innerHTML=`<div class="card"><div class="pz-icon">🏠</div><h3>タイトルに戻りますか？</h3><p style="text-align:left">${sit&&canWrite?'ゲームは「中断」として保存されます。タイトルの「続きから遊ぶ」（または部屋コード）から、続きを遊べます。':'部屋から出ます。部屋コードを入れると、また見に来られます。'}</p><button id="mtYes">タイトルに戻る</button><button class="ghost" id="mtNo">やめる</button></div>`;
     $('#mtNo').onclick=close;$('#mtYes').onclick=async()=>{close();if(sit&&canWrite&&!(meta&&meta.paused)){const t=curTip();if(t&&!t.state.finished)await pauseGame()}leaveRoom()}}}
-$('#bMenu').onclick=openMenu;$('#skyLabel').onclick=e=>{e.stopPropagation();showWx()};
+$('#bMenu').onclick=openMenu;$('#skyLabel').onclick=e=>{e.stopPropagation();showWx()};$('#skyLabel').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();showWx()}};
 // 下の操作バーの高さに合わせて余白を取り、余分なスクロールで上の欄がずれないようにする
 {const sb=$('#status');if(sb&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--sth',(sb.offsetParent?sb.offsetHeight:0)+'px')}).observe(sb)}
 {const bar=$('#bar');if(bar&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--barh',(bar.hidden?0:bar.offsetHeight)+'px')}).observe(bar)}
