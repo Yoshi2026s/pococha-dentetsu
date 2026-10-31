@@ -724,6 +724,8 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 /* 演出の見本のボタンは指で押しやすい高さ（48px）に */#demoRow button{min-height:48px}
 /* 曲の試聴：曲名が長くても画面からはみ出さないよう、見出しの下に全幅の選択欄を置く */label[for=sBgmT]{display:flex!important;flex-direction:column;align-items:stretch!important;gap:4px;min-width:0}#sBgmT{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
 #ov .card:focus{outline:none}
+/* 長いイベント名（コアファンイベントなど）は省略せず2行まで折り返す */.rc-ttl b.ttl-long,.has-main .rc-ttl b.ttl-long,.mr-card .has-main .rc-ttl b.ttl-long{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;font-size:16px!important;line-height:1.25!important;word-break:keep-all;overflow-wrap:anywhere}
+.plsheet .pl-fan{font-size:13px;font-weight:700;margin:6px 0;text-align:left;color:var(--ink)}
 /* ジャストカードの目は3×2の同じ大きさのボタン（48px）に */#justPick>div{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}#justPick .jbtn{width:100%;min-height:48px;margin:0}
 /* カード一覧：枚数は名前の横に（2枚以上のときだけ） */.cardbtn .cb-n{margin-left:6px;font-size:.9em;color:var(--pink)}.cs-hint{font-size:12px;margin:2px 0 4px;text-align:center}
 /* 遊び方は短い箇条書きで、スマホでも読みやすく */.howlist{text-align:left;margin:8px 0 10px;padding-left:1.25em;font-size:14px}.howlist li{margin:6px 0;line-height:1.55}
@@ -1296,6 +1298,38 @@ const PORTDEF=[
 ];
 const XEV={};AIRDEF.concat(PORTDEF).forEach(([k,n,r,d,e])=>{XEV[k]=e;EVN[k]=n;EVR[k]=r;EVD[k]=d;EVG[k]=k[0]==='a'?'空港':'港'});
 const AIRW=AIRDEF.map(([k,,r])=>[k,RARW_EV[r]]),PORTW=PORTDEF.map(([k,,r])=>[k,RARW_EV[r]]);
+// ===== コアファンの新ルール（2026-10-31・新しく始めた対戦だけ。盤面に fy:1）=====
+// ・コアファンは毎日0:00の決算で全員0人に戻る（目的地が変わっても戻らない）
+// ・コアファンマスに止まると、12種類の「コアファンイベント」のどれかが起きる（人数が増えたり、ゴールド・ランクptがついたり）
+// ・イベントマスに、コアファンが増減する「ファン交流」イベントを8種類追加
+// add＝コアファンの追加人数 mul＝コアファンの倍率 c＝ゴールド（基本G×c）pt＝ランクpt
+const YELLDEF=[
+ ['y_reg','いつもの常連さん','N','マスの人数のコアファン',{}],
+ ['y_friend','常連さんがお友達を連れてきた','N','コアファン＋1人多め',{add:1}],
+ ['y_comment','コメント欄が大盛り上がり','N','マスの人数のコアファン・ランク＋5pt',{pt:5}],
+ ['y_rom','ROM専さんが初コメント','N','コアファン＋1人多め',{add:1}],
+ ['y_quiet','ちょっと静かな枠','N','コアファン−1人（最低でも1人は増える）',{add:-1}],
+ ['y_gift','ギフトがたくさん届いた','R','マスの人数のコアファン・ゴールド（基本G×0.5）',{c:.5}],
+ ['y_shout','ほかのライバーの枠で紹介された','R','コアファン＋2人多め',{add:2}],
+ ['y_newbie','初見さんが一気にコアファンに','R','コアファン＋2人多め・ランク＋5pt',{add:2,pt:5}],
+ ['y_offkai','オフ会の告知が大反響','SR','コアファン2倍',{mul:2}],
+ ['y_rankin','ランキング入りで注目の的','SR','コアファン＋3人多め・ランク＋10pt',{add:3,pt:10}],
+ ['y_kami','神回で切り抜きが大量発生','SSR','コアファン2倍＋3人・ゴールド（基本G×1）',{mul:2,add:3,c:1}],
+ ['y_legend','伝説の記念枠','UR','コアファン3倍・ランク＋20pt',{mul:3,pt:20}]];
+const YEV={};YELLDEF.forEach(([k,n,r,d,e])=>{YEV[k]=e;EVN[k]=n;EVR[k]=r;EVD[k]=d;EVG[k]='ファン交流'});
+const YELLW=YELLDEF.map(([k,,r])=>[k,RARW_EV[r]]);
+// イベントマスの「ファン交流」追加分（効果は空港・港のイベントと同じ書き方：y＝コアファン c＝ゴールド pt＝ランクpt blk＝ブロックで防げる）
+const FANEVDEF=[
+ ['f_cheer','コアファンの応援コメント','N','コアファン＋2人',{y:2}],
+ ['f_letter','手書きのお手紙','N','コアファン＋1人・ランク＋5pt',{y:1,pt:5}],
+ ['f_doubt','誤解からファン離れ','N','コアファン−1人（ブロックで防げる）',{y:-1,blk:1}],
+ ['f_banner','応援バナーが届いた','R','コアファン＋2人・ランク＋10pt',{y:2,pt:10}],
+ ['f_meet','ファンミーティング','R','コアファン＋3人・ゴールド（基本G×1）',{y:3,c:1}],
+ ['f_oshihen','推し変されてしまった','R','コアファン−2人（ブロックで防げる）',{y:-2,blk:1}],
+ ['f_club','ファンクラブ発足','SR','コアファン＋5人・ランク＋10pt',{y:5,pt:10}],
+ ['f_surprise','コアファンのサプライズ企画','SSR','コアファン＋8人・ゴールド（基本G×2）',{y:8,c:2}]];
+FANEVDEF.forEach(([k,n,r,d,e])=>{XEV[k]=e;EVN[k]=n;EVR[k]=r;EVD[k]=d;EVG[k]='ファン交流'});
+const EVW2=EVW.concat(FANEVDEF.map(([k,,r])=>[k,RARW_EV[r]]));
 const xevBad=k=>{const e=XEV[k];return!!e&&((e.c||0)<0||(e.pt||0)<0||(e.y||0)<0||(e.card||0)<0)};
 const evBad=k=>EVG[k]==='ハプニング'||xevBad(k);
 // カード（第25版）：進行・移動・ボーナス・攻撃・防御・策略・サポートの7ジャンル。レア度 N＜R＜SR＜SSR＜UR（効果が高いほど上）
@@ -1443,6 +1477,8 @@ const fanBonus=c=>{for(const[t,b]of FANT)if(c>=t)return b;return 0};
 const nextTier=c=>TIERS.find(x=>x>c)||null;
 // コアファン：人数で数える。コアファンマス・イベント・ポコチャレ・1番乗りで増え、炎上などで減る。10人の節目を初めて超えるたび 基本ゴールド×2
 const YELL_STEP=10;
+// コアファンの「次のボーナスまで」の説明（画面用）。新ルールの対戦では0:00で0人に戻ることも添える
+function fanNext(s,q){const ye=q.ye||0,nb=(Math.floor(ye/YELL_STEP)+1)*YELL_STEP,g=(BASEPT[q.rank]||0)*2;return{ye,need:nb-ye,nb,g,txt:`💖 コアファン${ye}人：あと${nb-ye}人で${nb}人ボーナス（＋${g.toLocaleString()}G）${s&&s.fy?'・0:00の決算で0人に戻る':''}`}}
 function addYell(s,q,qi,v){q.ye=Math.max(0,(q.ye||0)+v);if(v>0)q.dye=(q.dye||0)+v;while(Math.floor(q.ye/YELL_STEP)*YELL_STEP>(q.yb||0)){q.yb=(q.yb||0)+YELL_STEP;const g=BASEPT[q.rank]*2;q.coin+=g;q.earned+=g;s.ev.push({k:'yellbonus',t:`${qi+1}P コアファン${kp(q.yb)}達成ボーナス ＋${g.toLocaleString()}G`,v:qi})}}
 // ランクダウン：1つ下のランク帯へ。ポイントは0から（次のランクまで必要数を最初から貯め直す）
 function rankDown(s,q,qi,why){const b=q.rank;q.pt=0;if(RI(b)===0)return;q.rank=RANKS[RI(b)-1];s.ev.push({k:'rankdown',t:`${qi+1}P ランクダウン ${b}→${q.rank}${why?'（'+why+'）':''}`,v:{seat:qi,before:b,after:q.rank}})}
@@ -1474,7 +1510,7 @@ function genesisState(seed,days){days=DAYS_OPT.includes(days)?days:1;const round
   const s={turn:0,month:1,hour:START_H,since:0,days,maxTurn:rounds*4,oi:0,order:[0,1,2,3],rng:0,goal:null,goalDist:0,okiUsed:false,troll:null,boost:null,owner:{},closed:0,finished:false,hist:[[10000,10000,10000,10000]],
   players:[0,1,2,3].map(()=>({pos:START,coin:10000,rank:'E1',pt:0,cards:0,hand:[],face:'ふつう',earned:0,mc:newMc(),md:[],mtot:0,minusTot:0,ye:0,yb:0,dmis:0,dye:0,dbuy:0,e0:0})),ev:[],lastSeat:null,lastDice:null,lastPath:[]};
   let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;
-  chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.rng=n;return s}
+  chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.fy=1;/* コアファンの新ルール（0:00で0人に戻る・コアファンイベント） */s.rng=n;return s}
 
 // ===== ゴールドがマイナスのときの物件売却（第32版）=====
 // マイナスになったら、プラスになるまで持っている物件を売る（売値＝獲得したときの値段）。おすすめは「売っても毎日のゴールドがいちばん減らない」物件
@@ -1489,7 +1525,7 @@ function forceSell(s,seat,list,ev,enforce){const p=s.players[seat];if(list!=null
   if(enforce&&p.coin<0&&ownedFans(s,seat).length)throw new Error('need sell')}
 function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
   const s=JSON.parse(JSON.stringify(st));let n=s.rng;const R=()=>rand(seed,n++);
-  const seat=s.order[s.oi],p=s.players[seat],B=BASEPT[p.rank],boost=s.boost===seat;s.lastSeat=seat;s.ev=[];s.buyCtx=null;p.face='ふつう';
+  let n0k=null;/* イベントマスで引いた種類（新ルールの追加イベントの判定に使う） */const seat=s.order[s.oi],p=s.players[seat],B=BASEPT[p.rank],boost=s.boost===seat;s.lastSeat=seat;s.ev=[];s.buyCtx=null;p.face='ふつう';
   const ev=(k,t,v)=>s.ev.push({k,t,v});
   let gm=1;const fm=q=>1+fanBonus(baseCount(s,s.players.indexOf(q))),G=(q,v)=>Math.round(v*fm(q)*(q===p?gm:1)/10)*10;
   const yellAdd=(q,qi,v)=>addYell(s,q,qi,v),ptAdd=(q,qi,v,why)=>addRank(s,q,qi,v,why);
@@ -1570,8 +1606,11 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     if(reached){const prize=fl100((5000+s.goalDist*300)*(BASEPT[p.rank]/1000)*(nd.oki?1.2:1));// 賞金：距離×ランク帯（長いゲームでも日数で膨らまない）
       if(s.gp){p.coin+=prize;p.earned+=prize;p.face='うれしい'}// 賞金の加算（gp=1の盤面のみ。以前の盤面は検算が合うよう従来どおり）
       const old=D(s.goal);let far=-1,fd=-1;s.players.forEach((q,i)=>{if(i===seat)return;const v=old[q.pos]+R()*.5;if(v>fd){fd=v;far=i}});s.troll=far;
-      ev('goal',`${nd.name}に1番乗り！ ＋${prize.toLocaleString()}G・コアファン＋5人・＋50pt`,prize);ptAdd(p,seat,50);s.players.forEach(q=>{q.ye=0;q.yb=0;q.mc.ye0=0});ev('yellreset','目的地が変わったので、全員のコアファンは0人から集め直し');yellAdd(p,seat,5);ev('troll',`荒らしラグ王が${far+1}Pに取りついた`);chooseGoal(s,R);ev('newgoal','次の目的地は'+NODES[s.goal].name)}
-    else if(nd.type==='yell'){const tz=TZ(s.hour),wx=s.weather||0,nb=baseCount(s,seat);let y=(1+Math.floor(R()*3))*YELLM.tz[tz]*YELLM.wx[wx]*(boost?1.5:1)+(nb>=12?2:nb>=5?1:0)+Math.floor(RI(p.rank)/6);y=Math.max(1,Math.round(y));p.face='うれしい';txt+=`・コアファンマス コアファン＋${kp(y)}（${TZN[tz]}・${WEATHER[wx][1]}）`;yellAdd(p,seat,y)}
+      ev('goal',`${nd.name}に1番乗り！ ＋${prize.toLocaleString()}G・コアファン＋5人・＋50pt`,prize);ptAdd(p,seat,50);if(!s.fy){s.players.forEach(q=>{q.ye=0;q.yb=0;q.mc.ye0=0});ev('yellreset','目的地が変わったので、全員のコアファンは0人から集め直し')}yellAdd(p,seat,5);ev('troll',`荒らしラグ王が${far+1}Pに取りついた`);chooseGoal(s,R);ev('newgoal','次の目的地は'+NODES[s.goal].name)}
+    else if(nd.type==='yell'){const tz=TZ(s.hour),wx=s.weather||0,nb=baseCount(s,seat);let y=(1+Math.floor(R()*3))*YELLM.tz[tz]*YELLM.wx[wx]*(boost?1.5:1)+(nb>=12?2:nb>=5?1:0)+Math.floor(RI(p.rank)/6);y=Math.max(1,Math.round(y));p.face='うれしい';
+      if(s.fy){/* コアファンイベント：人数の増え方が変わったり、ゴールド・ランクptがついたりする */const k=pickW(YELLW,R()),e=YEV[k];y=Math.max(1,Math.round(y*(e.mul||1)+(e.add||0)));const ex=[];if(e.c){const g=G(p,B*e.c);p.coin+=g;p.earned+=g;ex.push('＋'+g.toLocaleString()+'G')}
+        txt+=`・コアファンマス「${EVN[k]}」 コアファン＋${kp(y)}（${TZN[tz]}・${WEATHER[wx][1]}）${ex.length?'・'+ex.join('・'):''}${e.pt?'・＋'+e.pt+'pt':''}`;yellAdd(p,seat,y);if(e.pt)ptAdd(p,seat,e.pt,EVN[k]);if(['SR','SSR','UR'].includes(EVR[k]))p.face='びっくり';ev('event','',k)}
+      else{txt+=`・コアファンマス コアファン＋${kp(y)}（${TZN[tz]}・${WEATHER[wx][1]}）`;yellAdd(p,seat,y)}}
     else if(nd.type==='plus'){const tz=TZ(s.hour),wx=s.weather||0,g=G(p,B*(.5+R()*1.5)*PLUSM.tz[tz]*PLUSM.wx[wx]);p.coin+=g;p.earned+=g;p.face='うれしい';p.mc.plus++;txt+=`・プラスマス ＋${g.toLocaleString()}G（${TZN[tz]}・${WEATHER[wx][1]}）`}
     else if(nd.type==='minus'){p.mc.minus++;p.minusTot=(p.minusTot||0)+1;if(block(p,'マイナスマス'))txt+='・マイナスマス（ブロック）';else{const tz=TZ(s.hour),wx=s.weather||0,l=Math.round(B*(.3+R()*.9)*MINUSM.tz[tz]*MINUSM.wx[wx]/10)*10;p.coin-=l;p.face='かなしい';txt+=`・マイナスマス −${l.toLocaleString()}G（${TZN[tz]}・${WEATHER[wx][1]}）`}}
     else if(nd.type==='card'){const k=drawCard(R);p.hand.push(k);if(p.hand.length>HANDMAX)p.hand.shift();txt+='・カード「'+CARDN[k]+'」';ev('getcard','',k)}
@@ -1584,7 +1623,10 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
         if(e.slow){p.slow=1;parts.push('次のサイコロは1〜3')}if(e.storm){s.weather=3;parts.push('天気が嵐に')}
         p.face=xevBad(kind)?'かなしい':['SSR','UR'].includes(EVR[kind])?'びっくり':'うれしい'}
       txt+=`・${nd.type==='airport'?'✈':'⚓'}${EVN[kind]}${blocked?'（ブロック）':' '+parts.join('・')}`;ev('event','',kind)}
-    else if(nd.type==='event'){const kind=pickW(EVW,R());p.mc.ev++;const night=isNight(s.hour);
+    else if(nd.type==='event'&&s.fy&&XEV[(n0k=pickW(EVW2,R()))]){/* 新ルールの「ファン交流」追加イベント */const kind=n0k,e=XEV[kind];p.mc.ev++;let blocked=false;const parts=[];if(e.blk&&block(p,EVN[kind]))blocked=true;
+      if(!blocked){if(e.c>0){const g=G(p,B*e.c);p.coin+=g;p.earned+=g;parts.push('＋'+g.toLocaleString()+'G')}if(e.y){yellAdd(p,seat,e.y);parts.push('コアファン'+(e.y>0?'＋':'−')+kp(Math.abs(e.y)))}if(e.pt){ptAdd(p,seat,e.pt,EVN[kind]);parts.push('ランク'+(e.pt>0?'＋':'−')+Math.abs(e.pt)+'pt')}p.face=xevBad(kind)?'かなしい':['SSR','UR'].includes(EVR[kind])?'びっくり':'うれしい'}
+      txt+=`・${EVN[kind]}${blocked?'（ブロック）':' '+parts.join('・')}`;ev('event','',kind)}
+    else if(nd.type==='event'){const kind=s.fy?n0k:pickW(EVW,R());p.mc.ev++;const night=isNight(s.hour);
       if(kind==='sponsor'){const g=G(p,B*5);p.coin+=g;p.earned+=g;p.face='うれしい';txt+=`・スポンサー案件 ＋${g.toLocaleString()}G・＋10pt`;ptAdd(p,seat,10)}
       else if(kind==='collabreq'){const o=s.order[(s.oi+1)%4],q=s.players[o];const g=G(p,Math.round(B*1.5)),g2=G(q,Math.round(BASEPT[q.rank]*1.5));p.coin+=g;q.coin+=g2;p.earned+=g;q.earned+=g2;txt+=`・コラボ依頼 自分＋${g.toLocaleString()}G／${o+1}P＋${g2.toLocaleString()}G・コアファン各＋1人`;yellAdd(p,seat,1);yellAdd(q,o,1)}
       else if(kind==='photo'){const nb=baseCount(s,seat);const g=G(p,nb?B*Math.min(nb,8):B);p.coin+=g;p.earned+=g;p.face='うれしい';txt+=`・物件めぐり配信（物件${nb}件） ＋${g.toLocaleString()}G`}
@@ -1666,7 +1708,7 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     if(bought&&!p.mc.bs.includes(p.pos))p.mc.bs.push(p.pos);
     p.mc.mv=(p.mc.mv||0)+Math.max(0,path.length-1);if(nd.type==='station'&&!reached&&path.length>1)p.mc.st=(p.mc.st||0)+1;if(path.some(k=>NODES[k].sea||NODES[k].air))p.mc.ride=(p.mc.ride||0)+1;
     s.ev.unshift({k:'move',t:txt});
-    if(gchg&&!reached){chooseGoal(s,R);s.players.forEach(q=>{q.ye=0;q.yb=0;q.mc.ye0=0});ev('newgoal','目的地チェンジ！ 次の目的地は'+NODES[s.goal].name);ev('yellreset','目的地が変わったので、全員のコアファンは0人から集め直し')}
+    if(gchg&&!reached){chooseGoal(s,R);if(!s.fy)s.players.forEach(q=>{q.ye=0;q.yb=0;q.mc.ye0=0});ev('newgoal','目的地チェンジ！ 次の目的地は'+NODES[s.goal].name);if(!s.fy)ev('yellreset','目的地が変わったので、全員のコアファンは0人から集め直し')}
     if(s.troll===seat){const o=s.players.findIndex((q,i)=>i!==seat&&q.pos===p.pos);if(o>=0){s.troll=o;ev('troll',`荒らしラグ王が${o+1}Pに乗り移った`)}}
   }else throw new Error('bad action');
   if(opt&&opt.snap)opt.snap.end=JSON.parse(JSON.stringify(s));// 表示用の写し（獲得のあと・ポコチャレ報酬の前）
@@ -1700,6 +1742,7 @@ function dayEnd(s,R,force){const rep=[],hrs=Math.max(1,s.since),dk=hrs/24;
     const got=CONDS.filter(c=>ok[c[0]]),gain=got.reduce((a,c)=>a+c[2],0);
     p.coin+=inc+pay;p.earned+=inc+pay;if(gain)addRank(s,p,i,gain);else rankDown(s,p,i,'締めの条件を1つもクリアできなかった');
     rep.push({seat:i,inc,pay,before,after:p.rank,gain,conds:got.map(c=>c[1]),mono:monoList(s,i).length,mis:p.dmis||0,ye:p.ye||0});p.dmis=0;p.dye=0;p.dbuy=0;p.e0=p.earned});
+  if(s.fy){s.players.forEach(p=>{p.ye=0;p.yb=0;if(p.mc)p.mc.ye0=0});s.ev.push({k:'yellreset',t:'0:00の決算で、全員のコアファンが0人に戻った'})}/* 新ルール：コアファンは1日ごとに集め直し */
   if(force||s.month>=s.days&&s.days)s.players.forEach((p,i)=>{while(p.coin<0){const b=sellCands(s,i)[0];if(!b)break;const nm=fanName(s,b.k,b.j);sellFan(s,i,b.k,b.j);s.ev.push({k:'sold',t:`${i+1}Pのゴールドがマイナスのため、物件「${nm}」を売却`,seat:i})}});
   const as=[0,1,2,3].map(i=>assets(s,i));const lo=Math.min(...as);s.boost=as.indexOf(lo);
   s.hist=(s.hist||[]).concat([as]);s.order=[0,1,2,3].sort((a,b)=>as[a]-as[b]||a-b);s.closed=s.month;s.closedHrs=hrs;s.report=rep;s.ev.push({k:'monthend',t:`${s.month}日目 0:00の決算`});
@@ -2500,7 +2543,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`物件${ft.v}件！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントのゴールドが＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
   const ru=evs.filter(e=>e.k==='rankup');if(ru.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankup',3);sfx('rankup');fireworks(2);pillar(pNode,'var(--rank)');banner('ランクアップ！','var(--rank)',ru.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?800:1900);
   const rd=evs.filter(e=>e.k==='rankdown');if(rd.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankdown',2);sfx('anti');shake();brokenHearts(pNode);banner('ランクダウン…','linear-gradient(90deg,#5d5470,#e5363d)',rd.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?900:2100);
-  {const yr=evs.find(e=>e.k==='yellreset');if(yr)setTimeout(()=>toast('💖 目的地が変わったので、全員のコアファンが0人に戻りました'),SET.fast?700:1700)}/* 記録の文（検算に使う）はそのまま、表示だけ読みやすく */
+  {const yr=evs.find(e=>e.k==='yellreset');if(yr)setTimeout(()=>toast(evs.some(e=>e.k==='monthend')?'💖 0:00の決算で、全員のコアファンが0人に戻りました（また今日から集め直し）':'💖 目的地が変わったので、全員のコアファンが0人に戻りました'),SET.fast?700:1700)}/* 記録の文（検算に使う）はそのまま、表示だけ読みやすく */
   {const we=evs.find(e=>e.k==='weather');if(we)setTimeout(()=>toast(we.t),SET.fast?600:1500)}
   const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('yell');toast(e.t);chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
   {const g=evs.find(e=>e.k==='goal');if(g){if(localGoal===s.turn){localGoal=null;await wait(300)}else await goalShow(seat,pNode,g.v,s.goal)}}
@@ -2513,9 +2556,9 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
     else if(/売られた/.test(mi.t)){brokenHearts(pNode)}else if(/改心/.test(mi.t)){pillar(pNode,'#ffcf3a');burst('heart',pNode);comments('trollgone',3)}}
   if(evs.some(e=>e.k==='monthend')&&s.report){music('closing');sfx('clock');comments('settle',6);
     const rows=s.report.map(x=>`<tr><td>${esc(seatName(x.seat))}</td><td>＋${x.inc.toLocaleString()}G${x.mono?`<small class="mono">独占${x.mono}</small>`:''}</td><td>＋${(x.pay||0).toLocaleString()}G</td><td>${x.before}${x.after!==x.before?' → <b>'+x.after+'</b>':''}<small class="mono">${x.gain?'＋'+x.gain+'pt':'ランクダウン'}</small></td></tr>`).join('');
-    const cl=s.report.filter(x=>x.conds&&x.conds.length).map(x=>`${esc(seatName(x.seat))}：${x.conds.join('・')}`).join('<br>');
+    const cl=s.report.filter(x=>x.conds&&x.conds.length).map(x=>`${esc(seatName(x.seat))}：${x.conds.join('・')}`).join('<br>');const fl=s.fy?`<p class="muted" style="font-size:12px;margin:6px 0 0">💖 今日のコアファン：${s.report.map(x=>`${esc(seatName(x.seat))} ${x.ye}人`).join('・')}<br>決算のあと、全員のコアファンは0人に戻ります（また集め直し）</p>`:'';
     for(const x of s.report)if(x.inc>0)coinsFly(NODES[s.goal],x.seat,4);
-    await showOverlay(`${clockSvg()}<h3>0:00 決算</h3><p>${s.closed}日目の決算（${s.closedHrs||24}時間分）</p>${assetChart(s.hist)}<table><tr><td class="muted">ライバー</td><td class="muted">物件決算</td><td class="muted">ランク支給</td><td class="muted">ランク</td></tr>${rows}</table>${cl?`<p class="muted" style="font-size:11px;margin:4px 0 0">締めの条件クリア<br>${cl}</p>`:''}`,4800,'night');
+    await showOverlay(`${clockSvg()}<h3>0:00 決算</h3><p>${s.closed}日目の決算（${s.closedHrs||24}時間分）</p>${assetChart(s.hist)}<table><tr><td class="muted">ライバー</td><td class="muted">物件決算</td><td class="muted">ランク支給</td><td class="muted">ランク</td></tr>${rows}</table>${cl?`<p class="muted" style="font-size:11px;margin:4px 0 0">締めの条件クリア<br>${cl}</p>`:''}${fl}`,4800,'night');
     if(s.boost!=null&&!s.finished){banner('新人応援ブースト！','var(--yell)',`${seatName(s.boost)}：サイコロ＋1・コアファン1.5倍`);await wait(1600)}
     {const ups=s.report.filter(x=>RANKS.indexOf(x.after)>RANKS.indexOf(x.before));/* 2人以上ランクアップしたときは1枚にまとめて、何度も閉じなくてよいようにする */
      if(ups.length===1){const x=ups[0];sfx('rankup');fireworks(2);await showOverlayFx('rgba(157,123,255,.38)',`<p class="eyebrow">${esc(seatName(x.seat))}</p><h3>ランクアップ！</h3><div class="meter"><i></i></div><div class="big">${x.before} → ${x.after}</div>`,2600)}
@@ -2574,7 +2617,7 @@ function profHTML(c){return`<div class="prof"><div class="prof-h"><b>${esc(c.nam
 function showPlayer(ds,i){unlock();const o=$('#ov'),c=cpuChar(i),can=canRename(i),cur=seatName(i);
   o.innerHTML=`<div class="card sheet plsheet"><h3>${esc(cur)}</h3>${can?`<div class="row namerow"><input type="text" id="iPName" maxlength="${NAMEMAX}" value="${esc((seats[i]?(meta.uname||{})[seats[i].uid]:(meta.pname||{})[i])||'')}" placeholder="${esc(c?c.name:'表示名')}（${NAMEMAX}文字まで）"><button id="bPName">名前を変える</button></div><p class="muted" style="font-size:12px">空にして「名前を変える」を押すと元の名前に戻ります。</p>`:''}
     ${c?profHTML(c):''}${c&&meta.host===myId?`<label class="row lvrow"><span class="muted">キャラを入れかえる</span><select id="selChar">${CHARS.filter(x=>x.lv===c.lv).map(x=>`<option value="${x.id}"${x.id===c.id?' selected':''}>${esc(x.name)}（${esc(x.style.split('。')[0])}）</option>`).join('')}</select></label>`:''}
-    <button class="ghost" id="bPFans">🏠 物件一覧を見る</button><button id="bPClose">とじる</button></div>`;o.hidden=false;
+    ${ds&&ds.players&&ds.players[i]?`<p class="pl-fan">${esc(fanNext(ds,ds.players[i]).txt)}</p>`:''}<button class="ghost" id="bPFans">🏠 物件一覧を見る</button><button id="bPClose">とじる</button></div>`;o.hidden=false;
   const close=()=>{o.hidden=true;o.innerHTML=''};$('#bPClose').onclick=close;$('#bPFans').onclick=()=>showFans(ds,i);
   {const b=$('#bPName');if(b)b.onclick=async()=>{if(await setName(i,$('#iPName').value))close()};const inp=$('#iPName');if(inp)inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();b.click()}})}
   {const sc=$('#selChar');if(sc)sc.onchange=async()=>{await setCpuChar(i,sc.value);close();toast(`CPUを「${(CHARS.find(x=>x.id===sc.value)||{}).name}」にしました`)}}}
@@ -3230,7 +3273,7 @@ const MI={
 };
 const MIBG={coins:'#fff4c2',wallet:'#ffe1e1',mega:'#dff1ff',fans:'#dff1ff',cards:'#fff4c2',bag:'#efe6ff',station:'#ffe8dc',flag:'#fff1f7',rail:'#f1ece6',plane:'#e8e6ff',ship:'#e1f1ff',brief:'#f4ece3',mic:'#efeaf5',people:'#fff0f6',stage:'#f1e8ff',book:'#ffeef5',gift:'#fff0f6',tv:'#e6f5ff',trend:'#e4f7ec',down:'#ffe6e6',phone:'#fff0f6',onsen:'#fff0e8',sing:'#fff0f6',game:'#efeaf5',food:'#fff1e6',letter:'#fff0f6',heart:'#fff0f6',cake:'#fff0f6',clover:'#e6f8ec',sleep:'#efeaff',dizzy:'#ecf8ec',rain:'#e8eef6',storm:'#e4e2ea',clock:'#fff3e6',nowifi:'#f0eef3',broken:'#eef0f4',fire:'#fff0e6',ban:'#ffecec',camera:'#efeaf5',gull:'#e3f4ff',whale:'#e1f1ff',light:'#e3f4ff',lantern:'#fff0e6'};
 // イベントごとの絵（キー→絵）
-const MIEV={pr:'brief',sponsor:'brief',brand:'stage',a_tieup:'brief',narration:'mic',radio:'mic',eventmc:'mic',collabreq:'people',handshake:'people',offkai:'people',tour:'people',a_crew:'camera',p_island:'people',big:'stage',liveevent:'stage',a_event:'stage',p_live:'stage',magazine:'book',scandal:'book',goods:'gift',present:'gift',giftbox:'gift',a_souvenir:'gift',a_dutyfree:'bag',p_marche:'bag',p_gift:'gift',p_coop:'cards',tv:'tv',cm:'tv',a_ad:'tv',snsboom:'trend',ranking:'trend',buzz:'trend',viral:'trend',trend:'trend',newfans:'trend',rival:'down',regular:'phone',zatsudan:'phone',longlive:'phone',morning:'phone',a_window:'phone',a_night:'phone',p_sunset:'phone',a_deck:'plane',p_walk:'phone',onsen:'onsen',karaoke:'sing',a_piano:'sing',gaming:'game',gourmet:'food',a_meal:'food',a_gourmet:'food',p_udon:'food',p_fish:'food',p_fes:'lantern',p_auction:'food',festival:'lantern',tip:'coins',coinfound:'coins',jackpot:'coins',lottery:'coins',a_mile:'coins',p_catch:'coins',a_bagfirst:'coins',comment:'letter',fanletter:'letter',fanart:'letter',cheer:'heart',photo:'heart',fanclub:'heart',birthday:'cake',doublecard:'cards',cardstorm:'cards',fukubiki:'cards',sleepy:'sleep',a_turb:'dizzy',p_seasick:'dizzy',rain:'rain',p_fog:'rain',delay:'clock',a_delay:'clock',a_line:'clock',a_miss:'clock',a_over:'clock',a_cancel:'clock',p_wave:'clock',p_engine:'clock',typhoon:'storm',p_typhoon:'storm',netdown:'nowifi',a_nowifi:'nowifi',phonebreak:'broken',trouble:'broken',p_dropphone:'broken',wallet:'wallet',p_ticket:'wallet',a_lostbag:'wallet',p_gullsnack:'wallet',flame:'fire',ban:'ban',cancel:'ban',a_lounge:'plane',a_smooth:'plane',a_captain:'plane',a_pilot:'plane',a_upgrade:'plane',a_first:'plane',a_jet:'plane',a_photo:'camera',p_ship:'ship',p_cruise:'ship',p_captain:'ship',p_liner:'ship',p_yacht:'ship',p_ambassador:'ship',p_gull:'gull',p_whale:'whale',p_dolphin:'whale',p_light:'light'};
+const MIEV={/* コアファンイベント・ファン交流の追加分 */y_reg:'fans',y_friend:'people',y_comment:'phone',y_rom:'phone',y_quiet:'sleep',y_gift:'gift',y_shout:'mic',y_newbie:'heart',y_offkai:'people',y_rankin:'trend',y_kami:'tv',y_legend:'stage',f_cheer:'heart',f_letter:'letter',f_doubt:'dizzy',f_banner:'mega',f_meet:'people',f_oshihen:'broken',f_club:'fans',f_surprise:'cake',pr:'brief',sponsor:'brief',brand:'stage',a_tieup:'brief',narration:'mic',radio:'mic',eventmc:'mic',collabreq:'people',handshake:'people',offkai:'people',tour:'people',a_crew:'camera',p_island:'people',big:'stage',liveevent:'stage',a_event:'stage',p_live:'stage',magazine:'book',scandal:'book',goods:'gift',present:'gift',giftbox:'gift',a_souvenir:'gift',a_dutyfree:'bag',p_marche:'bag',p_gift:'gift',p_coop:'cards',tv:'tv',cm:'tv',a_ad:'tv',snsboom:'trend',ranking:'trend',buzz:'trend',viral:'trend',trend:'trend',newfans:'trend',rival:'down',regular:'phone',zatsudan:'phone',longlive:'phone',morning:'phone',a_window:'phone',a_night:'phone',p_sunset:'phone',a_deck:'plane',p_walk:'phone',onsen:'onsen',karaoke:'sing',a_piano:'sing',gaming:'game',gourmet:'food',a_meal:'food',a_gourmet:'food',p_udon:'food',p_fish:'food',p_fes:'lantern',p_auction:'food',festival:'lantern',tip:'coins',coinfound:'coins',jackpot:'coins',lottery:'coins',a_mile:'coins',p_catch:'coins',a_bagfirst:'coins',comment:'letter',fanletter:'letter',fanart:'letter',cheer:'heart',photo:'heart',fanclub:'heart',birthday:'cake',doublecard:'cards',cardstorm:'cards',fukubiki:'cards',sleepy:'sleep',a_turb:'dizzy',p_seasick:'dizzy',rain:'rain',p_fog:'rain',delay:'clock',a_delay:'clock',a_line:'clock',a_miss:'clock',a_over:'clock',a_cancel:'clock',p_wave:'clock',p_engine:'clock',typhoon:'storm',p_typhoon:'storm',netdown:'nowifi',a_nowifi:'nowifi',phonebreak:'broken',trouble:'broken',p_dropphone:'broken',wallet:'wallet',p_ticket:'wallet',a_lostbag:'wallet',p_gullsnack:'wallet',flame:'fire',ban:'ban',cancel:'ban',a_lounge:'plane',a_smooth:'plane',a_captain:'plane',a_pilot:'plane',a_upgrade:'plane',a_first:'plane',a_jet:'plane',a_photo:'camera',p_ship:'ship',p_cruise:'ship',p_captain:'ship',p_liner:'ship',p_yacht:'ship',p_ambassador:'ship',p_gull:'gull',p_whale:'whale',p_dolphin:'whale',p_light:'light'};
 const MISQ={plus:'coins',minus:'wallet',yell:'fans',card:'cards',shop:'bag',station:'station',airport:'plane',port:'ship',plain:'rail',sea:'ship',event:'clover'};
 function miniArt(k,tone){const a=MI[k]||MI.clover;return`<svg class="mini" viewBox="0 0 64 64" aria-hidden="true"><rect x="1.5" y="1.5" width="61" height="61" rx="14" fill="${MIBG[k]||'#fff'}" stroke="currentColor" stroke-width="2.5"/>${a}${tone?`<circle cx="54" cy="54" r="9" fill="${tone>0?'#14935a':'#d6304b'}" stroke="#fff" stroke-width="2.5"/><path d="${tone>0?'M49.5 56.5L54 50.5l4.5 6z':'M49.5 51.5L54 57.5l4.5-6z'}" fill="#fff"/>`:''}</svg>`}
 // 止まったマスの結果を、地図の下にはっきり表示（全員の手番で）＋プレイヤー表示の上に増減
@@ -3242,6 +3285,7 @@ function resultInfo(s,prev,seat,t,n){t=nameize(t);const parts=t.split('・').sli
   if(!msg)msg=n.hub?'止まっても何も起きない':n.type==='plain'||n.type==='sea'?'何も起きない':n.type==='station'?'物件は獲得しなかった':'';
   else if(n.type==='station'&&parts.length===1&&parts[0]===n.name)msg='物件は獲得しなかった';
   msg=msg.replace(/^(コアファンマス|プラスマス|マイナスマス|スポンサー案件|コラボ依頼|大型イベント|バズった！|炎上…|投げ銭ラッシュ|機材トラブル|ランキング入り|地方テレビ出演|ラジオにゲスト出演|生誕祭|雨で客足ダウン|案件キャンセル|切り抜き動画がバズ|グッズ完売|雑誌に掲載|宝くじ当選！|財布を落とした|電車が遅延|初見さんがコアファンに|ライバル急上昇|差し入れ|公式イベント入賞！|フォロワー急増) ?/,'');
+  if(ee&&n.type==='yell'&&EVN[ee.v])msg=msg.replace('「'+EVN[ee.v]+'」','').trim();/* コアファンイベントの名前は見出しに出すので、本文からは外す */
   const P=s.players[seat],Q=prev&&prev.players?prev.players[seat]:null,pills=[];let tone=0;
   if(Q){const dc=P.coin-Q.coin,dy=(P.ye||0)-(Q.ye||0),df=baseCount(s,seat)-baseCount(prev,seat);tone=df>0?1:dc?Math.sign(dc):dy?Math.sign(dy):Math.sign((P.pt||0)-(Q.pt||0));
     // 駅で物件を獲得したときの減りは「支払い」（損ではない）として出す
@@ -3264,12 +3308,14 @@ function resultInfo(s,prev,seat,t,n){t=nameize(t);const parts=t.split('・').sli
   lines=lines.map(x=>x.replace(/^（(.+)）$/,'$1'));if(pills.length)lines=lines.filter(x=>!/^([＋−+\-][\d,]+G?|コアファン[＋−][\d.]+人|ランク[＋−]\d+pt|[＋−]\d+pt|\s)+$/.test(x));/* 数値だけの行は丸（pills）と重なるので外す */
   if(lines.length===1&&pills.length){const x=lines[0].replace(/(^|\s)(コアファン[＋−][\d.]+人|ランク[＋−]\d+pt|[＋−]\d+pt|[＋−+−-][\d,]+G?)(?=$|\s)/g,'').replace(/\s+/g,' ').trim();lines=x&&!/^[・／\s]*$/.test(x)?[x]:[]}
   // 主な結果：プラス・マイナス・コアファンマスは、増減を大きく1つ出す
-  let main=null;if(['plus','minus','yell'].includes(n.type)&&!ee&&!goal){const i=pills.findIndex(x=>x[0]===(n.type==='yell'?'コアファン':'ゴールド'));if(i>=0)main=pills.splice(i,1)[0]}
+  let main=null;if(['plus','minus','yell'].includes(n.type)&&(!ee||n.type==='yell')&&!goal){/* コアファンマスはイベントつきでも、増えた人数を大きく出す */const i=pills.findIndex(x=>x[0]===(n.type==='yell'?'コアファン':'ゴールド'));if(i>=0)main=pills.splice(i,1)[0]}
   // ミニ画像：1番乗り→旗、イベント→イベントごとの絵（なければジャンルの絵）、それ以外→マスの種類の絵
   const art=goal?'flag':ee?(MIEV[ee.v]||{お仕事:'brief',配信:'phone',ファン交流:'heart',ラッキー:'clover',ハプニング:'down',空港:'plane',港:'ship'}[EVG[ee.v]]||'clover'):(MISQ[n.type]||'rail');
-  const c=n.type==='station'?'var(--station)':SQC[n.type]||'var(--pink)';return{title,msg,lines,main,mult,note,pills,art,tone,c,icon:ee?'🎉':goal?'🏁':RESI[n.type]||'✨',kind:goal?'目的地':ee?(n.type==='airport'?'✈ 空港イベント':n.type==='port'?'⚓ 港イベント':'イベント'):n.type==='station'?'駅':n.hub?KIND[n.type]:KIND[n.type]||''}}
+  {const yb=(s.ev||[]).filter(e=>e.k==='yellbonus'&&e.v===seat);if(yb.length&&Array.isArray(lines))yb.forEach(e=>lines.push('🎉 '+String(e.t).replace(/^[1-4]P /,'')))}/* 10人の節目のボーナスを結果カードで分かるように */
+  {const P=s.players[seat],Q=prev&&prev.players?prev.players[seat]:null;if(P&&Q&&(P.ye||0)!==(Q.ye||0)&&!(s.ev||[]).some(e=>e.k==='yellreset')){/* コアファンが増減したら、次のボーナスまでを補足に出す */const f=fanNext(s,P);note=(note?note+'／':'')+f.txt}}
+  const c=n.type==='station'?'var(--station)':SQC[n.type]||'var(--pink)';return{title,msg,lines,main,mult,note,pills,art,tone,c,icon:ee?'🎉':goal?'🏁':RESI[n.type]||'✨',kind:goal?'目的地':ee?(n.type==='airport'?'✈ 空港イベント':n.type==='port'?'⚓ 港イベント':n.type==='yell'?'💖 コアファンマス':'イベント'):n.type==='station'?'駅':n.hub?KIND[n.type]:KIND[n.type]||''}}
 function resultHTML(r,who){const kind=r.kind&&r.kind!==r.title?r.kind:'',lines=r.lines||(r.msg?[r.msg]:[]);
-  return`<div class="rescard${r.main?' has-main':''}" style="--c:${r.c}"><div class="rc-top">${r.art?`<span class="rc-art">${miniArt(r.art,r.tone)}</span>`:`<span class="rc-ico">${r.icon}</span>`}<span class="rc-ttl"><small>${who||''}${kind?(who?'・':'')+esc(kind):''}</small><b>${esc(r.title)}</b></span>${r.main?`<span class="rc-main ${r.main[2]}"><small>${r.main[0]}</small>${r.main[1]}</span>`:''}</div>`
+  return`<div class="rescard${r.main?' has-main':''}" style="--c:${r.c}"><div class="rc-top">${r.art?`<span class="rc-art">${miniArt(r.art,r.tone)}</span>`:`<span class="rc-ico">${r.icon}</span>`}<span class="rc-ttl"><small>${who||''}${kind?(who?'・':'')+esc(kind):''}</small><b${Array.from(r.title||'').length>8?' class="ttl-long"':''}>${esc(r.title)}</b></span>${r.main?`<span class="rc-main ${r.main[2]}"><small>${r.main[0]}</small>${r.main[1]}</span>`:''}</div>`
   +(lines.length?`<ul class="rc-lines">${lines.slice(0,4).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'')
   +(r.mult?`<div class="rc-mult"><span>🕒 ${esc(r.mult.tz)} <b>${xf(r.mult.a)}</b></span><span>${esc(r.mult.wx)} <b>${xf(r.mult.b)}</b></span><span class="rc-mx">倍率 <b>${xf(r.mult.a*r.mult.b)}</b></span></div>`:'')
   +(r.pills.length?`<div class="rc-pills">${r.pills.map(([k,v,c])=>`<span class="rc-pill ${c}"><small>${k}</small>${v}</span>`).join('')}</div>`:'')
@@ -3422,7 +3468,7 @@ $('#exitStream').onclick=()=>{SET.stream=false;try{localStorage.setItem('poco-se
 for(const [id,key] of [['selDisconnect','disconnectSec'],['selCpuTimeout','cpuTimeoutSec']])$('#'+id).onchange=async e=>{if(!db.online||!meta||meta.host!==myId||meta.phase!=='lobby')return;try{await db.doc('games/'+code).update({[key]:Number(e.target.value)});toast('待ち時間を保存しました')}catch(er){toast(errText(er));render()}};$('#bCreate').onclick=createRoom;$('#bLeaveRoom').onclick=leaveRoom;
 const HOW=[['目的地を目指そう',['目的地は全駅からランダムで決まります（プレイヤーの場所とは関係なし）。','サイコロを振ったら、分かれ道ではA・B・Cの候補（または地図の矢印）から進む道を選びます。「おまかせ」は最短の道。','目的地に1番乗りすると、賞金・コアファン5人・ランク50pt！','カードは7ジャンル62種類。レア度はN・R・SR・SSR・URの5段階で、効果が高いほどレアで高価。','カードショップは県ごとに品ぞろえが違います（進行カードとN・Rはどこでも買えます）。']],
  ['マスと物件',['🟢プラス（ゴールド増）・🔴マイナス（減）・🔵コアファン・🟡カード・🎪イベント・🛍️カードショップ。','プラス・マイナス・コアファンの量は、時間帯（朝・昼・ゴールデン・深夜）と天気（6時間ごとに変わる）で変わります。','✈空港どうしは紫の点線（空路）、白い点線はフェリー航路。少ないマスで遠くまで行けます。','駅に止まると、ゴールドで物件（各地の名物）を獲得。毎日0:00の決算でゴールドがもらえます。','1つの駅の物件を全部1人で持つと「独占」で決算1.4〜2倍。物件が増えるほど、マスやイベントのゴールドも＋5〜160%。']],
- ['コアファン',['コアファンは人数で数えます。コアファンマス・イベント・ポコチャレ・1番乗りで増え、炎上などで減ります。','10人たまるごとにボーナスのゴールド（基本ゴールド×2）。','目的地が変わるたびに、全員のコアファンは0人に戻ります。']],
+ ['コアファン',['コアファンは人数で数えます。コアファンマス・イベント・ポコチャレ・1番乗りで増え、炎上などで減ります。','コアファンマスでは「常連さんがお友達を連れてきた」などのコアファンイベントが起き、人数が増えたりゴールド・ランクptがついたりします。','10人たまるごとにボーナスのゴールド（基本ゴールド×2）。いまの人数と次のボーナスまでは、プレイヤー欄をタップすると見られます。','毎日0:00の決算のあと、全員のコアファンは0人に戻ります（1日ごとに集め直し）。']],
  ['ランク帯',['E・D・C・B・A・Sの6帯×1〜6段階（E1〜S6）。全員E1スタート。','ランクが高いほど基本ゴールドが増え、マス・イベント・0:00決算の金額が上がります。','ランクptは1番乗り・イベント・ポコチャレ・0:00の締めの条件（物件獲得・ポコチャレ2回・コアファン10人・ゴールド目標）でたまり、必要数に届くとすぐランクアップ。','炎上・案件キャンセル・荒らしコメントでptが減り、0を下回るか、締めの条件を1つもクリアできないとランクダウン（ptは0から）。']],
  ['時間・お邪魔キャラ',['4人が1回ずつ動くと1時間進む24時間制で、18:00スタート。','ポコチャレは6時間ごとに3つ出ます。','だれかがゴールすると、一番遠い人に「荒らしラグ王」が取りつきます。','最後の0:00決算のあと、ゴールド＋物件＋ランクボーナスの合計が一番多い人が優勝。','途中でやめるときはメニューの「⏸ 中断する」。タイトルの「続きから遊ぶ」で再開できます。']]];
 let howI=0;function showHow(){const o=$('#ov');const [h,t]=HOW[howI];o.innerHTML=`<div class="card"><button type="button" class="ghost xclose" id="hClose" aria-label="閉じる">×</button><p class="eyebrow">遊び方 ${howI+1}／${HOW.length}</p><h3>${h}</h3><ul class="howlist">${t.map(x=>`<li>${x}</li>`).join('')}</ul><div class="row" style="justify-content:center">${howI>0?'<button class="ghost" id="hPrev">もどる</button>':''}<button id="hNext">${howI<HOW.length-1?'つぎへ':'とじる'}</button></div></div>`;o.hidden=false;
@@ -3589,13 +3635,13 @@ function wxTables(hz,hw){const row=(on,h,a,b,c)=>`<tr${on?' class="on"':''}><th>
 // ランク帯の表：基本ゴールド（段階1→6）とゲーム終了時のランクボーナス
 function rankTable(){return`<table class="xtab"><tr><th>帯</th><td>基本ゴールド</td><td>終了時ボーナス</td></tr>${BANDS.map(b=>`<tr><th>${b}</th><td>${BASEPT[b+1].toLocaleString()}〜${BASEPT[b+6].toLocaleString()}</td><td>${BONUS[b+1].toLocaleString()}〜${BONUS[b+6].toLocaleString()}</td></tr>`).join('')}</table>`}
 const SYS=[
- ['🎯 目的','ゲームの目的',`<p>決めた日数のあいだ、九州・沖縄から全国の駅をめぐって「ゴールド」を集めるすごろくです。</p><h4>優勝の条件</h4><p>最後の0:00決算のあと、<b>ゴールド＋物件の合計＋ランクボーナス</b>が一番多い人の優勝です。</p><h4>目的地</h4><p>目的地は全国の駅からランダムで決まります。<b>ぴったり止まったときだけ</b>1番乗り（通り過ぎてもゴールになりません）。分かれ道で「🎯ぴったり着ける」と出た道を選ぶと止まれます。1番乗りすると賞金・コアファン・ランクptがもらえ、次の目的地が決まったあとで、着いた駅の物件を獲得できます。</p><h4>1番乗りの報酬</h4><ul><li><b>賞金</b>：前の目的地から遠いほど、またランクが高いほど多くなります（沖縄の駅は1.2倍）。</li><li><b>コアファン＋5人</b>・<b>ランク＋50pt</b></li><li>目的地が変わると全員のコアファンが0に戻り、お邪魔キャラが誰かに取りつきます。</li></ul>`],
+ ['🎯 目的','ゲームの目的',`<p>決めた日数のあいだ、九州・沖縄から全国の駅をめぐって「ゴールド」を集めるすごろくです。</p><h4>優勝の条件</h4><p>最後の0:00決算のあと、<b>ゴールド＋物件の合計＋ランクボーナス</b>が一番多い人の優勝です。</p><h4>目的地</h4><p>目的地は全国の駅からランダムで決まります。<b>ぴったり止まったときだけ</b>1番乗り（通り過ぎてもゴールになりません）。分かれ道で「🎯ぴったり着ける」と出た道を選ぶと止まれます。1番乗りすると賞金・コアファン・ランクptがもらえ、次の目的地が決まったあとで、着いた駅の物件を獲得できます。</p><h4>1番乗りの報酬</h4><ul><li><b>賞金</b>：前の目的地から遠いほど、またランクが高いほど多くなります（沖縄の駅は1.2倍）。</li><li><b>コアファン＋5人</b>・<b>ランク＋50pt</b></li><li>目的地が変わると、お邪魔キャラが誰かに取りつきます。</li></ul>`],
  ['🎲 手番','1手番の流れ',`<ul><li>自分の番になったら「サイコロ」を振るか、「カード」を1枚使います。</li><li>サイコロが増えるカードを使うと、画面のサイコロもその数だけ並びます。</li><li>分かれ道では光る矢印か下のボタンで進む方向を選びます。「おまかせ」は、目的地にぴったり止まれる道を最優先し、無理ならプラス・コアファン・イベント・買える駅など止まるマスの損得をみて、いちばん得な道を選びます。押すと先に止まる場所と理由・道のりが出るので、確かめてから進めます。「1つ戻す」で1マス前に戻れます。</li><li>止まったマスの効果が起きます。駅なら物件、カードショップならカードの売り買いができます。</li></ul><p>持ち時間があり、時間が切れると自動で進みます。</p>`],
- ['🟢 マス','マスの種類',`<ul><li><b>緑＋ プラスマス</b>：ゴールドが増える</li><li><b>赤− マイナスマス</b>：ゴールドが減る</li><li><b>青 コアファンマス</b>：コアファンがもらえる</li><li><b>黄 カードマス</b>：カードが1枚もらえる</li><li><b>お祭り色 イベントマス</b>：いろいろなイベントが起きる</li><li><b>紫の袋 カードショップ</b>：カードを買う・売る</li><li><b>駅</b>：物件を獲得できる</li></ul><p>空港（✈）どうしは紫の点線の空路、港どうしは白い点線のフェリー航路でつながっていて、少ないマスで遠くへ行けます。<b>空港マス・港マスに止まると、空港や港ならではのイベント</b>が起きます。</p><h4>もらえる量の決まり方</h4><ul><li><b>プラスマス</b>：ランクの基本ゴールドをもとに、<b>時間帯と天気の倍率</b>・物件数ボーナスがかかります。</li><li><b>マイナスマス</b>：基本ゴールドをもとに、時間帯と天気の倍率がかかります（ブロックカードで防げます）。</li><li><b>コアファンマス</b>：1〜3人に時間帯と天気の倍率がかかり、物件5件以上で＋1人・12件以上で＋2人、ランク帯が1つ上がるごとに＋1人されます。</li></ul><p>倍率は「🕒 時間」の表、または地図の左上の時刻・天気をタップすると見られます。</p>`],
+ ['🟢 マス','マスの種類',`<ul><li><b>緑＋ プラスマス</b>：ゴールドが増える</li><li><b>赤− マイナスマス</b>：ゴールドが減る</li><li><b>青 コアファンマス</b>：コアファンがもらえる（コアファンイベントつき）</li><li><b>黄 カードマス</b>：カードが1枚もらえる</li><li><b>お祭り色 イベントマス</b>：いろいろなイベントが起きる</li><li><b>紫の袋 カードショップ</b>：カードを買う・売る</li><li><b>駅</b>：物件を獲得できる</li></ul><p>空港（✈）どうしは紫の点線の空路、港どうしは白い点線のフェリー航路でつながっていて、少ないマスで遠くへ行けます。<b>空港マス・港マスに止まると、空港や港ならではのイベント</b>が起きます。</p><h4>もらえる量の決まり方</h4><ul><li><b>プラスマス</b>：ランクの基本ゴールドをもとに、<b>時間帯と天気の倍率</b>・物件数ボーナスがかかります。</li><li><b>マイナスマス</b>：基本ゴールドをもとに、時間帯と天気の倍率がかかります（ブロックカードで防げます）。</li><li><b>コアファンマス</b>：1〜3人に時間帯と天気の倍率がかかり、物件5件以上で＋1人・12件以上で＋2人、ランク帯が1つ上がるごとに＋1人されます。さらにコアファンイベントで人数が増えたり、ゴールド・ランクptがついたりします。</li></ul><p>倍率は「🕒 時間」の表、または地図の左上の時刻・天気をタップすると見られます。</p>`],
  ['🕒 時間','時間と天気',`<p>4人が1回ずつ動く1周が「1時間」です。18:00にスタートし、毎日0:00に決算があります。</p><p>時間帯（朝・昼・ゴールデン・深夜）と天気（晴れ・くもり・雨・嵐）で、<b>プラスマス・マイナスマス・コアファンマスでもらえる量が変わります</b>。実際の倍率は「時間帯の倍率×天気の倍率」です（例：ゴールデン×晴れのプラスマスは ${xf(PLUSM.tz[2]*PLUSM.wx[0])}）。</p>${wxTables(-1,-1)}<ul><li>ゴールデン（19〜23時）は、プラスもコアファンも大きいかせぎどき。深夜はコアファンが増えますが、マイナスも大きくなります。</li><li>天気は <b>0:00・6:00・12:00・18:00</b> に変わります。晴れが出やすく、嵐はめったに出ません。</li><li>嵐はマイナスが ${xf(MINUSM.wx[3])}・コアファンが ${xf(YELLM.wx[3])}。ピンチでもありチャンスでもあります。</li><li>「晴れ乞いカード」「嵐を呼ぶカード」で天気を変えられます。台風などのイベントで嵐になることもあります。</li></ul><p>プレイ中は、地図の左上の時刻・天気をタップすると、いまの倍率が見られます。</p>`],
  ['🏠 物件','物件と決算',`<p>駅に止まると、ゴールドを使ってその土地の名物「物件」を獲得できます。</p><ul><li>毎日0:00の決算で、物件からゴールドがもらえます。</li><li>ゴールドがマイナスになったら、プラスに戻るまで物件を売却します（売値は獲得したときの値段）。売る物件はおすすめが出ますが、ほかの物件を選ぶこともできます。</li><li>1つの駅の物件を1人ですべて獲得すると「独占」になり、その駅の物件の決算が<b>1.4〜2.0倍</b>になります（物件の値段の合計が高い駅・物件が多い駅ほど倍率が高い）。</li><li>物件の数が増えるほど、マスやイベントでもらえるゴールドも増えます。</li></ul><h4>物件数ボーナス</h4><p>物件数が節目に届くと、プラスマスやイベントでもらえるゴールドが増えます。</p><table class="xtab"><tr><th>物件数</th><td>ボーナス</td></tr>${TIERS.slice(0,8).map((t,i)=>`<tr><th>${t}件〜</th><td>＋${Math.round(TB[i]*100)}%</td></tr>`).join('')}</table><p class="muted">このあとも${TIERS[TIERS.length-1].toLocaleString()}件（＋${Math.round(TB[TB.length-1]*100)}%）まで段階的に増えます。</p><p>プレイヤー欄をタップすると、自分の物件の一覧と決算の見込みが見られます。</p>`],
  ['💰 決算','0:00の決算',`<p>毎日0:00に決算があり、次の3つが順に行われます。</p><h4>1. ゴールドの支給</h4><ul><li><b>物件から</b>：物件ごとの「毎日のゴールド」の合計（独占していれば倍率つき。「推し活カード」を使っていれば1.5倍）。</li><li><b>ランクから</b>：基本ゴールド×（前の決算からの時間÷6）。</li></ul><h4>2. 締めの条件（ランクpt）</h4><table class="xtab"><tr><th>条件（24時間の日）</th><td>ランクpt</td></tr>${CONDS.map(c=>`<tr><th>${c[1]}</th><td>＋${c[2]}</td></tr>`).join('')}</table><ul><li>ゴールド目標は「その日にかせいだ量が基本ゴールドの8倍以上」です。コアファンは「その日に増えた量」で数えます。</li><li>1日目（18:00〜0:00）のように短い日は、時間に合わせて条件がゆるくなります（6時間ならポコチャレ1回・コアファン3人・基本の2倍）。</li><li><b>1つもクリアできないとランクダウン</b>します。</li></ul><h4>3. 新人応援ブースト</h4><p>決算のあと、総Gがいちばん少ない人は次の決算まで<b>サイコロ＋1・コアファンマス1.5倍</b>（お邪魔のいたずらで減る量も一部半分）になります。次の日は総Gの少ない人から順に動きます。</p><p>最後の日の決算でまだゴールドがマイナスの人は、物件が自動で売却されます。</p>`],
- ['💖 コアファン','コアファン',`<p>コアファンは人数で数え、コアファンマス・イベント・ポコチャレ・目的地1番乗りなどで増えます。</p><ul><li>10人の節目を初めて超えるたびに、<b>基本ゴールドの2倍</b>のボーナスがもらえます。</li><li>コアファンマスは時間帯と天気で量が変わります（ゴールデン ${xf(YELLM.tz[2])}・深夜 ${xf(YELLM.tz[3])}・雨 ${xf(YELLM.wx[2])}・嵐 ${xf(YELLM.wx[3])}）。</li><li>目的地が変わると、全員のコアファンは0にリセットされます（10人ボーナスも最初から）。</li><li>0:00の締めの条件「コアファン10人獲得」は、その日に増えた量で数えます。</li></ul>`],
+ ['💖 コアファン','コアファン',`<p>コアファンは人数で数え、コアファンマス・イベント・ポコチャレ・目的地1番乗りなどで増えます。</p><ul><li>10人の節目を初めて超えるたびに、<b>基本ゴールドの2倍</b>のボーナスがもらえます。</li><li>コアファンマスは時間帯と天気で量が変わります（ゴールデン ${xf(YELLM.tz[2])}・深夜 ${xf(YELLM.tz[3])}・雨 ${xf(YELLM.wx[2])}・嵐 ${xf(YELLM.wx[3])}）。</li><li>コアファンマスでは、12種類の<b>コアファンイベント</b>のどれかが起きます（人数が2倍・3倍になったり、ゴールドやランクptがついたりすることも）。イベントマスでも、コアファンが増減する「ファン交流」のイベントが起きます。</li><li>毎日<b>0:00の決算のあと</b>、全員のコアファンは0人に戻ります（10人ボーナスも最初から）。目的地が変わっても0人には戻りません。</li><li>いまの人数と「あと何人で次のボーナスか」は、プレイヤー欄をタップするか、コアファンが増えたときの結果カードで見られます。</li><li>0:00の締めの条件「コアファン10人獲得」は、その日に増えた量で数えます。</li></ul>`],
  ['⭐ ランク','ランク帯',`<p>E・D・C・B・A・Sの6つの帯に、それぞれ1〜6の段階があります（全員E1スタート）。</p><ul><li>ランクが高いほど基本のゴールドが増え、マス・イベント・決算でもらえる量が増えます。</li><li>ランクptは目的地1番乗り・イベント・ポコチャレ・0:00の締めの条件などで貯まり、必要数に届くとランクアップします。</li><li>ランクptが0を下回ったり、0:00の締めの条件を1つもクリアできなかったりすると、ランクダウンします。</li></ul><h4>帯ごとの目安</h4>${rankTable()}<ul><li>基本ゴールド（説明の「基本G」）は、マス・イベント・決算・ボーナスでもらえる量の基準です。</li><li>終了時ボーナスは、最後の決算のあとで総Gに足されます。</li><li>次の段階までの必要ptは、E1の${NEED.E1}ptから少しずつ増えます。</li><li>ランクptがもらえる主なもの：目的地1番乗り＋50・ポコチャレ達成＋20・締めの条件＋15〜20。</li></ul>`],
  ['🃏 カード','カード',`<p>カードは7つのジャンルに分かれています。</p><ul>${GENRES.map(g=>`<li><b>${g[1]} ${g[0]}系</b>：${g[2]}</li>`).join('')}</ul><h4>レア度</h4><div class="rarrow">${RARITY.map(r=>RB(r)+'<small>'+RARN[r]+'</small>').join('')}</div><p>効果が高いほどレア度が高く、カードマスなどで引いたときに出にくく、ショップでの値段も高くなります。レアなカードほど、使ったときの演出や音も豪華になります。</p><h4>持ち方・使い方</h4><ul><li>手札は最大${HANDMAX}枚まで持てます。</li><li>自分の番に1枚使えます。持っているだけで効くカードもあります。</li><li>カードマス・イベント・ポコチャレの報酬・カードショップで手に入ります。</li></ul><p>どんなカードがあるかは、遊びながら見つけてください。</p>`],
  ['🛍️ ショップ','カードショップ',`<ul><li>カードショップのマスに止まると、「終了する」を押すまで、好きな順番で何回でもカードを売ったり買ったりできます。「1つ戻す」で取り消せます。</li><li>売るときの値段は、買う値段の半分です。</li><li>ショップは<b>県ごとに品ぞろえが違います</b>。進行系のカードと、${RB('N')}${RB('R')}のカードは、どこのショップでも買えます。</li><li>その地域でしか買えないカードには「📍この地域限定」と表示されます。</li></ul>`],
