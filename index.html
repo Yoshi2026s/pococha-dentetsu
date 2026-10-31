@@ -315,7 +315,7 @@ input[type=text]{font-family:var(--f-display);font-size:20px;letter-spacing:.3em
 .stream,.stream body{background:#000}
 .stream .wrap{padding-top:10vh;padding-bottom:0;gap:6px}
 .stream .wrap>h1,.stream .wrap>p.sub,.stream .logpanel,.stream #turnText{display:none!important}
-.stream .misbar{display:none}.stream .gc-all{display:none}.stream .goalcard{padding:4px 10px}.stream .gc-l b{font-size:30px}
+.stream .gc-all{display:none}.stream .goalcard{padding:4px 10px}.stream .gc-l b{font-size:30px}
 body.stream .wrap{padding-top:10vh!important}
 .stream .mapbox{border-color:#000;height:calc(70vh - 150px);width:auto;max-width:100%;aspect-ratio:400/560;align-self:center;flex:none}
 .stream .mapbox svg#map{width:100%;height:100%}
@@ -333,7 +333,6 @@ body.stream .wrap{padding-top:10vh!important}
 .basebtn:disabled{border-color:var(--c);opacity:.7}
 small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;background:#ffcf3a;color:#5a3d00;font-weight:800}
 .stream .basebtn{background:#222;color:#fff}
-.misbar{display:flex;gap:6px;align-items:center;overflow-x:auto;scrollbar-width:none;font-size:11px}
 .mis-h{font-family:var(--f-display);font-weight:800;color:var(--rank);white-space:nowrap}.mis-h small{margin-left:3px;opacity:.7}
 .mis{display:inline-flex;gap:5px;align-items:center;white-space:nowrap;padding:4px 9px;border-radius:999px;border:1.5px solid var(--line);background:var(--panel)}
 .mis b{font-weight:800;color:var(--rank)}.mis.done{background:color-mix(in srgb,var(--rank) 18%,var(--panel));border-color:var(--rank)}.mis.fail{opacity:.5;text-decoration:line-through}
@@ -431,7 +430,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .ingame .status .pl.turn{animation:none;transform:translateY(-2px);background:color-mix(in srgb,var(--c) 22%,var(--panel));box-shadow:2px 2px 0 var(--pop),0 0 0 3px var(--c)}
 .pl-now{position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);background:var(--c);color:#fff;font-size:9px;font-weight:800;padding:0 7px;border-radius:999px;border:1.5px solid var(--outline,#2b2236);line-height:1.5}
 .ingame .status .trollmark{top:0;left:2px;font-size:8px}
-.ingame .misbar{font-size:10px}.ingame .mis{padding:2px 7px}
+.ingame .mis{padding:2px 7px}
 .turnbar{display:flex;align-items:stretch;gap:6px}
 .tb-turn{flex:1.1;display:flex;align-items:center;gap:6px;min-width:0;padding:5px 10px 5px 5px;border-radius:16px;background:var(--c);color:#fff;border:2.5px solid var(--outline,#2b2236);box-shadow:3px 3px 0 var(--pop,#2b2236)}
 .tb-turn.flash{animation:tbf .7s cubic-bezier(.2,.9,.3,1.4)}@keyframes tbf{0%{transform:scale(.8)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
@@ -520,7 +519,6 @@ button.small,.chip{box-shadow:none}
 .pl-coin i{font-style:normal;color:var(--pink);font-size:12px;margin-right:1px}
 .pl-sub{grid-column:1/3;font-size:8.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ingame .pl-rk{display:none}
-.ingame .misbar{font-size:9.5px;min-height:0}
 .ingame .turnbar .tb-face{width:28px;height:28px}
 .ingame .turnbar .tb-turn,.ingame .turnbar .tb-goal{padding-top:2px;padding-bottom:2px;border-radius:13px}
 .ingame .tb-who b{font-size:14px}
@@ -589,7 +587,7 @@ button.small,.chip{box-shadow:none}
 .bar .log li:first-child{font-weight:800;color:var(--ink)}
 .ingame #vGame .mapbox{align-self:stretch}
 /* 第24.4版：メニュー・操作欄 */
-.toprow{display:flex;align-items:center;gap:6px;min-width:0}.toprow .misbar{flex:1;min-width:0}
+.toprow{display:flex;align-items:center;gap:6px;min-width:0}
 .menubtn{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;min-height:28px;padding:2px 10px;border-radius:999px;font-size:15px;font-weight:800;background:var(--ink);color:#fff;border:2px solid var(--outline,#2b2236);box-shadow:2px 2px 0 var(--pop)}
 .menubtn small{font-size:11px}
 .menusheet .mn-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.menusheet .mn-l{margin:4px 0 0;text-align:left;font-size:12px}
@@ -630,14 +628,10 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 #status.rankview .pl-l2 b{font-size:12.5px!important}
 #status.rankview .pl-tot small{font-size:10px!important}
 #status.rankview .pl-pos small{font-size:11px}
-/* ポコチャレ欄：文字を大きく、右端に続きがあることを示す */
-.ingame .misbar{font-size:11px!important;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);padding-right:18px;scroll-snap-type:x proximity}
-.ingame .misbar .mis{scroll-snap-align:start;min-height:30px}
-.mis-h{font-size:11px}
 /* メニュー・全体を見る：押しやすい大きさに */
 .menubtn{min-height:44px!important;padding:2px 12px!important}
 .menubtn small{font-size:12.5px!important}
-/* メニュー・ポコチャレ欄はサイコロ・カードの下（下のバー内）。サイコロ・カードはメニューと同じ高さにそろえる */
+/* メニュー・ポコチャレはサイコロ・カードの下（下のバー内）。大きさは第35版（v35ui）で2×2にそろえる */
 .bar .toprow{width:100%}
 .ingame .bar #actMain{gap:6px}
 .ingame .bar #actMain button,.bar #actMain button{min-height:44px!important;height:44px;padding-block:0;font-size:15px!important;border-width:2px}
@@ -750,7 +744,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 <div class="bar" id="bar" hidden>
   <div class="inner">
     <div class="main" id="actMain"><button id="bRoll" disabled>サイコロ</button><button id="bCard" class="ghost" disabled>カード</button></div>
-    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><div class="misbar" id="misBar"></div></div>
+    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><button type="button" class="misbtn" id="bMis" aria-haspopup="dialog" aria-label="ポコチャレ（タップで内容を見る）">🏅<small>ポコチャレ</small><b id="misCnt">0/3</b></button></div>
     <div id="actRoute" hidden><div class="routehead"><span class="routeinfo" id="routeInfo">進む方向をえらんでください</span><span class="routeleft" id="routeLeft"></span></div><div class="routeopts" id="routeOpts"></div><div class="main routectl"><button id="bUndo" class="ghost" disabled>↶ 1つ戻す</button><button id="bAuto" class="ghost">おまかせ（おすすめ）</button></div></div>
     <div id="actReward" hidden><div class="rwinfo" id="rwInfo"></div><div class="main"><button id="bRwCoin">ゴールド 3,000G</button><button id="bRwCard" class="ghost">カード1枚</button></div></div>
     <div id="actShop" hidden><div class="bl-h" id="shopHead">カードショップ</div><div class="baselist" id="shopList"></div><div class="main"><button id="bShopOk">何もせずに終了する</button><button id="bShopUndo" class="ghost" hidden>↶ 1つ戻す</button><button id="bShopSkip" class="ghost" hidden>全部取り消して終了</button></div></div>
@@ -816,6 +810,34 @@ body.gfs-shake .wrap{animation:shk .45s}
 .prz-chips span{font-size:12.5px;font-weight:800;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--c) 18%,var(--panel));border:2px solid var(--c);opacity:0;animation:gfsDrop .45s cubic-bezier(.2,1.6,.4,1) forwards}
 .prz-chips span:nth-child(1){animation-delay:.6s}.prz-chips span:nth-child(2){animation-delay:.8s}.prz-chips span:nth-child(3){animation-delay:1s}
 @media (prefers-reduced-motion:reduce){.prz-chips span{opacity:1;animation:none}}
+</style>
+<style id="v35ui">
+/* ===== 第35版：下のボタン（サイコロ・カード・メニュー・ポコチャレ）を同じ大きさの2×2にそろえる ===== */
+.ingame .bar #actMain,.bar .toprow{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important;width:100%}
+.ingame .bar #actMain button,.bar #actMain button,.bar .toprow>button{flex:none!important;width:100%;min-width:0;height:50px!important;min-height:50px!important;padding:0 8px!important;border-radius:16px!important;border-width:2.5px!important;font-size:16px!important;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}
+.bar #actMain button#bRoll{font-size:17px!important}
+#actMain[hidden]+.toprow{display:none!important}/* 獲得・ショップなどの画面では従来どおり隠す */
+.bar .toprow{margin-top:2px}/* 上下の間隔も左右と同じ8px（.innerの間隔6px＋2px） */
+.bar .toprow>button{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;font-family:var(--f-display);font-weight:800;background:var(--panel)!important;color:var(--ink)!important;border-color:var(--outline,#2b2236)!important;box-shadow:2px 2px 0 var(--pop)!important;background-image:none!important;text-shadow:none!important}
+.bar .toprow>button small{font-size:15px!important;font-weight:800;opacity:1}
+.misbtn b{font-size:13px;font-weight:900;line-height:1;padding:3px 7px;border-radius:999px;background:var(--rank);color:#fff;font-variant-numeric:tabular-nums}
+.misbtn.alldone b{background:#14935a}
+.misbtn.ping{animation:misping .7s ease-in-out 3}@keyframes misping{50%{transform:scale(1.04);box-shadow:0 0 0 4px color-mix(in srgb,var(--rank) 45%,transparent)}}
+@media (prefers-reduced-motion:reduce){.misbtn.ping{animation:none}}
+.stream #bMis{display:none!important}.stream .bar .toprow{grid-template-columns:1fr}
+@media (max-width:350px){.bar .toprow>button small{font-size:14px!important}.misbtn b{font-size:12px;padding:2px 5px}}
+/* ポコチャレの内容（ボタンから開く） */
+.missheet h3{margin:0}.ms-who{margin:2px 0 10px;font-size:13px;font-weight:700;color:var(--muted)}
+.ms-list{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:8px;text-align:left}
+.ms-r{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;border-radius:14px;border:2px solid var(--line);background:color-mix(in srgb,var(--rank) 6%,var(--panel))}
+.ms-r.done{border-color:#14935a;background:color-mix(in srgb,#14935a 14%,var(--panel))}.ms-r.fail{opacity:.6}.ms-r.fail .ms-t b{text-decoration:line-through}
+.ms-i{font-size:20px;text-align:center}.ms-t{display:flex;flex-direction:column;gap:6px;min-width:0}.ms-t b{font-size:15px;line-height:1.4;color:var(--ink)}
+.ms-n{font-size:12px;font-weight:700;color:var(--muted);line-height:1.4}.ms-bar{display:block;height:7px;border-radius:999px;background:color-mix(in srgb,var(--ink) 14%,transparent);overflow:hidden}.ms-bar i{display:block;height:100%;border-radius:inherit;background:var(--rank)}
+.ms-p{font-size:14px;font-weight:900;color:var(--rank);white-space:nowrap;font-variant-numeric:tabular-nums}.ms-r.done .ms-p{color:#14935a}
+.ms-rw{font-size:13px;line-height:1.6;text-align:left;margin:0 0 4px}.ms-nx{font-size:12.5px;margin:0 0 10px}
+.missheet>button:not(.xclose){width:100%;min-height:48px}
+/* 結果カードの「カード＋1枚」などは押せるボタンに見えないよう、枠なしの札にする */
+.rc-pill{border:none!important;background:color-mix(in srgb,currentColor 14%,transparent)!important;border-radius:10px!important}
 </style>
 <style id="gfx">
 /* ===== グラフィック強化：つや・立体感・やわらかい光（ゲームの計算や配置は変えない） ===== */
@@ -2066,7 +2088,7 @@ const $=s=>document.querySelector(s);
 let db=null,room=null,user=null,myId=null,canWrite=true,code=null,meta=null,seats=[null,null,null,null],grp=null;
 let metaWait=[],sentTip=null;/* sentTip：操作を送った手番。結果が届くまで同じ手番を二度操作しない */let records=new Map(),tipSeenAt=new Map(),busy=false,proxyBusy=false,unsub=[],lastStamp=0,peers=[],names={};
 const use=n=>window.claude&&window.claude.use?window.claude.use(n):Promise.resolve(null);
-function toast(t){const e=$('#toast');e.textContent=typeof nameize==='function'?nameize(t):t;e.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,Math.min(7000,Math.max(2600,e.textContent.length*90)))}/* 長いお知らせ（エラーの理由など）は読み切れるよう長めに出す */
+function toast(t){const e=$('#toast');e.textContent=typeof nameize==='function'?nameize(t):t;e.style.top='';e.hidden=false;if(document.body.classList.contains('ingame')){const sb=$('#status'),r=sb&&sb.offsetParent?sb.getBoundingClientRect():null;if(r&&r.bottom>0&&r.bottom<innerHeight*.5)e.style.top=Math.round(r.bottom+8)+'px'}/* 対戦中は順位表の下に出して、目的地・順位を隠さない */clearTimeout(toast.h);toast.h=setTimeout(()=>e.hidden=true,Math.min(7000,Math.max(2600,e.textContent.length*90)))}/* 長いお知らせ（エラーの理由など）は読み切れるよう長めに出す */
 // エラーの理由：通信（Firebase）のコードやゲーム処理の英語の理由を、日本語の説明にする。調べやすいようにコードも括弧で添える
 const ERRJA={'permission-denied':'権限がありません（部屋の決まりで許可されていない操作か、ホストの接続が切れています）','unavailable':'サーバーにつながりません（電波・回線を確認してください）','deadline-exceeded':'通信が時間切れになりました（回線が遅い可能性があります）','unauthenticated':'ログインが切れました（ページを再読み込みしてください）','not-found':'対象のデータが見つかりません（部屋が閉じられた可能性があります）','already-exists':'同じデータがすでにあります','failed-precondition':'今の状態ではできない操作です','aborted':'ほかの操作と重なりました（もう一度どうぞ）','resource-exhausted':'操作が多すぎます（少し待ってからどうぞ）','cancelled':'操作が取り消されました','invalid-argument':'送った内容が正しくありません','internal':'サーバー内部のエラーです','unknown':'原因不明のエラーです','network-request-failed':'ネットワークにつながりません（電波・回線を確認してください）','too-many-requests':'操作が多すぎます（少し待ってからどうぞ）','operation-not-allowed':'この接続方法は許可されていません（匿名ログインが無効の可能性があります）',
  'bad sell':'売る物件の指定が正しくありません','extra sell':'売る必要のない物件が含まれています','need sell':'ゴールドがマイナスのため、物件を売る必要があります','removed action':'この操作は今の版では使えません','no card':'そのカードを持っていません','nothing to steal':'奪えるカードがありません','no troll':'取りつく相手がいません','already home':'すでに出発地にいます','no shop':'ショップのマスではありません','same place':'同じ場所には移動できません','bad just':'「ちょうど」の指定が正しくありません'};
@@ -2438,7 +2460,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
-  if(evs.some(e=>e.k==='newmis'))setTimeout(()=>toast(`${s.hour}:00 新しいポコチャレが出ました`),SET.fast?500:1200);
+  if(evs.some(e=>e.k==='newmis'))setTimeout(()=>{toast(`${s.hour}:00 新しいポコチャレが出ました（ポコチャレボタンで確認）`);const b=$('#bMis');if(b){b.classList.remove('ping');void b.offsetWidth;b.classList.add('ping')}},SET.fast?500:1200);
   const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('rankup');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`物件${ft.v}件！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントのゴールドが＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
   const ru=evs.filter(e=>e.k==='rankup');if(ru.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankup',3);sfx('rankup');fireworks(2);pillar(pNode,'var(--rank)');banner('ランクアップ！','var(--rank)',ru.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?800:1900);
@@ -2522,9 +2544,20 @@ function showFans(ds,i){if(!ds)return;const p=ds.players[i],nb=baseCount(ds,i),f
   const yc=p.ye||0,o=$('#ov');o.innerHTML=`<div class="card fancard"><p class="eyebrow" style="color:${SEATC[i]}">${esc(seatName(i))}</p><h3>🏠 物件 ${nb}件</h3>
     <div class="fan-sum"><span>物件数ボーナス<b>＋${Math.round(fb*100)}%</b><small>${nt?`次は${nt}件で＋${Math.round(fanBonus(nt)*100)}%`:'最大'}</small></span><span>コアファン<b>💖${kp(yc)}</b><small>次のボーナスは${kp((p.yb||0)+YELL_STEP)}</small></span><span>ランク<b>${p.rank}</b><small>${NEED[p.rank]?`次まで${NEED[p.rank]-p.pt}pt`:'最高位'}</small></span><span>決算見込み<b>${fl100(est).toLocaleString()}G</b><small>0:00・24時間分</small></span></div>
     <div class="fan-list">${rows.join('')||'<p class="muted">まだ物件がありません。駅に止まったら獲得できます。</p>'}</div><button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;$('#ovClose').onclick=()=>{o.hidden=true;o.innerHTML=''}}
-function drawMis(st){const b=$('#misBar');if(!b||!st||!st.mis)return;const me=mySeat(),v=me>=0?me:curSeat(st),p=st.players[v];
-  b.innerHTML=`<span class="mis-h">ポコチャレ<small>${esc(seatName(v))}</small></span>`+st.mis.map(id=>{const m=MIS[id],done=p.md.includes(id),c=Math.min(m.c(p),m.n);
-    const prog=done?'達成':m.end?(p.mc.minus?'失敗':'6時間の締めで判定'):`${c}/${m.n}`;return`<span class="mis${done?' done':''}${m.end&&p.mc.minus&&!done?' fail':''}" title="${esc(m.t)}">${esc(m.s)}<b>${prog}</b></span>`}).join('')}
+function misInfo(st){const me=mySeat(),v=me>=0?me:curSeat(st),p=st.players[v];
+  return{v,p,list:st.mis.map(id=>{const m=MIS[id],done=p.md.includes(id),c=Math.min(m.c(p),m.n),fail=!!(m.end&&p.mc.minus&&!done);
+    return{m,done,c,fail,prog:done?'達成':m.end?(p.mc.minus?'失敗':'判定待ち'):`${c}/${m.n}`}})}}
+let misSt=null;
+function drawMis(st){const b=$('#bMis');if(!b||!st||!st.mis)return;misSt=st;const I=misInfo(st),d=I.list.filter(x=>x.done).length,n=I.list.length;
+  $('#misCnt').textContent=`${d}/${n}`;b.classList.toggle('alldone',n>0&&d===n);b.setAttribute('aria-label',`ポコチャレ ${d}/${n}達成（タップで内容を見る）`);
+  if($('#misSheet'))showMis()}
+/* ポコチャレの内容：下の「ポコチャレ」ボタンを押したときだけ表示する */
+function showMis(){const st=misSt;if(!st||!st.mis)return;const o=$('#ov'),I=misInfo(st),h=st.hour,left=6-(h%6||0),nx=(h+left)%24;
+  const rows=I.list.map(x=>`<li class="ms-r${x.done?' done':''}${x.fail?' fail':''}"><span class="ms-i" aria-hidden="true">${x.done?'✅':x.fail?'✖️':'🎯'}</span><span class="ms-t"><b>${esc(x.m.t)}</b>${x.m.end&&!x.done&&!x.fail?'<small class="ms-n">6時間の締め（次のお題が出るとき）に判定します</small>':''}${x.m.end||x.done?'':`<span class="ms-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${x.m.n}" aria-valuenow="${x.c}"><i style="width:${Math.round(x.c/x.m.n*100)}%"></i></span>`}</span><span class="ms-p">${esc(x.prog)}</span></li>`).join('');
+  o.innerHTML=`<div class="card sheet missheet" id="misSheet" role="dialog" aria-label="ポコチャレ"><h3>🏅 ポコチャレ</h3><p class="ms-who">${esc(seatName(I.v))}の進み具合</p><ul class="ms-list">${rows}</ul>
+    <p class="ms-rw">達成ごとに <b>${(BASEPT[I.p.rank]*4).toLocaleString()}G</b> か <b>カード1枚</b>（えらべます）＋ <b>コアファン2人・ランク20pt</b></p>
+    <p class="muted ms-nx">次のお題は ${nx}:00（あと${left}時間）</p><button id="msClose">とじる</button></div>`;
+  o.hidden=false;const c=$('#msClose');c.onclick=()=>{o.hidden=true;o.innerHTML=''}}
 function awards(s){const best=(f,lo)=>{const v=[0,1,2,3].map(i=>f(i)),m=lo?Math.min(...v):Math.max(...v);return m>0||lo?[0,1,2,3].filter(i=>v[i]===m):[]};
   const A=[['稼ぎ王',best(i=>s.players[i].earned),i=>s.players[i].earned.toLocaleString()+'G'],['ランク王',best(i=>RANKS.indexOf(s.players[i].rank)),i=>s.players[i].rank],
     ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>(s.players[i].minusTot||0)+'回']];
@@ -3506,7 +3539,7 @@ const SYS=[
  ['🃏 カード','カード',`<p>カードは7つのジャンルに分かれています。</p><ul>${GENRES.map(g=>`<li><b>${g[1]} ${g[0]}系</b>：${g[2]}</li>`).join('')}</ul><h4>レア度</h4><div class="rarrow">${RARITY.map(r=>RB(r)+'<small>'+RARN[r]+'</small>').join('')}</div><p>効果が高いほどレア度が高く、カードマスなどで引いたときに出にくく、ショップでの値段も高くなります。レアなカードほど、使ったときの演出や音も豪華になります。</p><h4>持ち方・使い方</h4><ul><li>手札は最大${HANDMAX}枚まで持てます。</li><li>自分の番に1枚使えます。持っているだけで効くカードもあります。</li><li>カードマス・イベント・ポコチャレの報酬・カードショップで手に入ります。</li></ul><p>どんなカードがあるかは、遊びながら見つけてください。</p>`],
  ['🛍️ ショップ','カードショップ',`<ul><li>カードショップのマスに止まると、「終了する」を押すまで、好きな順番で何回でもカードを売ったり買ったりできます。「1つ戻す」で取り消せます。</li><li>売るときの値段は、買う値段の半分です。</li><li>ショップは<b>県ごとに品ぞろえが違います</b>。進行系のカードと、${RB('N')}${RB('R')}のカードは、どこのショップでも買えます。</li><li>その地域でしか買えないカードには「📍この地域限定」と表示されます。</li></ul>`],
  ['🎪 イベント','イベント',`<p>イベントマスに止まると、5つのジャンルのどれかのイベントが起きます。</p><ul>${EVGENRES.map(g=>`<li><b>${g[1]} ${g[0]}</b></li>`).join('')}</ul><p>イベントにもレア度があり、効果が大きいイベントほどめったに起きず、演出も豪華になります。ハプニングの中には、防御系のカードで防げるものもあります。</p>`],
- ['🏅 ポコチャレ','ポコチャレ',`<p>0:00・6:00・12:00・18:00に、全員共通の3つのお題（ポコチャレ）が出ます。上のバーで進み具合を確認できます。</p><h4>達成の報酬</h4><ul><li>ゴールド（基本ゴールドの4倍）か、カード1枚のどちらかを選べます。</li><li>どちらを選んでも<b>コアファン＋2人・ランク＋20pt</b>。</li><li>「マイナス0回」のお題は、6時間の締めのときに判定します。</li></ul>`],
+ ['🏅 ポコチャレ','ポコチャレ',`<p>0:00・6:00・12:00・18:00に、全員共通の3つのお題（ポコチャレ）が出ます。下の「ポコチャレ」ボタンを押すと、内容と進み具合を確認できます。</p><h4>達成の報酬</h4><ul><li>ゴールド（基本ゴールドの4倍）か、カード1枚のどちらかを選べます。</li><li>どちらを選んでも<b>コアファン＋2人・ランク＋20pt</b>。</li><li>「マイナス0回」のお題は、6時間の締めのときに判定します。</li></ul>`],
  ['👾 お邪魔','お邪魔キャラ',`<p>誰かが目的地に着くと、お邪魔キャラ「荒らしラグ王」が誰かに取りつくことがあります。取りつかれると、いたずらをされます。</p><p>防御系や策略系のカードで追い払ったり、ほかの人に押し付けたりできます。</p>`],
  ['🤖 CPU','CPUキャラと名前',`<ul><li>空いた席には、えらんだ強さ（弱い・普通・強い）のCPUキャラが入ります。強さごとに10人いて、毎回ランダムで決まります。</li><li>キャラごとに、出身地・職業・性格などのプロフィールと、カードをよく使う・物件を買いまくる・最短で目的地を目指すなどの<b>プレイのクセ</b>があります。</li><li>キャラは方言やくせのある話し方で、場面ごとにひとりごとを言います。</li><li>上のプレイヤー欄をタップすると、プロフィールを見たり、<b>名前を変えたり</b>できます（自分の名前と、CPUの名前）。ホストはCPUキャラの入れかえもできます。</li><li>部屋の画面でも、自分の表示名を変えられます。</li></ul>`],
  ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMは、ふだんは軽快なPOPの曲（4曲。1曲を2回くり返すと次の曲へ交代し、2回目は音色や伴奏が変わります）。目的地まであと少し・終盤・お邪魔が取りついた番・空路・海路・沖縄のときだけ、その場面の曲に変わり、終わるといつもの曲の続きに戻ります（全15曲・すべてオリジナル）。</li><li>時間帯と天気は、地図の左上の小窓の中だけで空の色・太陽や月・雲・雨・稲光として表示します（地図には色を重ねません）。効果音が鳴る間はBGMを少し下げて聞きやすくします。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li></ul>`],
@@ -3538,7 +3571,7 @@ function openMenu(){unlock();const o=$('#ov'),inG=!!(meta&&meta.phase==='playing
   $('#mnTitle').onclick=()=>{if(!inG){close();leaveRoom();return}
     o.innerHTML=`<div class="card"><div class="pz-icon">🏠</div><h3>タイトルに戻りますか？</h3><p style="text-align:left">${sit&&canWrite?'ゲームは「中断」として保存されます。タイトルの「続きから遊ぶ」（または部屋コード）から、続きを遊べます。':'部屋から出ます。部屋コードを入れると、また見に来られます。'}</p><button id="mtYes">タイトルに戻る</button><button class="ghost" id="mtNo">やめる</button></div>`;
     $('#mtNo').onclick=close;$('#mtYes').onclick=async()=>{close();if(sit&&canWrite&&!(meta&&meta.paused)){const t=curTip();if(t&&!t.state.finished)await pauseGame()}leaveRoom()}}}
-$('#bMenu').onclick=openMenu;$('#skyLabel').onclick=e=>{e.stopPropagation();showWx()};$('#skyLabel').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();showWx()}};
+$('#bMenu').onclick=openMenu;$('#bMis').onclick=()=>{unlock();showMis()};$('#skyLabel').onclick=e=>{e.stopPropagation();showWx()};$('#skyLabel').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();showWx()}};
 // 下の操作バーの高さに合わせて余白を取り、余分なスクロールで上の欄がずれないようにする
 {const sb=$('#status');if(sb&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--sth',(sb.offsetParent?sb.offsetHeight:0)+'px')}).observe(sb)}
 {const bar=$('#bar');if(bar&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--barh',(bar.hidden?0:bar.offsetHeight)+'px')}).observe(bar)}
