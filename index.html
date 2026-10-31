@@ -1901,7 +1901,7 @@ function music(key){if(!AU.ac)return;const ac=AU.ac,now=ac.currentTime;if(SET.bg
   const sg=SONGS[key];if(sg&&AU.dl){const q=60/sg.bpm*.75;AU.dl.delayTime.setTargetAtTime(q,now,.05);AU.dr.delayTime.setTargetAtTime(q,now,.05)}
   songGain=ac.createGain();songGain.gain.setValueAtTime(0,now);songGain.gain.linearRampToValueAtTime(SONG_GAIN[key]||1,now+.9);songGain.connect(AU.bgm);mStep=sg&&sg.resume&&SPOS[key]?SPOS[key]-songAt(sg,SPOS[key]).i:0;mNext=now+.12;mTimer=setInterval(sched,25)}
 // 曲ごとの音量合わせ（test-audio.cjsで測った平均音量を約-29dBにそろえる係数）
-const SONG_GAIN={title:0.58,sea:0.79,pinch:0.69,superpinch:0.58,closing:0.6,ending:0.63,sky:0.57,wait:0.6,okinawa:0.76,pop:0.5,pop2:0.5,pop3:0.5,pop4:0.5,goalrun:0.5,climax:0.5};
+const SONG_GAIN={title:0.58,sea:0.79,pinch:0.69,superpinch:0.58,closing:0.6,ending:0.63,sky:0.57,wait:0.6,okinawa:0.76,pop:0.49,pop2:0.48,pop3:0.47,pop4:0.42,goalrun:0.44,climax:0.44};
 // メロディの下に、コードの音から3度・6度下の音を自動で重ねる（ハモリ）
 function harmBelow(m,ch){let b=-1;for(const c of ch)for(let k=-2;k<=4;k++){const x=c+12*k;if(x<m-2&&x>=m-9&&x>b)b=x}return b}
 function leadNote(out,L,t,f,dur,v,pan,n){const type=L.type==='square'?'chip':L.type,LL={...L,v};
