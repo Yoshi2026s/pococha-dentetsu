@@ -502,7 +502,8 @@ button.small,.chip{box-shadow:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .goalcard{background:linear-gradient(120deg,#2a1f38,#3a1f33 55%,#3a3020)}:root:not([data-theme="light"]) .gc-n,:root:not([data-theme="light"]) .gc-l b{text-shadow:2px 2px 0 #000}}
 :root[data-theme="dark"] .goalcard{background:linear-gradient(120deg,#2a1f38,#3a1f33 55%,#3a3020)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) :is(.gc-n,.gc-l b,.card h3,.code){-webkit-text-stroke:0}:root:not([data-theme="light"]) h1#ttl{text-shadow:2px 2px 0 #3a2550,4px 4px 0 #000}}
-:root[data-theme="dark"] :is(.gc-n,.gc-l b,.card h3,.code){-webkit-text-stroke:0}:root[data-theme="dark"] h1#ttl{text-shadow:2px 2px 0 #3a2550,4px 4px 0 #000}
+:root[data-theme="dark"] :is(.gc-n,.gc-l b,.card h3,.code){-webkit-text-stroke:0}
+/* ダークモードでは見出しの影を明るいピンクから暗い色に変え、文字をにじませない */@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .card h3{text-shadow:2px 2px 0 rgba(0,0,0,.55)}}:root[data-theme="dark"] .card h3{text-shadow:2px 2px 0 rgba(0,0,0,.55)}:root[data-theme="dark"] h1#ttl{text-shadow:2px 2px 0 #3a2550,4px 4px 0 #000}
 @media (prefers-reduced-motion:reduce){.pl.turn,.bar #bRoll{animation:none}}
 
 /* ===== 第24版：1画面に収まるレイアウト・プレイヤー表示・結果表示 ===== */
@@ -650,6 +651,7 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 /* 買えるだけ買うの確認：全件が見やすいよう1行を詰め、画面に収まる高さにする */
 .confsheet{max-height:94vh;max-height:94dvh;overflow-y:auto}.confsheet .conf-list{max-height:max(30vh,calc(100vh - 380px))!important;max-height:max(30dvh,calc(100dvh - 380px))!important}.confsheet .conf-row{font-size:12.5px;padding:2px 0}
 .mapbtn{min-height:40px!important;padding:4px 14px!important;font-size:13px!important}
+/* 見た目の大きさはそのまま、押せる範囲だけ上下左右に約4px広げて48px以上にする（地図を余計に隠さない。枠の内側から測るので7px） */.mapbtn::after{content:'';position:absolute;inset:-7px;border-radius:inherit}
 #turnText{font-size:12.5px!important;line-height:1.5}
 .goalarrow{font-size:12px!important;padding:4px 10px 4px 6px!important}
 /* システム説明：見出しボタンを横1列のスクロールにして本文を広く */
@@ -691,6 +693,11 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
  /* 4人目の順位まで見えるよう、ボタンと順位の行を少し低くする（ボタンは48pxを保つ） */
  .ingame:not(.stream) .bar #actMain button,.ingame:not(.stream) .bar .toprow>button{height:48px!important;min-height:48px!important}
  .ingame:not(.stream) #status .pl{padding-block:0!important;min-height:0!important}
+ /* 左の列が狭い横持ち（iPhone SE など）では、ポコチャレのメダルを省き文字を詰めて「ポコチャレ 0/3」を収める */
+ .ingame:not(.stream) .bar .toprow>button{gap:2px;padding-inline:4px!important}
+ .ingame:not(.stream) .bar .toprow>button small{font-size:clamp(12.5px,2.4vw,15px)!important;letter-spacing:0}
+}
+@media (orientation:landscape) and (max-height:600px) and (min-width:540px) and (max-width:700px){.ingame:not(.stream) .mis-i{display:none}
 }
 /* お知らせ：画面幅いっぱいまで広げて、3行に折れないように */
 /* お知らせは押せないので、下のボタン（物件・ショップなど）のタップを邪魔しない */.toast{pointer-events:none}
@@ -702,9 +709,13 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 .overlay .card table td:first-child{word-break:keep-all;overflow-wrap:anywhere}
 /* 最終結果では自分の行を目立たせる */.overlay .card table tr.me td{font-weight:900;color:var(--pink);background:color-mix(in srgb,var(--pink) 10%,transparent)}
 /* 閉じるボタン（右上） */
-.sheet>.xclose{position:sticky!important;top:0;align-self:flex-end;float:right;margin:-6px -6px -34px 8px}
-/* 右上の×と見出しが重ならないよう、×のあるカードの見出しは左右に×の幅だけ余白をとる（中央そろえは保つ） */.card>.xclose~h3,.card:has(>.xclose)>h3{padding-inline:46px;font-size:clamp(17px,5.8vw,24px)}
-.xclose{position:absolute;top:8px;right:8px;width:40px;height:40px;min-height:40px!important;padding:0!important;border-radius:999px;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;z-index:3}
+/* 下から出る設定などのシートが狭い画面（320px）で左右にはみ出さないよう、枠と余白を含めて画面内に収める（広い画面の大きさは今まで通り） */.overlay>.card.sheet{box-sizing:border-box;max-width:min(100%,406px)}.overlay>.card.sheet>*{min-width:0;max-width:100%}
+/* キャラの入れかえ：説明つきの長いキャラ名でもはみ出さないよう、選択欄は見出しの下の全幅に */label.lvrow:has(#selChar){flex-wrap:wrap}#selChar{flex:1 1 100%;width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+/* 演出の見本のボタンは指で押しやすい高さ（48px）に */#demoRow button{min-height:48px}
+/* 曲の試聴：曲名が長くても画面からはみ出さないよう、見出しの下に全幅の選択欄を置く */label[for=sBgmT]{display:flex!important;flex-direction:column;align-items:stretch!important;gap:4px;min-width:0}#sBgmT{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.sheet>.xclose{position:sticky!important;top:0;align-self:flex-end;float:right;margin:-8px -8px -42px 8px}
+/* 右上の×と見出しが重ならないよう、×のあるカードの見出しは左右に×の幅だけ余白をとる（中央そろえは保つ） */.card>.xclose~h3,.card:has(>.xclose)>h3{padding-inline:52px;font-size:clamp(15px,5.1vw,24px)}
+.xclose{position:absolute;top:6px;right:6px;width:48px;height:48px;min-height:48px!important;/* 押しやすい48px */padding:0!important;border-radius:999px;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;z-index:3}
 </style>
 
 <div class="wrap">
@@ -754,7 +765,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 <div class="bar" id="bar" hidden>
   <div class="inner">
     <div class="main" id="actMain"><button id="bRoll" disabled>サイコロ</button><button id="bCard" class="ghost" disabled>カード</button></div>
-    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><button type="button" class="misbtn" id="bMis" aria-haspopup="dialog" aria-label="ポコチャレ（タップで内容を見る）">🏅<small>ポコチャレ</small><b id="misCnt">0/3</b></button></div>
+    <div class="toprow"><button type="button" class="menubtn" id="bMenu" aria-label="メニュー">☰<small>メニュー</small></button><button type="button" class="misbtn" id="bMis" aria-haspopup="dialog" aria-label="ポコチャレ（タップで内容を見る）"><span class="mis-i" aria-hidden="true">🏅</span><small>ポコチャレ</small><b id="misCnt">0/3</b></button></div>
     <div id="actRoute" hidden><div class="routehead"><span class="routeinfo" id="routeInfo">進む方向をえらんでください</span><span class="routeleft" id="routeLeft"></span></div><div class="routeopts" id="routeOpts"></div><div class="main routectl"><button id="bUndo" class="ghost" disabled>↶ 1つ戻す</button><button id="bAuto" class="ghost">おまかせ（おすすめ）</button></div></div>
     <div id="actReward" hidden><div class="rwinfo" id="rwInfo"></div><div class="main"><button id="bRwCoin">ゴールド 3,000G</button><button id="bRwCard" class="ghost">カード1枚</button></div></div>
     <div id="actShop" hidden><div class="bl-h" id="shopHead">カードショップ</div><div class="baselist" id="shopList"></div><div class="main"><button id="bShopOk">何もせずに終了する</button><button id="bShopUndo" class="ghost" hidden>↶ 1つ戻す</button><button id="bShopSkip" class="ghost" hidden>全部取り消して終了</button></div></div>
@@ -2151,7 +2162,7 @@ function normCode(v){return String(v||'').replace(/[Ａ-Ｚａ-ｚ０-９]/g,ch=
 async function enter(c){unlock();c=normCode(c);if(!/^[A-Z0-9]{4}$/.test(c)){const i=$('#iCode');if(i){i.focus();i.classList.remove('shake');void i.offsetWidth;i.classList.add('shake')}toast(c.length?`部屋コードは4文字です（今は${c.length}文字）`:'届いた部屋コード（4文字）を入れてください');return}
   if(code===c){render();return}
   let s;try{if(db.online)await db.online.join(c,RULES_VERSION);s=await db.doc('games/'+c).get()}catch(e){toast(errText(e));return}
-  if(!s.exists){toast('その部屋は見つかりません');return}
+  if(!s.exists){toast(db.online?'その部屋は見つかりません':'その部屋は見つかりません（端末内モードでは、この端末で作った部屋にだけ入れます）');return}
   if(s.data().rulesVersion!==RULES_VERSION){toast('古い版の部屋です。新しく部屋を作ってください');return}
   if(code&&code!==c){resetGame();if(grp)try{grp.leave()}catch{}grp=null}
   code=c;try{localStorage.setItem('poco-room',c)}catch{}saveRoom(c,{});unsub.forEach(u=>u());unsub=[];
@@ -3531,7 +3542,7 @@ function drawBaseList(){const pv=pending.pv,B=pv.nd.bases;let tot=0;for(const j 
       $('#cfNo').onclick=()=>{o.hidden=true;o.innerHTML=''};$('#cfOk').onclick=()=>{o.hidden=true;o.innerHTML='';if(pending&&pending.stage==='buy')commitAction({...(pending.base||{type:'roll'}),buy:sel})}}}
   const box=$('#baseList');box.innerHTML=B.map((b,j)=>{const o=pv.own[j],on=pending.sel.has(j),mine=o===pv.seat;
     // 状態は短く（選ぶ前は空欄：見出しに「タップでえらぶ」）。残りのゴールドで買えない物件は薄く「たりない」
-    const short=o==null&&!on&&b.price>pv.coin-tot,st=o!=null?esc(seatName(o))+'の物件':on?'✓ 獲得する':short?'ゴールドがたりない':'';const nm=fanName(pending.st,pv.pos,j).split(' ');return`<button type="button" class="basebtn fanbtn${on?' on':''}${short?' short':''}" data-j="${j}" ${o!=null?'disabled':''} style="${o!=null?`--c:${SEATC[o]}`:''}"><i class="fb-i">${fanIcon(pending.st,pv.pos,j)}</i><small class="fb-t">${esc(nm[0])}</small><b>${esc(nm.slice(1).join(' '))}</b><span>${b.price.toLocaleString()}G</span><small class="fb-d">1日＋${Math.round(b.price*b.rate).toLocaleString()}G</small>${st?`<small class="fb-s">${st}</small>`:''}</button>`}).join('')+
+    const short=o==null&&!on&&b.price>pv.coin-tot,st=o!=null?esc(seatName(o))+'の物件':on?'✓ 獲得する':short?'ゴールド不足':'';const nm=fanName(pending.st,pv.pos,j).split(' ');return`<button type="button" class="basebtn fanbtn${on?' on':''}${short?' short':''}" data-j="${j}" ${o!=null?'disabled':''} style="${o!=null?`--c:${SEATC[o]}`:''}"><i class="fb-i">${fanIcon(pending.st,pv.pos,j)}</i><small class="fb-t">${esc(nm[0])}</small><b>${esc(nm.slice(1).join(' '))}</b><span>${b.price.toLocaleString()}G</span><small class="fb-d">1日＋${Math.round(b.price*b.rate).toLocaleString()}G</small>${st?`<small class="fb-s">${st}</small>`:''}</button>`}).join('')+
     (pv.own.every(x=>x==null||x===pv.seat)?`<div class="bl-n">${B.length}件すべてを獲得すると<b>独占</b>：この駅の決算が${pv.nd.mono}倍</div>`:'');
   box.querySelectorAll('.basebtn').forEach(e=>e.onclick=()=>{const j=+e.dataset.j;if(pending.sel.has(j))pending.sel.delete(j);else pending.sel.add(j);sfx('step',1);drawBaseList()});
   const ok=pending.sel.size&&tot<=pv.coin;$('#bBuy').disabled=!ok;$('#bBuy').textContent=pending.sel.size?(tot<=pv.coin?`${pending.sel.size}件を獲得（${tot.toLocaleString()}G）`:'ゴールドが足りません'):'物件をタップでえらぶ'}
@@ -3609,6 +3620,9 @@ $('#bMenu').onclick=openMenu;$('#bMis').onclick=()=>{unlock();showMis()};$('#sky
 {const bar=$('#bar');if(bar&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--barh',(bar.hidden?0:bar.offsetHeight)+'px')}).observe(bar)}
 {let wasG=false;new MutationObserver(()=>{const g=document.body.classList.contains('ingame');if(g&&!wasG)scrollTo(0,0);wasG=g}).observe(document.body,{attributes:true,attributeFilter:['class']})}
 // 長いシートは下までスクロールしなくても閉じられるよう、右上に×を付ける（「とじる」ボタンを押すのと同じ）
+// キーボードの Esc で、開いているカードの「閉じる」ボタンを押す（閉じるボタンのないカード＝選ぶ必要のある画面はそのまま）
+document.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.isComposing)return;const o=$('#ov');if(!o||o.hidden)return;
+  const b=[...o.querySelectorAll('button')].find(x=>x.offsetParent&&!x.disabled&&(x.classList.contains('xclose')||/^(とじる|閉じる|×)$/.test(x.textContent.trim())));if(b){e.preventDefault();b.click()}});
 new MutationObserver(()=>{const o=$('#ov');if(o.hidden)return;const c=o.querySelector('.card');if(!c||c.querySelector('.xclose'))return;const cl=[...c.querySelectorAll('button')].reverse().find(b=>/^(とじる|閉じる)$/.test(b.textContent.trim()));if(!cl||c.offsetHeight<innerHeight*.8&&c.scrollHeight<=c.clientHeight+4)return;const x=document.createElement('button');x.type='button';x.className='ghost xclose';x.setAttribute('aria-label','閉じる');x.textContent='×';x.onclick=()=>cl.click();c.prepend(x)}).observe($('#ov'),{childList:true});
 // 見えている画面の高さに合わせる（アプリの下部バーやキーボードで隠れないように）
 if(window.visualViewport){const vvFix=()=>{const b=$('#bar');if(!b)return;const ae=document.activeElement,typing=!!ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName);const hid=typing?Math.max(0,window.innerHeight-(visualViewport.height+visualViewport.offsetTop)):0;b.style.bottom=hid+'px';setTimeout(fitMap,60)};visualViewport.addEventListener('resize',vvFix);visualViewport.addEventListener('scroll',vvFix);document.addEventListener('focusout',()=>setTimeout(vvFix,80));vvFix()}
