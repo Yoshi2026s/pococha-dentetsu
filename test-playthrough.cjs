@@ -32,7 +32,7 @@ async function play(br,port,W,seed){
     const note=b.some(x=>x.startsWith('注意:'));/* 光線演出で#ovの中身が横に広く、自動操作のスクロールで#ovがずれた場合は注意として分ける */
     for(const x of a.filter(x=>b.includes(x))){const k=tag+x.replace(/\d+/g,'#');if(!seen.has(k)){seen.add(k);log(note?'注意':'表示崩れ',tag+' '+x);await shot('layout')}}};
   const click=async(sel,nth)=>{const loc=nth==null?page.locator(sel).first():page.locator(sel).nth(nth);clicks[sel]=(clicks[sel]||0)+1;
-    try{await loc.click({timeout:4000})}catch(e){const L=e.message.split('\n');if(!/detached|not attached/.test(e.message)){log('押せない',sel+' '+(L.filter(l=>/intercepts|outside|not visible|not enabled/.test(l)).pop()||L[0]).trim());await shot('click')}}};
+    try{await loc.click({timeout:4000})}catch(e){const L=e.message.split('\n');/* 押す前に自動で閉じた・消えた（時間で閉じるカードなど）ものは不具合ではないので記録しない */const gone=await loc.count().then(n=>n===0).catch(()=>true)||/^#ov /.test(sel)&&await page.evaluate(()=>document.querySelector('#ov').hidden).catch(()=>false);if(!gone&&!/detached|not attached/.test(e.message)){log('押せない',sel+' '+(L.filter(l=>/intercepts|outside|not visible|not enabled/.test(l)).pop()||L[0]).trim());await shot('click')}}};
   const state=()=>page.evaluate(()=>{const vis=e=>e&&!e.hidden&&!e.disabled&&e.offsetParent!==null&&e.getBoundingClientRect().width>0,q=s=>document.querySelector(s),n=s=>[...document.querySelectorAll(s)].filter(vis).length;
     const ov=q('#ov');if(ov&&!ov.hidden){if(/最終結果/.test(ov.textContent))return{final:true};for(const id of ['#acOk','#cfOk','#ovClose'])if(vis(ov.querySelector(id)))return{sel:'#ov '+id};return{wait:'ov'}}
     if(vis(q('#bNext')))return{next:true};
