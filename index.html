@@ -21,6 +21,7 @@
 .ingame.routeview #status.rankview,.routeview #status.rankview{display:none!important}
 #status.rankview .st-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:2px 4px 0;font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap}
 #status.rankview .st-head b{font-family:var(--f-display);font-size:14px}#status.rankview .st-head .sh-goal b{color:var(--station,#ff8a3d)}
+/* 明るい背景では、目的地の駅名と「全手番の検算OK」を少し濃くして読みやすく（コントラスト4.5以上）。ダークモードは元の明るい色 */#status.rankview .st-head .sh-goal b{color:color-mix(in srgb,var(--station,#ff8a3d) 72%,#000)}.bar .logpanel #verify[style*="--good"]{color:color-mix(in srgb,var(--good) 72%,#000)!important}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #status.rankview .st-head .sh-goal b{color:var(--station,#ff8a3d)}:root:not([data-theme="light"]) .bar .logpanel #verify[style*="--good"]{color:var(--good)!important}}:root[data-theme="dark"] #status.rankview .st-head .sh-goal b{color:var(--station,#ff8a3d)}:root[data-theme="dark"] .bar .logpanel #verify[style*="--good"]{color:var(--good)!important}
 #status.rankview .st-head .sh-turn{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ingame #status.rankview{gap:3px!important}
 .ingame #status.rankview .pl{padding:3px 8px 3px 6px!important;grid-template-columns:28px 22px minmax(0,1fr) auto!important;border-radius:10px!important;border-width:2px!important;box-shadow:2px 2px 0 var(--pop,#2b2236)!important}
@@ -112,7 +113,7 @@
 .xtab{width:100%;border-collapse:collapse;margin:4px 0 8px;font-size:13px}.xtab th,.xtab td{padding:5px 6px;border-bottom:1px solid color-mix(in srgb,var(--ink) 12%,transparent);text-align:left}
 .xtab td,.syssheet .sys-body .xtab td{text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums}.xtab th small{display:block;font-weight:400;font-size:11px;opacity:.7}
 .xtab tr:first-child td{font-size:11.5px;opacity:.75}.xtab tr:first-child>*{border-top:0!important}.wxsheet h4{margin:12px 0 2px;text-align:left}.wxsheet ul,.wxsheet li,.wxsheet .xtab th{text-align:left}.xtab tr.on{background:color-mix(in srgb,var(--pink) 16%,transparent);font-weight:800}.xtab tr.on th::after{content:' ← いま';color:var(--pink);font-size:11px}
-.wxnow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.wxnow div{border:2px solid var(--pink);border-radius:12px;padding:6px 4px;text-align:center}.wxnow small{display:block;font-size:11px;opacity:.75}.wxnow b{font-size:18px}
+.wxnow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.wxnow div{border:2px solid var(--pink);border-radius:12px;padding:6px 4px;text-align:center}.wxnow small{display:block;font-size:min(11px,2.95vw);opacity:.75;white-space:nowrap;letter-spacing:-.02em}/* 「コアファンマス」を1行に（狭い画面では少し小さく） */.wxnow b{font-size:18px}
 .wxsheet{max-height:86vh;overflow:auto;text-align:left}.wxsheet h3,.wxsheet .wxlead{text-align:center}
 #skyLabel{cursor:pointer;pointer-events:auto;-webkit-tap-highlight-color:transparent}#skyLabel .wxi{margin-left:4px;font-size:10px;padding:0 5px;border-radius:99px;background:rgba(255,255,255,.9);color:#2a2135;text-shadow:none}
 .sys-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}.sys-tabs button{min-height:32px;padding:4px 10px;font-size:12.5px;border-radius:999px}
@@ -152,7 +153,7 @@
 :root[data-theme="dark"] .mis b{color:#c9b6ff}:root[data-theme="dark"] .bar .main button#bRoll{background:#d92f7f!important;color:#fff!important}:root[data-theme="dark"] .pl-coin{color:#fff}:root[data-theme="dark"] .ingame .status .pl:not(.turn){background:#2a2138}:root[data-theme="dark"] .ob-t small{color:#e6dcf2}:root[data-theme="dark"] #turnText{color:#e6dcf2!important}
 @media (prefers-reduced-motion:no-preference){.ingame .status .pl.turn{animation:none!important}}
 </style></head><body>
-<title>ポコチャ電鉄 対戦テスト</title>
+<title>ポコチャ電鉄 対戦テスト</title><meta name="theme-color" content="#fff0f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#17111f" media="(prefers-color-scheme: dark)"><meta name="apple-mobile-web-app-title" content="ポコチャ電鉄"><meta name="description" content="Pocochaライバーが全国の駅をめぐる、4人対戦のすごろくゲーム（テスト版）">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Zen+Maru+Gothic:wght@500;700&display=swap">
@@ -410,7 +411,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .resumebtn{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel);color:var(--ink);border-radius:16px;padding:8px 12px}
 .rs-code{font-family:var(--f-display);font-size:20px;letter-spacing:.15em;color:var(--pink)}.rs-t{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.3}.rs-t b{font-size:14px}.rs-t small{font-size:11px;color:var(--muted);font-family:var(--f-body);font-weight:400}
 .rs-go{font-size:13px;color:var(--pink);white-space:nowrap}
-.myres{position:fixed;inset:0;z-index:28;display:flex;align-items:center;justify-content:center;padding:24px;pointer-events:auto;background:rgba(20,12,34,.18)}
+/* 自分の結果カードは演出カード（#ov・z20）より下に置く。決算などのカードが結果の裏に隠れて押せなくなるのを防ぐ */.myres{position:fixed;inset:0;z-index:19;display:flex;align-items:center;justify-content:center;padding:24px;pointer-events:auto;background:rgba(20,12,34,.18)}
 .mr-card{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:220px;max-width:340px;padding:16px 22px;border-radius:24px;background:var(--panel);border:3px solid var(--outline,#2b2236);box-shadow:6px 6px 0 var(--pop,#2b2236),inset 0 0 0 5px color-mix(in srgb,var(--c) 30%,transparent);text-align:center;animation:pop .35s cubic-bezier(.2,.9,.3,1.3)}
 .mr-card small{font-size:12px;font-weight:800;color:var(--muted)}.mr-i{font-size:40px;line-height:1.1}.mr-card b{font-family:var(--f-display);font-size:22px;line-height:1.3;color:var(--c)}.mr-card span{font-weight:800;font-size:15px}
 #iCode::placeholder{letter-spacing:.05em;opacity:.55}
@@ -498,6 +499,7 @@ button.small,.chip{box-shadow:none}
 .code{-webkit-text-stroke:.6px var(--outline);text-shadow:3px 3px 0 color-mix(in srgb,var(--pink) 25%,#fff)}
 .face{border:2.5px solid var(--outline);box-shadow:inset 0 -4px 0 #ffe0ee}
 .award{border:2px solid var(--outline);box-shadow:2px 2px 0 var(--pop)}
+/* 賞のカードは1行に2枚ずつ同じ幅で並べ、名前が長いものは1行を使う（幅がばらばらに見えないように） */.award{flex:1 1 calc(50% - 6px);box-sizing:border-box;max-width:100%;text-align:center}.award b{white-space:nowrap}/* 名前の途中では折り返さない（受賞者が複数で長いときは1行を使う） */
 .stream .panel,.stream .pl,.stream .mapbox,.stream .goalcard,.stream button{box-shadow:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .goalcard{background:linear-gradient(120deg,#2a1f38,#3a1f33 55%,#3a3020)}:root:not([data-theme="light"]) .gc-n,:root:not([data-theme="light"]) .gc-l b{text-shadow:2px 2px 0 #000}}
 :root[data-theme="dark"] .goalcard{background:linear-gradient(120deg,#2a1f38,#3a1f33 55%,#3a3020)}
@@ -588,6 +590,7 @@ button.small,.chip{box-shadow:none}
 .bar .logpanel h2{font-size:12px;margin:0}.bar .logpanel #verify{font-size:10px}
 .bar .log{font-size:11px;line-height:1.35;gap:1px;max-height:44px;overflow-y:auto}.bar .log .n{min-width:2.6em}
 .bar .log li:first-child{font-weight:800;color:var(--ink)}
+/* 行動ログはタップで広げて、過去の手番を読み返せる */.bar .logpanel{cursor:pointer}.lp-tg{font-size:10px;font-weight:700;color:var(--muted);margin-left:6px}.bar .logpanel.open .log{max-height:min(40vh,320px)}
 .ingame #vGame .mapbox{align-self:stretch}
 /* 第24.4版：メニュー・操作欄 */
 .toprow{display:flex;align-items:center;gap:6px;min-width:0}
@@ -626,7 +629,7 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 #bCopy{min-height:44px}
 /* 対戦画面：プレイヤー欄の小さすぎる文字を読める大きさに */
 #status.rankview .pl-l1 .pl-rank{font-size:11px!important;padding:1px 5px!important}
-#status.rankview .pl-now{font-size:11px!important}
+#status.rankview .pl-now{font-size:11px!important;color:#fff!important;text-shadow:0 1px 0 rgba(0,0,0,.35)}/* 「番」の文字が灰色で読めなかったので白に */
 #status.rankview .pl-l2 .pl-fan,#status.rankview .pl-l2 .pl-ye,#status.rankview .pl-l2 .pl-goal{font-size:11.5px!important}
 #status.rankview .pl-l2 b{font-size:12.5px!important}
 #status.rankview .pl-tot small{font-size:10px!important}
@@ -677,13 +680,16 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
  .ingame #status.rankview .st-head{padding-block:0!important;min-height:0!important}
 }
 .ingame:not(.stream) .wrap{padding-bottom:var(--barh,119px)!important}
-/* 横持ち（低くて横に広い画面）：左に順位と操作欄、右に地図を並べる。縦に積むと操作欄が地図に重なって隠れるため */
-@media (orientation:landscape) and (max-height:600px) and (min-width:540px){
+/* 横持ち（低くて横に広い画面）：左に順位と操作欄、右に地図を並べる。縦に積むと操作欄が地図に重なって隠れるため。
+   iPad の横向き・パソコンの横長画面（幅900px以上）も同じ並びにして、地図を大きく見せる */
+@media (orientation:landscape) and (max-height:600px) and (min-width:540px),(orientation:landscape) and (min-width:900px) and (min-height:601px){
  .ingame:not(.stream){--lc:min(46vw,440px);--lp:max(8px,env(safe-area-inset-left))}
  .ingame:not(.stream) .wrap{max-width:none!important;padding:max(4px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 4px var(--lp)!important;box-sizing:border-box}
  .ingame:not(.stream) #vGame{display:grid!important;grid-template-columns:var(--lc) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:10px!important;row-gap:4px!important;align-items:start;height:calc(100dvh - 8px);overflow:hidden}
  .ingame:not(.stream) #vGame>*{grid-column:1;min-width:0}
  .ingame:not(.stream) #vGame>.mapbox{grid-column:2;grid-row:1/-1;min-height:0}
+ /* 大きなパソコン画面では地図の文字が大きくなりすぎないよう、地図の幅は960pxまで */
+ .ingame:not(.stream) #vGame>.mapbox{max-width:960px}
  .ingame:not(.stream) #status{max-height:calc(100dvh - var(--barh,167px) - 34px);overflow-y:auto}
  .ingame:not(.stream) #status>*{flex-shrink:0}
  .ingame:not(.stream) .bar{right:auto;width:calc(var(--lc) + var(--lp) + 4px);max-height:100dvh;overflow-y:auto;border-radius:0 22px 0 0;padding-left:var(--lp)!important;box-sizing:border-box}
@@ -713,6 +719,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 /* キャラの入れかえ：説明つきの長いキャラ名でもはみ出さないよう、選択欄は見出しの下の全幅に */label.lvrow:has(#selChar){flex-wrap:wrap}#selChar{flex:1 1 100%;width:100%;min-width:0;max-width:100%;box-sizing:border-box}
 /* 演出の見本のボタンは指で押しやすい高さ（48px）に */#demoRow button{min-height:48px}
 /* 曲の試聴：曲名が長くても画面からはみ出さないよう、見出しの下に全幅の選択欄を置く */label[for=sBgmT]{display:flex!important;flex-direction:column;align-items:stretch!important;gap:4px;min-width:0}#sBgmT{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+#ov .card:focus{outline:none}
 .sheet>.xclose{position:sticky!important;top:0;align-self:flex-end;float:right;margin:-8px -8px -42px 8px}
 /* 右上の×と見出しが重ならないよう、×のあるカードの見出しは左右に×の幅だけ余白をとる（中央そろえは保つ） */.card>.xclose~h3,.card:has(>.xclose)>h3{padding-inline:52px;font-size:clamp(15px,5.1vw,24px)}
 .xclose{position:absolute;top:6px;right:6px;width:48px;height:48px;min-height:48px!important;/* 押しやすい48px */padding:0!important;border-radius:999px;font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;z-index:3}
@@ -720,7 +727,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 
 <div class="wrap">
   <h1 id="ttl" aria-label="ポコチャ電鉄 対戦テスト"><span class="logo" aria-hidden="true"><span class="lg-a" data-t="ポコチャ">ポコチャ</span><span class="lg-b" data-t="電鉄">電鉄</span><span class="lg-c" data-t="対戦テスト">対戦テスト</span></span><small>全国編 試験版（24時間制・0:00決算）</small></h1>
-  <div id="toast" class="toast" hidden></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
   <section id="resumeBox" class="panel resumebox" hidden>
     <h2>▶ 続きから遊ぶ</h2>
@@ -771,11 +778,11 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
     <div id="actShop" hidden><div class="bl-h" id="shopHead">カードショップ</div><div class="baselist" id="shopList"></div><div class="main"><button id="bShopOk">何もせずに終了する</button><button id="bShopUndo" class="ghost" hidden>↶ 1つ戻す</button><button id="bShopSkip" class="ghost" hidden>全部取り消して終了</button></div></div>
     <div id="actFsell" hidden><div class="fs-head" id="fsHead"></div><div class="fs-rec" id="fsRec"></div><div class="baselist" id="fsList" hidden></div><div class="main"><button id="bFsSell">この物件を売る</button><button id="bFsAlt" class="ghost">ほかの候補を見る</button></div></div>
     <div id="actBuy" hidden><div class="bl-h buyhead" id="buyHead"></div><div class="baselist" id="baseList"></div><div class="main"><button id="bBuy">獲得する</button><button id="bSkip" class="ghost">獲得しない</button></div></div>
-    <div class="panel logpanel"><div class="row" style="justify-content:space-between"><h2>行動ログ</h2><span class="muted" id="verify"></span></div><ul class="log" id="log"></ul></div>
+    <div class="panel logpanel" id="logPanel" role="button" tabindex="0" aria-expanded="false" aria-controls="log"><div class="row" style="justify-content:space-between"><h2>行動ログ<small class="lp-tg" aria-hidden="true">▼ タップで広げる</small></h2><span class="muted" id="verify"></span></div><ul class="log" id="log"></ul></div>
     <div class="row barrow2" style="flex-wrap:nowrap"><div class="row stamps" id="stamps"></div><button class="small" id="soundChip" type="button">音 オフ（タップ）</button><span class="chip" id="netChip" style="align-self:center;flex-shrink:0">接続中</span><button class="small" id="bSet">設定</button><button class="small pausebtn" id="bPause" type="button">⏸ 中断</button></div>
   </div>
 </div>
-<div class="overlay" id="ov" hidden></div>
+<div class="overlay" id="ov" role="dialog" aria-modal="true" hidden></div>
 <div class="pausebox" id="pauseBox" hidden></div>
 <button id="exitStream" class="small">配信モードを終わる</button>
 
@@ -2619,7 +2626,8 @@ function rollCube(d,faces,card){spins+=2;const sp=card&&DICE[card];let f=Array.i
   let tag=$('#diceTag');if(!tag){tag=document.createElement('div');tag.id='diceTag';tag.className='dicetag';document.querySelector('.dicebox').appendChild(tag)}
   // 足し算は実際に進む数から出す（カードの＋分だけでなく、ブーストの＋1なども表示に入れて、目と進む数をそろえる）
   const sum=f.reduce((x,y)=>x+y,0);let mul=sp&&f.length===(sp[0]||1)?(sp[3]||1):1;if(sum*mul>d)mul=1;const add=fixed?0:Math.max(0,d-sum*mul);
-  tag.textContent=fixed?`🍀${d}`:(f.length>1||add||mul>1)?`${mul>1?'×'+mul:''}${add?'＋'+add:''}＝${d}`:'';tag.hidden=!tag.textContent;tag.classList.remove('pop');void tag.offsetWidth;tag.classList.add('pop')}
+  tag.textContent=fixed?`🍀${d}`:(f.length>1||add||mul>1)?`${mul>1?'×'+mul:''}${add?'＋'+add:''}＝${d}`:'';tag.hidden=!tag.textContent;tag.classList.remove('pop');void tag.offsetWidth;tag.classList.add('pop')
+  /* サイコロが2個以上に増えると箱が広がるので、目的地の矢印がサイコロに重ならないよう置き直す */setTimeout(()=>{try{updateGoalArrow()}catch{}},60)}
 
 // ===== 豪華なマス（立体のコマ：影・ふち・光沢・白い内輪・記号・きらめき） =====
 const SQC={plus:'var(--plus)',minus:'var(--anti)',yell:'var(--yell)',port:'#2b6cb0',airport:'var(--air,#6c5cff)',anti:'var(--anti)',card:'var(--card)',rank:'var(--rank)',collab:'var(--collab)',plain:'var(--plain,#cfc4d9)',event:'var(--event,#8a8296)',sea:'var(--seaDeep,#3aa8c8)',shop:'var(--shop,#a77bff)',station:'var(--station)'};
@@ -2817,7 +2825,7 @@ function updateGoalArrow(){const a=$('#goalArrow'),s=dispState;if(!a||!s||s.goal
   a.hidden=false;a.style.left=Math.min(76,Math.max(22,px))+'%';a.style.top=Math.min(92,Math.max(8,py))+'%';a.innerHTML=`<i style="transform:rotate(${ang}deg)">➤</i><span>${esc(g.name)}<b>あと${d}</b></span>`;
   {const box=$('#mapbox'),br=box.getBoundingClientRect();if(br.height>0){let r=a.getBoundingClientRect();const hit=q=>r.left<q.right&&q.left<r.right&&r.top<q.bottom&&q.top<r.bottom;
    for(const el of [$('#bView'),$('#skyLabel')]){if(!el||el.hidden)continue;const q=el.getBoundingClientRect();if(q.width&&hit(q)){a.style.top=((q.bottom-br.top+r.height/2+6)/br.height*100)+'%';r=a.getBoundingClientRect()}}
-   const dc=box.querySelector('.dicebox');if(dc){const q=dc.getBoundingClientRect();if(q.width&&hit(q)){a.style.top=((q.top-br.top-r.height/2-6)/br.height*100)+'%'}}}}}
+   /* サイコロの上の合計（12 など）も含めた範囲を避ける */const dc=box.querySelector('.dicebox');if(dc){const q=dc.getBoundingClientRect(),tg=$('#diceTag'),t=tg&&!tg.hidden&&tg.offsetParent?tg.getBoundingClientRect():null,u=t&&t.width?{left:Math.min(q.left,t.left),right:Math.max(q.right,t.right),top:Math.min(q.top,t.top),bottom:Math.max(q.bottom,t.bottom)}:q;if(q.width&&hit(u)){a.style.top=((u.top-br.top-r.height/2-6)/br.height*100)+'%'}}}}}
 // 指でドラッグして地図を動かす（タップとは区別する）
 (function(){const box=$('#mapbox');let st=null,moved=false;box.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;st={x:e.clientX,y:e.clientY,v:vb.slice()};moved=false});
   box.addEventListener('pointermove',e=>{if(!st)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(!moved&&Math.hypot(dx,dy)<8)return;moved=true;panned=true;cancelAnimationFrame(camAnim);const u=st.v[2]/box.clientWidth;
@@ -3614,12 +3622,17 @@ function openMenu(){unlock();const o=$('#ov'),inG=!!(meta&&meta.phase==='playing
   $('#mnTitle').onclick=()=>{if(!inG){close();leaveRoom();return}
     o.innerHTML=`<div class="card"><div class="pz-icon">🏠</div><h3>タイトルに戻りますか？</h3><p style="text-align:left">${sit&&canWrite?'ゲームは「中断」として保存されます。タイトルの「続きから遊ぶ」（または部屋コード）から、続きを遊べます。':'部屋から出ます。部屋コードを入れると、また見に来られます。'}</p><button id="mtYes">タイトルに戻る</button><button class="ghost" id="mtNo">やめる</button></div>`;
     $('#mtNo').onclick=close;$('#mtYes').onclick=async()=>{close();if(sit&&canWrite&&!(meta&&meta.paused)){const t=curTip();if(t&&!t.state.finished)await pauseGame()}leaveRoom()}}}
+{const lp=$('#logPanel');const tg=()=>{const o=lp.classList.toggle('open');lp.setAttribute('aria-expanded',o);lp.querySelector('.lp-tg').textContent=o?'▲ タップでたたむ':'▼ タップで広げる'};lp.onclick=tg;lp.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tg()}}}
 $('#bMenu').onclick=openMenu;$('#bMis').onclick=()=>{unlock();showMis()};$('#skyLabel').onclick=e=>{e.stopPropagation();showWx()};$('#skyLabel').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();showWx()}};
 // 下の操作バーの高さに合わせて余白を取り、余分なスクロールで上の欄がずれないようにする
 {const sb=$('#status');if(sb&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--sth',(sb.offsetParent?sb.offsetHeight:0)+'px')}).observe(sb)}
 {const bar=$('#bar');if(bar&&window.ResizeObserver)new ResizeObserver(()=>{document.documentElement.style.setProperty('--barh',(bar.hidden?0:bar.offsetHeight)+'px')}).observe(bar)}
 {let wasG=false;new MutationObserver(()=>{const g=document.body.classList.contains('ingame');if(g&&!wasG)scrollTo(0,0);wasG=g}).observe(document.body,{attributes:true,attributeFilter:['class']})}
 // 長いシートは下までスクロールしなくても閉じられるよう、右上に×を付ける（「とじる」ボタンを押すのと同じ）
+// カードが開いたら読み上げ・キーボードの位置をカードへ移し、閉じたら元のボタンへ戻す（画面はスクロールさせない）
+{let back=null;new MutationObserver(()=>{const o=$('#ov');if(!o)return;
+  if(!o.hidden){const c=o.querySelector('.card');if(c&&!c.contains(document.activeElement)){if(!back)back=document.activeElement;if(!c.hasAttribute('tabindex'))c.tabIndex=-1;const h=c.querySelector('h3');if(h){if(!h.id)h.id='ovTitle';o.setAttribute('aria-labelledby',h.id)}else o.removeAttribute('aria-labelledby');try{c.focus({preventScroll:true})}catch{}}}
+  else if(back){const b=back;back=null;if(b&&b.isConnected&&!b.disabled&&b.offsetParent)try{b.focus({preventScroll:true})}catch{}}}).observe($('#ov'),{attributes:true,attributeFilter:['hidden'],childList:true})}
 // キーボードの Esc で、開いているカードの「閉じる」ボタンを押す（閉じるボタンのないカード＝選ぶ必要のある画面はそのまま）
 document.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.isComposing)return;const o=$('#ov');if(!o||o.hidden)return;
   const b=[...o.querySelectorAll('button')].find(x=>x.offsetParent&&!x.disabled&&(x.classList.contains('xclose')||/^(とじる|閉じる|×)$/.test(x.textContent.trim())));if(b){e.preventDefault();b.click()}});
