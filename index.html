@@ -594,7 +594,7 @@ button.small,.chip{box-shadow:none}
 .bar .log li:first-child{font-weight:800;color:var(--ink)}.log .lg-who{font-weight:900}
 /* 行動ログはタップで広げて、過去の手番を読み返せる */.bar .logpanel{cursor:pointer}.logpanel:has(#log:empty) .lp-tg{display:none}
 /* 演出中は地図の中の飾りのアニメ（波・きらめき・雲・マスの記号の動き）を一時停止：地図全体の描き直しを減らし、コマとカメラの動きをなめらかに */body.fxbusy #map .wv,body.fxbusy #map .spark,body.fxbusy #map .gl,body.fxbusy #map .cl,body.fxbusy #map .burstspin,body.fxbusy #map .beat,body.fxbusy #map .rise,body.fxbusy #map .tilt,body.fxbusy #map .spin,body.fxbusy #map .pop,body.fxbusy #map .goaltag,body.fxbusy #map .turnring{animation-play-state:paused!important}
-/* リスナーコメント：順位欄の見出しの右側に1件ずつ（1行・はみ出す分は…） */#cmts.cmts-top{position:fixed;z-index:12;display:flex;align-items:center;justify-content:flex-end;pointer-events:none;overflow:hidden;max-width:none;right:auto;bottom:auto;gap:0}#cmts.cmts-top .cmt{width:100%;max-width:100%;box-sizing:border-box;font-size:11.5px;line-height:1.55;padding:1px 10px;animation:cmttick .3s ease-out,cmtout .6s ease-in 5.6s forwards}@keyframes cmttick{from{opacity:0;transform:translateY(6px)}}/* CPUのひとこと：下のメニュー欄の下側（行動ログの段）に重ねる。押す操作はさまたげない */.bar>.fx.speech.inbar{position:absolute;left:10px;right:10px;bottom:max(6px,env(safe-area-inset-bottom));top:auto;z-index:6;max-width:none;pointer-events:none;align-items:center}.bar>.fx.speech.inbar .sp-bub{flex:1;min-width:0;background:color-mix(in srgb,#fff 94%,transparent)}.bar>.fx.speech.inbar .sp-face{width:40px;height:40px}#cmts.cmts-top .cmt:not(.troll){background:#2a2038}body:has(#cmts.cmts-top .cmt) #status .sh-turn{visibility:hidden}@media (prefers-reduced-motion:reduce){#cmts.cmts-top .cmt{animation:none}}
+/* リスナーコメント：下の操作欄の右下に3件まで（CPUのひとことは左側）。1行ずつ、はみ出す分は… */#cmts.cmts-bar{position:absolute;right:10px;bottom:max(6px,env(safe-area-inset-bottom));width:calc(46% - 14px);max-height:60px;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;z-index:6;pointer-events:none;overflow:hidden;max-width:none}#cmts.cmts-bar .cmt{width:100%;max-width:100%;box-sizing:border-box;font-size:11px;line-height:1.35;padding:1px 8px;border-radius:9px;animation:cmttick .3s ease-out,cmtout .6s ease-in 5.6s forwards}#cmts.cmts-bar .cmt:not(.troll){background:#2a2038}@keyframes cmttick{from{opacity:0;transform:translateY(6px)}}@media (prefers-reduced-motion:reduce){#cmts.cmts-bar .cmt{animation:none}}.bar.picking>#cmts,.bar.routing>#cmts,.bar.picking>.fx.speech,.bar.routing>.fx.speech{display:none}/* 道選び・獲得・ショップの画面では出さない *//* CPUのひとこと：下のメニュー欄の下側（行動ログの段）に重ねる。押す操作はさまたげない */.bar>.fx.speech.inbar{position:absolute;left:10px;right:auto;width:calc(54% - 14px);bottom:max(6px,env(safe-area-inset-bottom));top:auto;z-index:6;max-width:none;pointer-events:none;align-items:center}.bar>.fx.speech.inbar .sp-bub{flex:1;min-width:0;background:color-mix(in srgb,#fff 94%,transparent)}.bar>.fx.speech.inbar .sp-face{width:36px;height:36px;flex:none}.bar>.fx.speech.inbar .sp-bub{font-size:12.5px;line-height:1.35;padding:3px 9px 4px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.bar>.fx.speech.inbar .sp-bub b{font-size:10px}/* 下の段（行動ログの段）を62pxにして、ひとこと（左）とコメント3件（右）がボタンに重ならないように */html body.ingame .bar .logpanel{min-height:62px;justify-content:flex-start;padding-top:6px}html body.ingame .bar .logpanel.open{min-height:62px}@media (prefers-reduced-motion:reduce){#cmts.cmts-top .cmt{animation:none}}
 /* 2026-10-31 下のボタンを1段4つに：左から メニュー・ポコチャレ・カード・サイコロ（一番右がサイコロで少し広く）。ボタンは48pxのまま */
 .btnrow{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr;gap:6px;width:100%}.btnrow:has(>#actMain[hidden]){display:none}
 html body.ingame .bar .btnrow>#actMain:not([hidden]),html body.ingame .bar .btnrow>#actMain:not([hidden])+.toprow,.btnrow>#actMain:not([hidden]),.btnrow>#actMain:not([hidden])+.toprow{display:contents!important}
@@ -3124,15 +3124,15 @@ for(const k in CMT_POCO)CMT[k]=[...new Set((CMT[k]||[]).concat(CMT_POCO[k]))];/*
 {const u=[...new Set(CMT_NAME)];CMT_NAME.length=0;CMT_NAME.push(...u)}
 let cmtRecent=[];// 同じコメントが続けて出ないように最近の分を覚える
 function comments(kind,count=5){count=Math.max(1,Math.round(count*FXQ()));if(!document.body.classList.contains('ingame'))return;cmtBox();
-  /* 2026-10-31 リスナーコメントは上の順位欄の見出しの右側に、1件ずつ流れるように出す（地図のイベント表示と重ならない） */
+  /* 2026-10-31 リスナーコメントは下の操作欄の右側（CPUのひとことの右）に3件ずつ出す（地図のイベント表示と重ならない） */
   const L=CMT[kind]||CMT.good,troll=kind==='troll';let at=0;
   for(let i=0;i<count;i++){at+=i?(SET.fast?260:420)+Math.random()*(SET.fast?320:560):0;setTimeout(()=>{if(!document.body.classList.contains('ingame'))return;
     let t,k=0;do{t=L[Math.floor(Math.random()*L.length)];k++}while(cmtRecent.includes(t)&&k<8);cmtRecent.push(t);if(cmtRecent.length>14)cmtRecent.shift();
     const c=document.createElement('div');c.className='cmt'+(troll?' troll':'');const who=document.createElement('b');const N=troll?CMT_TROLL_NAME:CMT_NAME;who.textContent=N[Math.floor(Math.random()*N.length)];
-    c.append(who,document.createTextNode(' '+t));cmtQ.push(c);if(cmtQ.length>5)cmtQ.shift();if(!cmtT)cmtT=setTimeout(cmtRun,Math.max(0,cmtLast+(SET.fast?1100:1800)-Date.now()))},at)}}/* 前のコメントを最低でも約1.8秒は見せてから次へ */
+    c.append(who,document.createTextNode(' '+t));const box=cmtBox();box.appendChild(c);while(box.children.length>3){const o=box.firstChild;clearTimeout(o._k);o.remove()}c._k=setTimeout(()=>c.remove(),6200)},at)}}/* 一度に3件まで。新しいコメントが来たら一番古いものから消える */
 let cmtQ=[],cmtT=0,cmtLast=0;
-// コメントの欄：順位欄の見出し（🏁目的地）の右側にぴったり重ねる。順位欄は描き直されるので、欄は body に置いて位置だけ合わせる
-function cmtBox(){let box=$('#cmts');if(!box||box.parentNode!==document.body){if(box)box.remove();box=document.createElement('div');box.id='cmts';box.className='cmts-top';box.setAttribute('aria-hidden','true');document.body.appendChild(box)}cmtPlace(box);return box}
+// コメントの欄：下の操作欄（#bar）の右下。位置はCSSで決める
+function cmtBox(){const bar=$('#bar');let box=$('#cmts');if(!box||box.parentNode!==bar){if(box)box.remove();box=document.createElement('div');box.id='cmts';box.className='cmts-bar';box.setAttribute('aria-hidden','true');bar.appendChild(box)}return box}
 function cmtPlace(box){const h=document.querySelector('#status .st-head'),g=h&&h.querySelector('.sh-goal');if(!h||!h.offsetParent||!document.body.classList.contains('ingame')){box.style.display='none';return}
   const r=h.getBoundingClientRect(),gr=g?g.getBoundingClientRect():r,l=Math.round(gr.right+8);box.style.display='';box.style.left=l+'px';box.style.top=Math.round(r.top)+'px';box.style.width=Math.max(60,Math.round(r.right-l))+'px';box.style.height=Math.max(20,Math.round(r.height))+'px'}
 // 1件ずつ順番に出す（前のコメントは次が来たら消える。最後の1件は約6秒で消える）
@@ -3147,12 +3147,12 @@ function cmtRoom(mb,box){const H=mb.clientHeight,W=mb.clientWidth;if(!H)return 4
 // 入りきらない古いコメントから一時的に下げ、結果カードが消えて空きができたら出し直す（最大4件・地図が低い画面では3件、5秒待っても出せなければ消す）
 let cmtWait=[],cmtWT=0;
 // 駅名と重なったコメントは薄く透かして、下の駅名を読めるようにする（地図が動いても追従）
-function cmtSee(){const mb=$('#mapbox'),box=$('#cmts');if(box&&box.parentNode===document.body){cmtPlace(box);return}if(!mb||!box||!box.children.length)return;let M=null;try{M=$('#map').getScreenCTM()}catch{}if(!M||!M.a||!M.d)return;const k=lastLS||1;
+function cmtSee(){const mb=$('#mapbox'),box=$('#cmts');if(box&&box.parentNode!==mb)return;if(!mb||!box||!box.children.length)return;let M=null;try{M=$('#map').getScreenCTM()}catch{}if(!M||!M.a||!M.d)return;const k=lastLS||1;
   // 札の位置は地図の座標で分かっている（n.plate）。拡大に合わせた縮小（scaleMarks）も同じ式で反映する
   for(const c of box.children){const r=c.getBoundingClientRect(),x0=(r.left+2-M.e)/M.a,x1=(r.right-2-M.e)/M.a,y0=(r.top+2-M.f)/M.d,y1=(r.bottom-2-M.f)/M.d;
     c.classList.toggle('see',NODES.some(n=>{const q=n.plate;if(!q)return false;const a=n.x+(q.x-n.x)*k,b=n.x+(q.x+q.w-n.x)*k,u=n.y+(q.y-n.y)*k,w=n.y+(q.y+q.h-n.y)*k;return a<x1&&b>x0&&u<y1&&w>y0}))}}
 setInterval(cmtSee,250);
-function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(box&&box.parentNode===document.body){cmtPlace(box);return}if(!mb||!box)return;const n=cmtRoom(mb,box);
+function cmtFit(){const mb=$('#mapbox'),box=$('#cmts');if(box&&box.parentNode!==mb)return;if(!mb||!box)return;const n=cmtRoom(mb,box);
   while(box.children.length>n){const c=box.firstChild;clearTimeout(c._k);c._wait=Date.now();c.remove();cmtWait.push(c)}cmtWait=cmtWait.slice(-4);if(cmtWait.length&&!cmtWT)cmtWT=setTimeout(cmtFlush,400);cmtSee()}
 function cmtFlush(){cmtWT=0;const mb=$('#mapbox'),box=$('#cmts');if(!mb||!box||!document.body.classList.contains('ingame')){cmtWait=[];return}
   cmtWait=cmtWait.filter(c=>Date.now()-c._wait<5000);if(cmtWait.length&&cmtRoom(mb,box)>box.children.length){/* 出し直しも1件ずつずらす */const c=cmtWait.shift();c._wait=0;box.appendChild(c);c._k=setTimeout(()=>c.remove(),6200)}
