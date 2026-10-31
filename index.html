@@ -591,7 +591,7 @@ button.small,.chip{box-shadow:none}
 .bar .logpanel{padding:4px 10px 5px;margin:0;border-radius:12px;border-width:2px;box-shadow:none}
 .bar .logpanel h2{font-size:12px;margin:0}.bar .logpanel #verify{font-size:10px}
 .bar .log{font-size:12px;line-height:1.35;gap:1px;max-height:46px;overflow-y:auto}/* スマホで読めるよう12px */.bar .log .n{min-width:2.6em}
-.bar .log li:first-child{font-weight:800;color:var(--ink)}
+.bar .log li:first-child{font-weight:800;color:var(--ink)}.log .lg-who{font-weight:900}
 /* 行動ログはタップで広げて、過去の手番を読み返せる */.bar .logpanel{cursor:pointer}.logpanel:has(#log:empty) .lp-tg{display:none}.lp-tg{font-size:11px;font-weight:700;color:var(--muted);margin-left:6px}.bar .logpanel.open .log{max-height:min(40vh,320px)}
 .ingame #vGame .mapbox{align-self:stretch}
 /* 第24.4版：メニュー・操作欄 */
@@ -831,7 +831,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 .gfs-who{font-weight:800;font-size:min(5vw,22px);color:#fff;padding:3px 14px;border-radius:999px;background:var(--c,#ff5fa8);border:2px solid #fff;opacity:0;animation:gfsDrop .5s cubic-bezier(.2,1.6,.4,1) 1.5s forwards;max-width:90vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes gfsDrop{0%{opacity:0;transform:translateY(-30px) scale(.6)}100%{opacity:1;transform:none}}
 .gfs-trophy{width:min(22vw,110px);height:auto;opacity:0;animation:gfsDrop .6s cubic-bezier(.2,1.6,.4,1) 1.7s forwards,gfsWave 1.6s ease-in-out 2.3s infinite}
-.gfs-skip{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:rgba(255,255,255,.75);font-size:12px;font-weight:700}
+.gfs-skip{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#fff;font-size:14px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 body.gfs-shake .wrap{animation:shk .45s}
 .gfs-static .gfs-word span,.gfs-static .gfs-top,.gfs-static .gfs-ribbon,.gfs-static .gfs-who,.gfs-static .gfs-trophy{opacity:1;animation:none}
 .gfs-static .gfs-tape,.gfs-static .gfs-train,.gfs-static .gfs-rings,.gfs-static .gfs-flash{display:none}.gfs-static .gfs-rays{animation:none}
@@ -2145,10 +2145,10 @@ function onPauseChange(wasP){const now=!!(meta&&meta.paused);if(wasP===now)retur
 function drawPause(play){const b=$('#pauseBox');if(!b)return;const on=!!(play&&meta&&meta.paused);b.hidden=!on;$('#bPause').hidden=!play||!canWrite||mySeat()<0;if(!on)return;
   const p=meta.paused,d=new Date(p.at),tip=curTip(),ds=tip?tip.state:dispState,me=mySeat(),when=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   const key=code+':'+p.at+':'+me+':'+(tip?tip.id:'');if(b.dataset.k===key)return;b.dataset.k=key;
-  b.innerHTML=`<div class="card pausecard"><div class="pz-icon">⏸</div><h3>中断中</h3><p>${esc(seatName(p.seat))} が中断しました（${when}）</p>
-    ${ds?`<p class="pz-where">${ds.month}日目 ${ds.hour}:00・${esc(seatName(curSeat(ds)))} の番から再開</p>`:''}
+  b.innerHTML=`<div class="card pausecard"><div class="pz-icon">⏸</div><h3>中断中</h3><p>${esc(seatName(p.seat))}が中断しました（${when}）</p>
+    ${ds?`<p class="pz-where">${ds.month}日目 ${ds.hour}:00・${esc(seatName(curSeat(ds)))}の番から再開</p>`:''}
     <div class="pz-code"><small>部屋コード</small><b>${code}</b></div>
-    <p class="muted" style="text-align:left">このページを閉じても大丈夫です。盤面は保存されています。次に開いたとき、タイトル画面の「続きから遊ぶ」（または部屋コード）から、中断したところの続きを遊べます。</p>
+    <p class="muted" style="text-align:left">このページを閉じても大丈夫です（盤面は保存済み）。次はタイトル画面の「続きから遊ぶ」か部屋コードで、続きから遊べます。</p>
     ${me>=0?'<button id="bResume">▶ 再開する</button>':'<p class="muted">席に座っている人が再開するまで待っています。</p>'}<button class="ghost" id="bToTitle">タイトルへ戻る</button></div>`;
   const r=$('#bResume');if(r)r.onclick=resumeGame;$('#bToTitle').onclick=leaveRoom}
 function leaveRoom(){{const i=$('#iMyName');if(i)delete i.dataset.dirty}if(db&&db.online&&code)db.online.leave(code).catch(e=>toast(errText(e)));document.body.classList.remove('ingame');if(pending){const r=pending.res;pending=null;try{r(null)}catch{}}unsub.forEach(u=>u());unsub=[];if(grp)try{grp.leave()}catch{}grp=null;code=null;meta=null;seats=[null,null,null,null];peers=[];resetGame();$('#pauseBox').dataset.k='';$('#ov').hidden=true;$('#ov').innerHTML='';render();refreshResume()}
@@ -2163,7 +2163,7 @@ function mergeRooms(a,b){const m=new Map();[...validRooms(a),...validRooms(b)].f
 async function refreshResume(){const box=$('#resumeList');if(!box||!db)return;if(myId&&!myRooms){try{const d=await db.doc('players/'+myId).get();myRooms=d.exists&&Array.isArray(d.data().rooms)?d.data().rooms:[]}catch{myRooms=[]}}
   const L=mergeRooms(loadRooms(),myRooms||[]).filter(x=>!x.done).slice(0,5);const rows=[];
   for(const r of L){try{const sn=await db.doc('games/'+r.c).get();if(!sn.exists)continue;const m=sn.data();if(m.rulesVersion!==RULES_VERSION||(m.phase==='ended'||m.phase==='closed'))continue;
-    const st=m.paused?'中断中':m.phase==='playing'?'対戦中':'準備中';rows.push(`<button type="button" class="resumebtn" data-c="${r.c}"><span class="rs-code">${r.c}</span><span class="rs-t"><b>${st}</b><small>${r.m?`${r.m}日目 ${r.w}:00まで進行`:'部屋に入る'}・${new Date(r.at).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})}</small></span><span class="rs-go">続きから ▶</span></button>`)}catch{}}
+    const st=m.paused?'中断中':m.phase==='playing'?'対戦中':'準備中';rows.push(`<button type="button" class="resumebtn" data-c="${r.c}"><span class="rs-code">${r.c}</span><span class="rs-t"><b>${st}</b><small>${r.m?`${r.m}日目 ${r.w}:00まで進行`:m.phase==='playing'?'1日目 18:00（まだ動いていない）':'部屋でメンバー待ち'}・${new Date(r.at).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})}</small></span><span class="rs-go">続きから ▶</span></button>`)}catch{}}
   box.innerHTML=rows.join('');box.querySelectorAll('.resumebtn').forEach(b=>b.onclick=()=>enter(b.dataset.c));render()}
 function randCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const b=new Uint32Array(4);crypto.getRandomValues(b);return[...b].map(x=>a[x%a.length]).join('')}
 async function createRoom(){unlock();if(db.online){if(busy)return;busy=true;try{const c=randCode();await db.online.create(c,RULES_VERSION);await enter(c)}catch(e){toast(errText(e))}finally{busy=false}return;}try{for(let i=0;i<6;i++){const c=randCode();const ref=db.doc('games/'+c);const l=await ref.acquire({holder:myId,ttlMs:5000});if(!l.acquired)continue;const s=await ref.get();if(s.exists)continue;
@@ -2528,7 +2528,7 @@ let finalSeen=false;
 function showFinal(s){const me=mySeat(),rows=s.final.map((f,i)=>`<tr${f.seat===me?' class="me"':''}><td>${['1位','2位','3位','4位'][i]} ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}G</td></tr>`).join('');
     const earn=[0,1,2,3].sort((a,b)=>s.players[b].earned-s.players[a].earned)[0];const rk=[0,1,2,3].sort((a,b)=>RANKS.indexOf(s.players[b].rank)-RANKS.indexOf(s.players[a].rank))[0];
     if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">全国編</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
-function showOverlay(html,ms,kind){return new Promise(res=>{const o=$('#ov');o.innerHTML=`<div class="card${kind?' '+kind:''}">${html}<button class="ghost" id="ovClose">${ms?'とじる':'OK'}</button></div>`;o.hidden=false;const rb=$('#bRematch');if(rb)rb.onclick=()=>{rematch()};
+function showOverlay(html,ms,kind){return new Promise(res=>{const o=$('#ov');o.innerHTML=`<div class="card${kind?' '+kind:''}">${html}<button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;const rb=$('#bRematch');if(rb)rb.onclick=()=>{rematch()};
   o.querySelectorAll('[data-count]').forEach(el=>countUp(el,0,+el.dataset.count,'＋'));
   const done=()=>{o.hidden=true;o.innerHTML='';clearTimeout(t);res()};$('#ovClose').onclick=done;o.onclick=e=>{if(e.target===o)done()};const t=ms?setTimeout(done,SET.fast?ms/2:ms):null})}
 // 目的地カード：地図の左上に、目的地の駅名と残りマス数を大きく。全員の残りも並べる
@@ -3343,12 +3343,12 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   if(!play){music('wait');const me=mySeat();$('#seats').innerHTML='';
     [0,1,2,3].forEach(i=>{const s=seats[i],d=document.createElement('button');d.type='button';d.className='seat'+(i===me?' mine':'');
       d.innerHTML=`<span class="who"><span class="dot" style="background:${SEATC[i]}"></span>${i+1}P</span>`;const w=document.createElement('span');w.className='who';if(s)w.textContent=seatName(i);else w.innerHTML='空席<br><small class="wsub">'+(db.online?'開始時にCPU':'タップで座る')+'</small>';d.appendChild(w);
-      const c=document.createElement('span');c.className='chip '+(s?(seatOnline(i)?'on':''):'');c.textContent=s?(seatOnline(i)?(s.ready?'準備OK':'接続中'):'切断'):'';if(s)d.appendChild(c);/* 空席には意味のない「—」の札を出さない */d.onclick=()=>takeSeat(i);$('#seats').appendChild(d)});
+      const c=document.createElement('span');c.className='chip '+(s?(seatOnline(i)?'on':''):'');c.textContent=s?(seatOnline(i)?(s.ready?'準備OK':'接続中'):'切断'):'';if(s&&db.online)d.appendChild(c);/* 空席の「—」と、端末内モードの「準備OK」（ひとりなので意味がない）は出さない */d.onclick=()=>takeSeat(i);$('#seats').appendChild(d)});
     {const inp=$('#iMyName'),cur=me>=0&&seats[me]?(meta.uname||{})[seats[me].uid]:'',sv=savedName();if(inp&&document.activeElement!==inp&&!inp.dataset.dirty)inp.value=cur||sv||'';
      if(me>=0&&seats[me]&&seats[me].uid===myId&&canWrite&&sv&&!cur&&!autoNamed.has(code)){autoNamed.add(code);setName(me,sv,true)}}
-    $('#bReady').hidden=me<0;$('#bReady').textContent=me>=0&&seats[me]&&seats[me].ready?'準備OKを取り消す':'準備OK';
-    const host=meta.host===myId;$('#timeoutSettings').hidden=!db.online;$('#selDisconnect').value=String(meta.disconnectSec||45);$('#selCpuTimeout').value=String(meta.cpuTimeoutSec||90);$('#selDisconnect').disabled=!host;$('#selCpuTimeout').disabled=!host;const allReady=seats.filter(Boolean).every(s=>s.ready)&&seats.some(Boolean);$('#bStart').hidden=!host;$('#bStart').disabled=!allReady;$('#selLv').value=meta.cpuLv||'normal';$('#selLv').disabled=!host;$('#selDays').value=String(meta.days??2);$('#selDays').disabled=!host;
-    $('#roomNote').textContent=!canWrite?'観戦モードです。':me<0?'参加処理を確認しています。':host?(allReady?'全員準備OKです。開始できます。':'全員の準備OKを待っています。'):'ホストの開始を待っています。';return}
+    $('#bReady').hidden=me<0||!db.online;/* 端末内モード（ひとりでCPU対戦）では準備OKの切りかえは不要なので出さない */$('#bReady').textContent=me>=0&&seats[me]&&seats[me].ready?'準備OKを取り消す':'準備OK';
+    const host=meta.host===myId;$('#timeoutSettings').hidden=!db.online;$('#selDisconnect').value=String(meta.disconnectSec||45);$('#selCpuTimeout').value=String(meta.cpuTimeoutSec||90);$('#selDisconnect').disabled=!host;$('#selCpuTimeout').disabled=!host;const allReady=(!db.online||seats.filter(Boolean).every(s=>s.ready))&&seats.some(Boolean);$('#bStart').hidden=!host;$('#bStart').disabled=!allReady;$('#selLv').value=meta.cpuLv||'normal';$('#selLv').disabled=!host;$('#selDays').value=String(meta.days??2);$('#selDays').disabled=!host;
+    $('#roomNote').textContent=!canWrite?'観戦モードです。':!db.online?'':me<0?'参加処理を確認しています。':host?(allReady?'全員準備OKです。開始できます。':'全員の準備OKを待っています。'):'ホストの開始を待っています。';return}
   if(!built){buildMap();built=true;requestAnimationFrame(frame);drawPawns(dispState)}
   const{chain,broken}=chainOf([...records.values()]);const tip=chain[chain.length-1];if(!tip){$('#turnText').textContent='盤面を読み込み中…';return}
   const st=tip.state,ds=dispState||st;if(!dispState){dispState=st;drawPawns(st);camHome(0)}
@@ -3385,7 +3385,8 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   if(buy)drawBaseList();
   const bad=verifyChain(chain,meta.seed);/* 問題がないときは何も出さない（内部の確認なので） */$('#verify').textContent=broken?'記録の到着待ち':bad.length?'検算の不一致 '+bad.length+'件':'';$('#verify').style.color=bad.length?'var(--anti)':'var(--good)';
   const L=$('#log');L.innerHTML='';chain.slice(-8).reverse().forEach(r=>{if(!r.parent)return;const li=document.createElement('li');const n=document.createElement('span');n.className='n';n.textContent='#'+r.turn;
-    const s=document.createElement('span');s.textContent=`${seatName(r.state.lastSeat)} `+nameize((r.state.ev||[]).map(e=>e.t).filter(Boolean).join('／'))+(String(r.by).startsWith('cpu')?'（CPU）':'');li.append(n,s);L.appendChild(li)});
+    const s=document.createElement('span'),ls=r.state.lastSeat,who=document.createElement('b');who.className='lg-who';who.textContent=seatName(ls);if(ls!=null)who.style.color=SEATC[ls];/* 名前を色つきの太字にして、だれの手番かを見分けやすく。CPUの席の手番に毎回「（CPU）」は付けず、人の手番を代わりに進めたときだけ「（代行）」 */
+    s.append(who,document.createTextNode(' '+nameize((r.state.ev||[]).map(e=>e.t).filter(Boolean).join('／'))+(String(r.by).startsWith('cpu')&&!(meta.cpu||[]).includes(ls)?'（代行）':'')));li.append(n,s);L.appendChild(li)});
   const orphans=[...records.values()].filter(r=>r.rulesVersion===RULES_VERSION&&!chain.includes(r));if(orphans.length){const li=document.createElement('li');li.className='muted';li.textContent=`遅れて届いた行動（無効）${orphans.length}件`;L.appendChild(li)}}
 // 自分の操作待ちの間に、その手番がほかで確定した（時間切れでホストがCPU代行した など）ときは、操作待ちを終わらせる。
 // 以前はここで止まったままになり（busyが戻らない）、以後の自分の手番もずっとCPU代行になっていた。次の自分の手番から、また自分で操作できる
@@ -3544,11 +3545,11 @@ $('#bShopSkip').onclick=()=>{if(!pending||pending.stage!=='shop')return;pending.
 $('#bShopUndo').onclick=()=>{if(!pending||pending.stage!=='shop'||!pending.shopOps||!pending.shopOps.length)return;pending.shopOps.pop();sfx('step',1);drawShop()};
 function drawBaseList(){const pv=pending.pv,B=pv.nd.bases;let tot=0;for(const j of pending.sel)tot+=B[j].price;
   {let c=pv.coin,n=0,t=0;B.map((b,j)=>[b.price,j]).filter(([,j])=>pv.own[j]==null).sort((a,b)=>a[0]-b[0]).forEach(([pr])=>{if(pr<=c){c-=pr;n++;t+=pr}});const free=pv.own.filter(x=>x==null).length;
-    $('#buyHead').innerHTML=`<div>🏠 ${esc(pv.nd.name)}の物件 <small>（空き${free}／${B.length}件・所持${pv.coin.toLocaleString()}G）</small></div><button type="button" id="bBuyAll" ${n?'':'disabled'}>🏠 買えるだけ買う（${n}件・${t.toLocaleString()}G）</button>`;
+    $('#buyHead').innerHTML=`<div>🏠 ${esc(pv.nd.name)}の物件 <small>（空き${free}／${B.length}件・所持${pv.coin.toLocaleString()}G）</small></div><button type="button" id="bBuyAll" ${n?'':'disabled'}>🏠 買えるだけ獲得（${n}件・${t.toLocaleString()}G）</button>`;
     $('#bBuyAll').onclick=()=>{if(!pending||pending.stage!=='buy')return;const sel=[];let cc=pv.coin;B.map((b,j)=>[b.price,j]).filter(([,j])=>pv.own[j]==null).sort((a,b)=>a[0]-b[0]).forEach(([pr,j])=>{if(pr<=cc){sel.push(j);cc-=pr}});if(!sel.length)return;
       // 先に結果を見せて、確認してから獲得する
       const mine=pv.own.filter(x=>x===curSeat(pending.st)).length,mono=mine+sel.length===pv.own.length,tot=sel.reduce((a,j)=>a+B[j].price,0),inc=sel.reduce((a,j)=>a+Math.round(B[j].price*B[j].rate),0),o=$('#ov');
-      o.innerHTML=`<div class="card sheet confsheet"><h3>🏠 買えるだけ買う</h3><p class="muted">${esc(pv.nd.name)}で、次の物件を獲得します。</p><div class="conf-list">${sel.map(j=>`<div class="conf-row"><span>${esc(fanName(pending.st,pv.pos,j))}</span><b>${B[j].price.toLocaleString()}G</b></div>`).join('')}</div>
+      o.innerHTML=`<div class="card sheet confsheet"><h3>🏠 買えるだけ獲得</h3><p class="muted">${esc(pv.nd.name)}で、次の物件を獲得します。</p><div class="conf-list">${sel.map(j=>`<div class="conf-row"><span>${esc(fanName(pending.st,pv.pos,j))}</span><b>${B[j].price.toLocaleString()}G</b></div>`).join('')}</div>
         <div class="conf-sum"><div><span>獲得する件数</span><b>${sel.length}件</b></div><div><span>使うゴールド</span><b>${tot.toLocaleString()}G</b></div><div><span>残るゴールド</span><b>${(pv.coin-tot).toLocaleString()}G</b></div><div><span>毎日のゴールドが増える量</span><b>＋${inc.toLocaleString()}G／日</b></div>${mono?'<div class="conf-mono">🏆 この駅を独占できます！</div>':''}</div>
         <div class="row" style="justify-content:center"><button id="cfOk">この内容で獲得する</button><button class="ghost" id="cfNo">やめる</button></div></div>`;o.hidden=false;
       $('#cfNo').onclick=()=>{o.hidden=true;o.innerHTML=''};$('#cfOk').onclick=()=>{o.hidden=true;o.innerHTML='';if(pending&&pending.stage==='buy')commitAction({...(pending.base||{type:'roll'}),buy:sel})}}}
@@ -3597,8 +3598,8 @@ const SYS=[
  ['🏅 ポコチャレ','ポコチャレ',`<p>0:00・6:00・12:00・18:00に、全員共通の3つのお題（ポコチャレ）が出ます。下の「ポコチャレ」ボタンを押すと、内容と進み具合を確認できます。</p><h4>達成の報酬</h4><ul><li>ゴールド（基本ゴールドの4倍）か、カード1枚のどちらかを選べます。</li><li>どちらを選んでも<b>コアファン＋2人・ランク＋20pt</b>。</li><li>「マイナス0回」のお題は、6時間の締めのときに判定します。</li></ul>`],
  ['👾 お邪魔','お邪魔キャラ',`<p>誰かが目的地に着くと、お邪魔キャラ「荒らしラグ王」が誰かに取りつくことがあります。取りつかれると、いたずらをされます。</p><p>防御系や策略系のカードで追い払ったり、ほかの人に押し付けたりできます。</p>`],
  ['🤖 CPU','CPUキャラと名前',`<ul><li>空いた席には、えらんだ強さ（弱い・普通・強い）のCPUキャラが入ります。強さごとに10人いて、毎回ランダムで決まります。</li><li>キャラごとに、出身地・職業・性格などのプロフィールと、カードをよく使う・物件を買いまくる・最短で目的地を目指すなどの<b>プレイのクセ</b>があります。</li><li>キャラは方言やくせのある話し方で、場面ごとにひとりごとを言います。</li><li>上のプレイヤー欄をタップすると、プロフィールを見たり、<b>名前を変えたり</b>できます（自分の名前と、CPUの名前）。ホストはCPUキャラの入れかえもできます。</li><li>部屋の画面でも、自分の表示名を変えられます。</li></ul>`],
- ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMは、ふだんは軽快なPOPの曲（4曲。1曲を2回くり返すと次の曲へ交代し、2回目は音色や伴奏が変わります）。目的地まであと少し・終盤・お邪魔が取りついた番・空路・海路・沖縄のときだけ、その場面の曲に変わり、終わるといつもの曲の続きに戻ります（全15曲・すべてオリジナル）。</li><li>時間帯と天気は、地図の左上の小窓の中だけで空の色・太陽や月・雲・雨・稲光として表示します（地図には色を重ねません）。効果音が鳴る間はBGMを少し下げて聞きやすくします。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li></ul>`],
- ['⏸ 中断','中断と再開・対戦',`<ul><li>部屋を作ると4文字の部屋コードができます。最大4人で参加し、開始時の空席はCPUになります。開始後は新規参加できません。同じブラウザの匿名IDが残っていれば復帰できます。</li><li>途中でやめるときはメニューの「中断する」。次はタイトル画面の「続きから遊ぶ」か部屋コードで、続きから遊べます。</li><li>ゲームが更新されたときは、全員ページを開き直してから遊んでください。</li></ul>`]];
+ ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMはふだん軽快なPOPの曲。目的地まであと少し・終盤・お邪魔が取りついたとき・空路・海路・沖縄では、その場面の曲に変わります（全15曲・すべてオリジナル）。</li><li>時間帯と天気は、地図の左上の小窓に空の色・太陽や月・雨などで表示されます。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li></ul>`],
+ ['⏸ 中断','中断と再開・対戦',`<ul><li>部屋を作ると4文字の部屋コードができます。最大4人で参加し、開始時の空席はCPUになります。開始後は新しく参加できませんが、同じ端末の同じブラウザなら途中で抜けても戻れます。</li><li>途中でやめるときはメニューの「中断する」。次はタイトル画面の「続きから遊ぶ」か部屋コードで、続きから遊べます。</li><li>ゲームが更新されたときは、全員ページを開き直してから遊んでください。</li></ul>`]];
 let sysI=0;
 // 地図の左上の時刻・天気をタップ：いまの時間帯と天気で、マスでもらえる量が何倍になるか
 function showWx(){const ds=dispState;if(!ds)return;unlock();const tz=TZ(ds.hour),wx=ds.weather||0,w=WEATHER[wx],nx=(Math.floor(ds.hour/6)+1)*6%24,o=$('#ov');
