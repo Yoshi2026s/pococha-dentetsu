@@ -14,7 +14,7 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
   const P=w.eval('PLUSM'),M=w.eval('MINUSM'),Y=w.eval('YELLM'),f=v=>'×'+(+v.toFixed(2));
   assert.deepEqual(now,[f(P.tz[2]*P.wx[2]),f(M.tz[2]*M.wx[2]),f(Y.tz[2]*Y.wx[2])],'いまの倍率（ゴールデン×雨）が定数と違う：'+now);
   const on=[...box.querySelectorAll('tr.on th')].map(t=>t.textContent);assert(on[0].startsWith('ゴールデン')&&on[1].includes('雨'),'いまの時間帯・天気の強調：'+on);
-  assert(box.textContent.includes('次に天気が変わるのは 0:00'),'次の天気の時刻（20時→0:00）');
+  assert(box.textContent.includes('次に天気が変わるのは 0:00')||box.textContent.includes('次の天気の変化と決算は 0:00'),'次の天気の時刻（20時→0:00。決算と同じ時刻なら1つにまとめた表記）');
   // 「くわしい説明」→システム説明の時間タブ
   d.querySelector('#wxMore').click();await wait(50);const body=d.querySelector('.sys-body');
   assert(body&&body.querySelector('h4').textContent==='時間と天気'&&body.querySelectorAll('.xtab').length===2,'くわしい説明で時間タブの表が出ない');

@@ -28,8 +28,10 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
     go('far',s=>{const k=D(s.goal).findIndex(v=>v===6);s.players.forEach(p=>p.pos=k)});
     go('final',s=>{s.maxTurn=s.maxTurn||120;s.turn=s.maxTurn-5});
     go('troll',s=>{s.troll=curSeat(s)});
-    go('air',s=>{s.players[curSeat(s)].pos=NODES.findIndex(n=>n.air)});
-    go('sea',s=>{s.players[curSeat(s)].pos=NODES.findIndex(n=>n.sea&&!n.air&&!n.oki)});
+    /* 空港・海路の曲：目的地が近いときの曲（goalrun）が優先されるので、全員を目的地から遠い場所に置いてから確かめる（目的地はランダムなため） */
+    const farAll=s=>{const d=D(s.goal),f=d.findIndex(v=>v>=8);s.players.forEach(p=>p.pos=f);return d};
+    go('air',s=>{const d=farAll(s);s.players[curSeat(s)].pos=NODES.findIndex((n,i)=>n.air&&d[i]>5)});
+    go('sea',s=>{const d=farAll(s);s.players[curSeat(s)].pos=NODES.findIndex((n,i)=>n.sea&&!n.air&&!n.oki&&d[i]>5)});
     music=keep;return out})()`);
   assert.deepEqual(songs,{day1:'@pop',day2:'@pop',near:'goalrun',far:'@pop',final:'climax',troll:'pinch',air:'sky',sea:'sea'},'BGMの選び方：'+JSON.stringify(songs));
   // 4) 曲データ
