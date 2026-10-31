@@ -33,6 +33,11 @@ async function open(b,file){const c=await b.newContext({viewport:{width:390,heig
     {const k=yk[0];let note='';for(let tr=0;tr<25&&!note;tr++){const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*31+k;try{const s2=applyTurn(st,{type:'roll',route:[k],buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true});if(s2.players[seat].pos!==k)continue;const mv=(s2.ev||[]).find(e=>e.k==='move');note=resultInfo(s2,st,seat,mv?mv.t:'',NODES[k]).note}catch(e){}}out.note=note}
     showPlayer(dispState,0);out.sheet=document.querySelector('#ov').innerText;const o=document.querySelector('#ov');o.hidden=true;o.innerHTML='';
     out.help=SYS.map(x=>x[2]).join('')+HOW.map(x=>x[1].join('')).join('');
+    // コアファン倍増カード：この番に増えるコアファンも2倍（新ルール）・合計（yt）がたまる
+    {const k=yk[0];let r2=null;for(let tr=0;tr<40&&!r2;tr++){const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.players[seat].hand=['double'];st.rng=tr*31+k;
+      try{const a1=applyTurn(st,{type:'roll',route:[k],buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true});const a2=applyTurn(st,{type:'roll',card:'double',route:[k],buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true});
+        if(a1.players[seat].pos!==k||a2.players[seat].pos!==k)continue;r2={plain:a1.players[seat].ye,dbl:a2.players[seat].ye,yt:a2.players[seat].yt}}catch(e){}}out.dbl=r2}
+    {const st=JSON.parse(JSON.stringify(base));st.players.forEach((q,i)=>{q.yt=[3,9,0,5][i]});out.award=awards(st)}
     return out});
   ok(r.fy===1,'新しい対戦に fy:1 がない');
   ok(r.goal&&!r.goal.reset&&r.goal.others.every(v=>v===7),'目的地に着いたらコアファンが0人に戻った '+JSON.stringify(r.goal));
@@ -41,6 +46,8 @@ async function open(b,file){const c=await b.newContext({viewport:{width:390,heig
   ok(r.fanEv.length>=3,'イベントマスのファン交流イベント '+r.fanEv);
   ok(/あと\d+人で\d+人ボーナス/.test(r.note)&&/0:00の決算で0人に戻る/.test(r.note),'結果カードの補足 '+r.note);
   ok(/あと\d+人で\d+人ボーナス/.test(r.sheet),'プレイヤー欄にコアファンの次のボーナスがない');
+  ok(r.dbl&&r.dbl.dbl>=r.dbl.plain*2-1&&r.dbl.yt===r.dbl.dbl,'コアファン倍増カードでコアファンが2倍にならない '+JSON.stringify(r.dbl));
+  ok(/コアファン王/.test(r.award)&&/合計9人/.test(r.award),'最終結果のコアファン王');
   ok(/0:00の決算のあと/.test(r.help)&&!/目的地が変わるたびに、全員のコアファン|目的地が変わると、全員のコアファンは0/.test(r.help),'説明が新しいルールでない');
   if(p.errs.length)fail.push('JSエラー '+p.errs.join(' / '));
   // 以前の対戦（fy なし）は前の版と同じ計算
