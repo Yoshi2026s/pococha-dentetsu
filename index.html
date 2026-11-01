@@ -1823,6 +1823,7 @@ function unlock(){try{if(navigator.audioSession)navigator.audioSession.type='pla
   const W=(fn,n=40)=>{const re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++){const v=fn(k);re[k]=v[0];im[k]=v[1]}return ac.createPeriodicWave(re,im)};
   AU.waves={pulse25:W(k=>[2/(k*Math.PI)*Math.sin(k*Math.PI*.25),0]),pulse12:W(k=>[2/(k*Math.PI)*Math.sin(k*Math.PI*.125),0]),
    organ:W(k=>[0,({1:1,2:.55,3:.4,4:.18,6:.12,8:.1,10:.04})[k]||0]),warm:W(k=>[0,Math.exp(-k/8)/k]),reed:W(k=>[0,(k%2?1:.3)/k*Math.exp(-k/14)])};
+  /* 電話・ほかのアプリで音が中断されたとき（iPhoneの interrupted など）も「音 オフ（タップ）」の表示を正しく */try{ac.onstatechange=()=>soundState()}catch{}
   setVol();dsWarm()}catch{AU.ac=null}
   wake()}
 function wake(){const ac=AU.ac;if(!ac)return;
@@ -1836,10 +1837,12 @@ function soundOn(){return!!AU.ac&&AU.ac.state==='running'}
 function soundState(){const e=document.getElementById('soundChip');if(e){e.textContent=soundOn()?'音 オン':'音 オフ（タップ）';e.className='chip '+(soundOn()?'on':'warn')}}
 ['pointerdown','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,()=>{const was=soundOn();unlock();setTimeout(()=>{soundState();if(!was&&soundOn()&&typeof render==='function')render()},120)},{passive:true}));
 // 画面を離れたら音を止め（裏で途切れ途切れに鳴るのを防ぐ）、戻ったら再開。ゲームの進行には影響しない
-document.addEventListener('visibilitychange',()=>{const ac=AU.ac;if(!ac)return;if(document.hidden){try{ac.suspend()}catch{}}else wake()});
+/* 裏にいる間はマナーモード対策の無音の音声も止める（電池の節約・ロック画面に再生中と出続けないように）（2026-11-01） */
+document.addEventListener('visibilitychange',()=>{const ac=AU.ac;if(!ac)return;if(document.hidden){try{ac.suspend()}catch{}try{AU.silent&&AU.silent.pause()}catch{}}else wake()});
 // ボタンを押したときの小さな音（設定で切替）
 document.addEventListener('click',e=>{if(SET.ui===false)return;const b=e.target&&e.target.closest&&e.target.closest('button');if(b&&!b.disabled&&!b.dataset.nosnd)setTimeout(()=>sfx('ui'),0)},true);
-function setVol(){if(!AU.ac)return;AU.bgm.gain.value=SET.bgm/100*.3;AU.se.gain.value=SET.se/100*.36;
+/* 音量：スマホで小さく感じないよう約2dB上げる（BGM 0.30→0.38、効果音 0.36→0.45。出口のリミッターで音割れはしない）（2026-11-01） */
+function setVol(){if(!AU.ac)return;AU.bgm.gain.value=SET.bgm/100*.38;AU.se.gain.value=SET.se/100*.45;
   /* 残響・こだまの送り：初期設定（BGM40・効果音70）のときに以前と同じ響きの量になるよう、初期設定との比で合わせる */if(AU.mRv){AU.mRv.gain.value=AU.mDl.gain.value=SET.bgm/40;AU.se._rv.gain.value=AU.se._dl.gain.value=SET.se/70}}
 // 同時発音数の目安（演出の量の設定に合わせる）。超えたら曲の飾りの音（パッド・アルペジオ等）を省いて処理落ちを防ぐ
 // 発音中の数は「鳴り終わる予定時刻」で数える（onendedに頼らないので、切替や切断があっても数がずれない）
@@ -2577,7 +2580,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`物件${ft.v}件！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントのゴールドが＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
   const ru=evs.filter(e=>e.k==='rankup');if(ru.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankup',3);sfx('rankup');fireworks(2);pillar(pNode,'var(--rank)');banner('ランクアップ！','var(--rank)',ru.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?800:1900);
   const rd=evs.filter(e=>e.k==='rankdown');if(rd.length&&!evs.some(e=>e.k==='monthend'))setTimeout(()=>{comments('rankdown',2);sfx('anti');shake();brokenHearts(pNode);banner('ランクダウン…','linear-gradient(90deg,#5d5470,#e5363d)',rd.map(e=>`${seatName(e.v.seat)} ${e.v.before}→${e.v.after}`).join('・'))},SET.fast?900:2100);
-  {const yr=evs.find(e=>e.k==='yellreset');if(yr)setTimeout(()=>toast(evs.some(e=>e.k==='monthend')?'💖 0:00の決算で、全員のコアファンが0人に戻りました（また今日から集め直し）':'💖 目的地が変わったので、全員のコアファンが0人に戻りました'),SET.fast?700:1700)}/* 記録の文（検算に使う）はそのまま、表示だけ読みやすく */
+  /* 対戦が終わった0:00は「また今日から集め直し」の案内を出さない（2026-11-01） */{const yr=evs.find(e=>e.k==='yellreset');if(yr&&!s.finished)setTimeout(()=>toast(evs.some(e=>e.k==='monthend')?'💖 0:00の決算で、全員のコアファンが0人に戻りました（また今日から集め直し）':'💖 目的地が変わったので、全員のコアファンが0人に戻りました'),SET.fast?700:1700)}/* 記録の文（検算に使う）はそのまま、表示だけ読みやすく */
   {const we=evs.find(e=>e.k==='weather');if(we)setTimeout(()=>toast(we.t),SET.fast?600:1500)}
   const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('celebrate');if(e.v!==seat)toast('🎉 '+e.t);/* 止まった人のボーナスは結果カードに出るので、お知らせは重ねない */chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
   {const g=evs.find(e=>e.k==='goal');if(g){if(localGoal===s.turn){localGoal=null;await wait(300)}else await goalShow(seat,pNode,g.v,s.goal)}}
@@ -2677,7 +2680,7 @@ function showMis(){const st=misSt;if(!st||!st.mis)return;const o=$('#ov'),I=misI
   o.hidden=false;const c=$('#msClose');c.onclick=()=>{o.hidden=true;o.innerHTML=''}}
 function awards(s){const best=(f,lo)=>{const v=[0,1,2,3].map(i=>f(i)),m=lo?Math.min(...v):Math.max(...v);return m>0||lo?[0,1,2,3].filter(i=>v[i]===m):[]};
   const A=[['稼ぎ王',best(i=>s.players[i].earned),i=>s.players[i].earned.toLocaleString()+'G'],['ランク王',best(i=>RANKS.indexOf(s.players[i].rank)),i=>s.players[i].rank],
-    ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>(s.players[i].minusTot||0)+'回']].concat(s.fy?[['コアファン王',best(i=>s.players[i].yt||0),i=>'合計'+(s.players[i].yt||0)+'人']]:[]);
+    ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>'達成'+s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>'マイナスマス'+(s.players[i].minusTot||0)+'回']].concat(s.fy?[['コアファン王',best(i=>s.players[i].yt||0),i=>'合計'+(s.players[i].yt||0)+'人']]:[]);
   return`<div class="awards">${A.filter(a=>a[1].length&&a[1].length<4).map(([t,w,f])=>`<span class="award"><small>${t}</small><span>${w.map(i=>`<b style="color:${SEATC[i]}">${esc(seatName(i))}</b>`).join('・')}</span><i>${f(w[0])}</i></span>`).join('')}</div>`}
 function assetChart(hist,dark){if(!hist||hist.length<2)return'';/* 線の名札は地図の電車と同じ名前の2文字 */const PL=typeof pawnLabels==='function'&&meta&&meta.phase==='playing'?pawnLabels():null;const W=290,H=120,P=26,mx=Math.max(...hist.flat())*1.08,X=i=>P+i*(W-P-28)/(hist.length-1),Y=v=>H-18-(v/mx)*(H-30);
   const mon=hist.map((_,i)=>i?`${i}日目`:'開始');let g=`<svg class="achart" viewBox="0 0 ${W} ${H}" role="img" aria-label="総Gの推移"><line x1="${P}" y1="${H-18}" x2="${W-24}" y2="${H-18}" stroke="currentColor" opacity=".3"/>`;
@@ -2910,6 +2913,7 @@ function updateGoalArrow(){const a=$('#goalArrow'),s=dispState;if(!a||!s||s.goal
   const inside=g.x>v[0]+m&&g.x<v[0]+v[2]-m&&g.y>v[1]+m&&g.y<v[1]+v[3]-m;if(inside||v[2]>=WW-1){a.hidden=true;return}
   const cx=v[0]+v[2]/2,cy=v[1]+v[3]/2,dx=g.x-cx,dy=g.y-cy,k=Math.min(Math.abs((v[2]/2-14)/(dx||1e-6)),Math.abs((v[3]/2-14)/(dy||1e-6)));
   const px=(dx*k+v[2]/2)/v[2]*100,py=(dy*k+v[3]/2)/v[3]*100,ang=Math.atan2(dy,dx)*180/Math.PI,fs=focusSeat(),d=D(s.goal)[s.players[fs].pos];
+  /* 前回と同じ表示範囲・行き先・残りマスなら何もしない（毎回の書きかえと位置の測り直しを省く）（2026-11-01） */{const k=v.map(x=>x.toFixed(1)).join()+'|'+s.goal+'|'+d+'|'+innerWidth+'x'+innerHeight;if(!a.hidden&&a.__k===k)return;a.__k=k}
   a.hidden=false;a.style.left=Math.min(76,Math.max(22,px))+'%';a.style.top=Math.min(92,Math.max(8,py))+'%';a.innerHTML=`<i style="transform:rotate(${ang}deg)">➤</i><span>${esc(g.name)}<b>あと${d}</b></span>`;
   {const box=$('#mapbox'),br=box.getBoundingClientRect();if(br.height>0){let r=a.getBoundingClientRect();const hit=q=>r.left<q.right&&q.left<r.right&&r.top<q.bottom&&q.top<r.bottom;
    for(const el of [$('#bView'),$('#skyLabel')]){if(!el||el.hidden)continue;const q=el.getBoundingClientRect();if(q.width&&hit(q)){a.style.top=((q.bottom-br.top+r.height/2+6)/br.height*100)+'%';r=a.getBoundingClientRect()}}
@@ -3005,7 +3009,8 @@ function wxwFrame(now){const c=$('#wxWin');WXW.run=false;if(!c||WXW.wx<0||docume
   try{wxwDraw(c,now,dt)}catch{}if(fps){WXW.run=true;requestAnimationFrame(wxwFrame)}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){WXW.last=0;wxwKick()}});
 function wxGlow(g,x,y,r,c){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,c);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2)}
-function wxwDraw(c,now,dt){const g=c.getContext('2d');if(!g)return;const d=Math.min(2,devicePixelRatio||1),pw=Math.round((c.clientWidth||62)*d),ph=Math.round((c.clientHeight||40)*d);if(c.width!==pw||c.height!==ph){c.width=pw;c.height=ph}
+function wxwDraw(c,now,dt){const g=c.getContext('2d');if(!g)return;/* 小窓の大きさは変わったときだけ測る（毎コマ測ると、そのたびに画面全体の配置の再計算が起きる）（2026-11-01） */if(c!==WXW.mc){WXW.mc=c;WXW.cw=0;try{WXW.ro&&WXW.ro.disconnect();WXW.ro=window.ResizeObserver?new ResizeObserver(()=>{WXW.cw=0}):null;WXW.ro&&WXW.ro.observe(c)}catch{}}if(!WXW.cw||!WXW.ro){WXW.cw=c.clientWidth||62;WXW.ch=c.clientHeight||40}
+  const d=Math.min(2,devicePixelRatio||1),pw=Math.round(WXW.cw*d),ph=Math.round(WXW.ch*d);if(c.width!==pw||c.height!==ph){c.width=pw;c.height=ph}
   const W=72,H=48,T=dt?now/1000:0,tp=WXW.tp||'day',wx=Math.max(0,WXW.wx),h=WXW.h,sk=WXSKY[tp],night=tp==='night'||tp==='late',R=Math.random;
   g.setTransform(pw/W,0,0,ph/H,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';
   // 空の色
@@ -3455,9 +3460,10 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   const ts=st.finished?-1:curSeat(ds);document.body.classList.add('ingame');if(!render.fitQ){render.fitQ=1;requestAnimationFrame(()=>{render.fitQ=0;fitMap()})}
   // プレイヤー欄（第30版）：総Gの多い順に1人1段・4段で表示。順位が入れかわったら、なめらかに並びかえる
   // 自分の手番で目的地の賞金・止まったマスの結果が出たら、獲得・ショップの画面を待たずに表示へ反映する（表示用の写し pending.view）
-  stat:{const vs=pending&&pending.view&&['goalfx','buy','shop','reward'].includes(pending.stage)?pending.view:ds,box=$('#status');box.classList.add('rankview');const oldR={};const vis=box.offsetParent!==null;if(vis)box.querySelectorAll('.pl[data-seat]').forEach(e=>oldR[e.dataset.seat]=e.offsetTop);
+  stat:{const vs=pending&&pending.view&&['goalfx','buy','shop','reward'].includes(pending.stage)?pending.view:ds,box=$('#status');box.classList.add('rankview');const oldR={};let vis=false;
     const as=vs.players.map((_,i)=>assets(vs,i)),order=[0,1,2,3].filter(i=>vs.players[i]).sort((a,b)=>as[b]-as[a]||a-b),place={},moved=order.join()!==lastOrder;lastOrder=order.join();order.forEach((i,k)=>{place[i]=k===0||as[i]<as[order[k-1]]?k+1:place[order[k-1]]});
     /* 表示する中身が前回と同じなら作り直さない（毎秒の作り直しで画面の再計算・再描画が起きてカクつくのを防ぐ） */{const sig=JSON.stringify([order,place,vs.turn,vs.goal,vs.troll,vs.fy,ts,mySeat(),pending&&pending.stage,pending&&pending.pv&&pending.pv.goal?pending.pv.pos:null,vs.players.map((p,i)=>[p.coin,p.ye,p.rank,p.pos,(p.hand||[]).length,baseCount(vs,i),seatName(i),!!seats[i]&&!seatOnline(i)]),as]);if(sig===box.__sig&&box.querySelector('.pl'))break stat;box.__sig=sig}
+    /* 並びかえのアニメ用の位置は、作り直すときだけ測る（毎回測ると、そのたびに画面全体の再計算が起きる）（2026-11-01） */vis=box.offsetParent!==null;if(vis)box.querySelectorAll('.pl[data-seat]').forEach(e=>oldR[e.dataset.seat]=e.offsetTop);
     box.innerHTML='';drawMis(vs);
     {const me=mySeat(),ng=pending&&pending.pv&&pending.pv.goal&&ts===me?pending.pv.goal.next:vs.goal,gn=NODES[ng],h=document.createElement('div');h.className='st-head';
       h.innerHTML=`<span class="sh-goal">🏁 目的地 <b>${gn?esc(gn.name):'—'}</b></span><span class="sh-turn">${ts<0?'<b>ゲーム終了</b>':`いまの番：<b style="color:${SEATC[ts]}">${esc(seatName(ts))}</b>`}</span>`;box.appendChild(h);box.__ng=ng}
