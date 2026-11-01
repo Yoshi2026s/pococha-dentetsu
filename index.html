@@ -154,7 +154,7 @@
 :root[data-theme="dark"] .mis b{color:#c9b6ff}:root[data-theme="dark"] .bar .main button#bRoll{background:#d92f7f!important;color:#fff!important}:root[data-theme="dark"] .pl-coin{color:#fff}:root[data-theme="dark"] .ingame .status .pl:not(.turn){background:#2a2138}:root[data-theme="dark"] .ob-t small{color:#e6dcf2}:root[data-theme="dark"] #turnText{color:#e6dcf2!important}
 @media (prefers-reduced-motion:no-preference){.ingame .status .pl.turn{animation:none!important}}
 </style></head><body>
-<title>ポコチャ電鉄 対戦テスト</title><meta name="theme-color" content="#fff0f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#17111f" media="(prefers-color-scheme: dark)"><meta name="apple-mobile-web-app-title" content="ポコチャ電鉄"><meta name="description" content="Pocochaライバーが全国の駅をめぐる、4人対戦のすごろくゲーム（テスト版）">
+<title>ポコチャ電鉄・全国編</title><meta name="theme-color" content="#fff0f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#17111f" media="(prefers-color-scheme: dark)"><meta name="apple-mobile-web-app-title" content="ポコチャ電鉄・全国編"><meta name="description" content="Pocochaライバーが全国の駅をめぐる、4人対戦のすごろくゲーム">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Zen+Maru+Gothic:wght@500;700&display=swap">
@@ -751,7 +751,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 </style>
 
 <div class="wrap">
-  <h1 id="ttl" aria-label="ポコチャ電鉄 対戦テスト"><span class="logo" aria-hidden="true"><span class="lg-a" data-t="ポコチャ">ポコチャ</span><span class="lg-b" data-t="電鉄">電鉄</span><span class="lg-c" data-t="対戦テスト">対戦テスト</span></span><small>全国編・24時間制（0:00決算）</small></h1>
+  <h1 id="ttl" aria-label="ポコチャ電鉄・全国編"><span class="logo" aria-hidden="true"><span class="lg-a" data-t="ポコチャ">ポコチャ</span><span class="lg-b" data-t="電鉄">電鉄</span><span class="lg-c" data-t="全国編">全国編</span></span><small>24時間制（0:00決算）</small></h1>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
   <section id="resumeBox" class="panel resumebox" hidden>
@@ -3666,7 +3666,7 @@ function drawBaseList(){const pv=pending.pv,B=pv.nd.bases;let tot=0;for(const j 
 $('#bBuy').onclick=()=>{if(!pending||!pending.sel||!pending.sel.size)return;const b=pending.base||{type:'roll'},sel=[...pending.sel];commitAction({...b,buy:sel})};
 $('#bSkip').onclick=()=>{if(!pending)return;const b=pending.base||{type:'roll'};commitAction({...b,buy:false})};
 $('#bRwCoin').onclick=()=>takeReward('coin');$('#bRwCard').onclick=()=>takeReward('card');
-$('#bCopy').onclick=async()=>{const t=`【ポコチャ電鉄 オンライン対戦テストのお誘い】\n部屋コード：${code}\nこのゲームのページを開いて、部屋コードを入れてね！\n${location.origin+location.pathname+'?room='+encodeURIComponent(code)}`;try{await navigator.clipboard.writeText(t);toast('招待文をコピーしました')}catch{toast('コピーできませんでした。部屋コード '+code+' を伝えてください')}};
+$('#bCopy').onclick=async()=>{const t=`【ポコチャ電鉄・全国編 オンライン対戦のお誘い】\n部屋コード：${code}\nこのゲームのページを開いて、部屋コードを入れてね！\n${location.origin+location.pathname+'?room='+encodeURIComponent(code)}`;try{await navigator.clipboard.writeText(t);toast('招待文をコピーしました')}catch{toast('コピーできませんでした。部屋コード '+code+' を伝えてください')}};
 STAMPS.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>{if(Date.now()-lastStamp<3000){toast('スタンプは3秒に1回までです');return}lastStamp=Date.now();unlock();if(grp)grp.emit('stamp',{i}).catch(e=>toast('スタンプを送れませんでした。理由：'+errReason(e)));else{floatStamp(t);sfx('stamp')}};$('#stamps').appendChild(b)});
 $('#soundChip').onclick=()=>{unlock();setTimeout(()=>{sfx('myturn');render()},150)};
 $('#bPause').onclick=()=>{unlock();const o=$('#ov');o.innerHTML=`<div class="card"><div class="pz-icon">⏸</div><h3>ここで中断しますか？</h3><p style="text-align:left">全員の画面が止まり、手番の時間も止まります。盤面は保存されるので、あとで「続きから遊ぶ」から再開できます。</p><button id="pzYes">中断する</button>${dispState&&!dispState.days?'<button class="ghost" id="pzEnd">ゲームを終える（最終決算）</button>':''}<button class="ghost" id="ovClose">やめる</button></div>`;o.hidden=false;
