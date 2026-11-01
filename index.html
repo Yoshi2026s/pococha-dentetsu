@@ -379,11 +379,11 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .ob-t{display:flex;flex-direction:column;min-width:0;line-height:1.25}.ob-t b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ob-t small{font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .optbtn{position:relative}.ob-near{position:absolute;top:-9px;right:8px;font-style:normal;font-size:11px;padding:1px 7px;border-radius:8px;background:#ffcf3a;color:#5a3d00;font-weight:800;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}.goalhit{font-style:normal;color:var(--pink);font-weight:800}
 .optpath{animation:optdash 1s linear infinite}@keyframes optdash{to{stroke-dashoffset:-16}}
-.routectl button{min-height:40px}
+.routectl button{min-height:48px}
 .stream .optbtn{background:#1a1a1a;color:#fff}
 @media (prefers-reduced-motion:reduce){.optpath{animation:none}}
 .bar.routing .barrow2{display:none}
-.bar.routing .routectl button{min-height:36px;font-size:13px;padding-block:4px}
+.bar.routing .routectl button{min-height:48px;font-size:13px;padding-block:4px}
 .optbtn{min-height:56px}
 .routeopts.n3,.routeopts.n4,.routeopts.n5{display:grid;grid-template-columns:1fr 1fr;gap:8px 6px}
 .routeopts.n3 .optbtn,.routeopts.n4 .optbtn,.routeopts.n5 .optbtn{min-height:52px;padding:5px 7px}
@@ -666,6 +666,7 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 #actMain[hidden]+.toprow{display:none}
 .ingame .bar.picking{z-index:11;display:flex;flex-direction:column;max-height:max(56vh,calc(100vh - var(--sth,0px) - 6px));max-height:max(56dvh,calc(100dvh - var(--sth,0px) - 6px))}
 .bar.picking .inner{flex:1 1 auto;min-height:0;width:100%}.bar.picking .logpanel{display:none}
+/* 分かれ道を選ぶ間は行動ログを隠す（選択肢と地図を広く。特に小さい画面）（2026-11-01） */.bar.routing .logpanel{display:none}
 .bar.picking #actBuy:not([hidden]),.bar.picking #actShop:not([hidden]),.bar.picking #actFsell:not([hidden]){display:flex;flex-direction:column;gap:6px;flex:1 1 auto;min-height:0}
 .bar.picking .baselist{flex:1 1 auto;min-height:92px;max-height:none!important;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .bar.picking .main{flex-shrink:0}.bar.picking #actBuy .main button{white-space:nowrap;font-size:14px}.bar.picking #actBuy .main button{min-width:0;overflow:hidden;text-overflow:ellipsis}.bar.picking #actBuy #bSkip{flex:0 0 auto}@media (max-width:380px){.bar.picking #actBuy .main button{font-size:13px;padding-left:8px;padding-right:8px}}
@@ -679,7 +680,7 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 /* システム説明：見出しボタンを横1列のスクロールにして本文を広く */
 .sys-tabs{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;margin:6px -4px 10px!important;padding:2px 4px 6px;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}
 .sys-tabs{flex-shrink:0!important}.sys-tabs::-webkit-scrollbar{display:none}
-.sys-tabs button{flex:0 0 auto;min-height:40px!important;scroll-snap-align:start;white-space:nowrap}
+.sys-tabs button{flex:0 0 auto;min-height:48px!important;scroll-snap-align:start;white-space:nowrap}
 /* 設定：チェックボックスとスライダーを指で操作しやすく */
 .overlay input[type=checkbox]{width:22px;height:22px;flex:0 0 22px;accent-color:var(--pink);margin:0 8px 0 0}
 .overlay label:has(input[type=checkbox]){display:flex;align-items:center;min-height:48px;text-align:left;cursor:pointer}
@@ -2196,7 +2197,12 @@ function goalFanfare(t){const ac=AU.ac;if(!ac)return;
 }
 // 効果音ごとのダッキング（曲をどれだけ・何秒下げるか）
 const SE_DUCK={celebrate:[.4,2],dice:[.6,.5],station:[.55,.9],buy:[.6,.5],yell:[.6,.7],anti:[.6,.6],troll:[.45,.8],myturn:[.6,.5],card:[.65,.4],rankup:[.4,1.6],clock:[.5,1.8],roulStop:[.6,.6],firework:[.75,.9],rarN:[.7,.3],rarR:[.6,.6],rarSR:[.5,1]};
-function sfx(k,...a){if(AU.ac&&SET.se>0)try{const dk=SE_DUCK[k];if(dk&&SET.bgm>0)duckTo(dk[0],dk[1]);SE[k](AU.ac.currentTime+.02,...a)}catch{}}
+/* 効果音の重なりを整理（2026-11-01）：ボタンの音は直前（0.22秒以内）に別の効果音が鳴っていたら鳴らさない（サイコロの音にボタンの音が重なっていた）。
+   大きめの効果音が0.14秒以内に続いたときは、後の音を0.18秒ずらして聞き分けやすくする（声援とレア演出・ランクアップと花火など） */
+const SE_LIGHT=['ui','step','roulTick','stamp'];
+function sfx(k,...a){if(AU.ac&&SET.se>0)try{const now=performance.now();if(k==='ui'&&now-(AU.seT||-1e9)<220)return;
+  let dl=0;if(!SE_LIGHT.includes(k)&&AU.seK&&!SE_LIGHT.includes(AU.seK)&&AU.seK!==k&&now-AU.seT<140)dl=.18;if(k!=='ui'){AU.seT=now+dl*1000;AU.seK=k}
+  const dk=SE_DUCK[k];if(dk&&SET.bgm>0)duckTo(dk[0],dk[1]);SE[k](AU.ac.currentTime+.02+dl,...a)}catch{}}
 
 // ================= 共有（同期） =================
 const LOCK_TTL=15000,LOCK_RENEW=5000,MARGIN=5000,DEADLINE=60000,STAMPS=['ナイス！','コアファンありがとう','やられた〜','がんばれ！'];

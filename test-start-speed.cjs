@@ -19,7 +19,7 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
   ok(parseFloat(g.stBarh)===g.bh,tag+' 上の欄にも下の操作欄の高さ '+g.stBarh);
   ok(g.mapBarh===''&&g.mapTurnc==='',tag+' 地図へ変数を受け継がない '+JSON.stringify([g.mapBarh,g.mapTurnc]));
   ok(g.pawns===4&&g.ring,tag+' 開始後に地図・コマ・手番の輪 '+JSON.stringify(g));
-  const tc=await p.evaluate(()=>new Promise(r=>{const mb=document.querySelector('#mapbox');mb.style.setProperty('--turnc','rgb(1, 2, 3)');setTimeout(()=>r(getComputedStyle(mb).borderTopColor),700)}));
+  const tc=await p.evaluate(()=>{const mb=document.querySelector('#mapbox');mb.style.transition='none';mb.style.setProperty('--turnc','rgb(1, 2, 3)');const v=getComputedStyle(mb).borderTopColor;mb.style.transition='';return v});
   ok(tc==='rgb(1, 2, 3)',tag+' 手番の色の枠 '+tc);
   if(errs.length)fail.push(tag+' JSエラー '+errs.join(' / '));await c.close()}}finally{await b.close()}
   if(fail.length){console.error('FAIL 対戦開始までの待ち時間\n'+fail.join('\n'));process.exitCode=1}else console.log('PASS 対戦開始までの待ち時間（地図の先作り・変数を地図へ受け継がない・余白と枠の色）')})();
