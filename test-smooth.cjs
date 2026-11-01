@@ -7,7 +7,7 @@ const {chromium}=require('playwright');const path=require('path'),fs=require('fs
 const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
 (async()=>{const src=fs.readFileSync('index.html','utf8');
   ok(/\.sqx\{animation:none!important\}/.test(src)&&/built=true;sqStatic\(\)/.test(src),'記号の型のアニメ停止の仕組み');
-  ok(/#map,#mapfx\{will-change:transform\}/.test(src)&&/if\(v===last\)return;last=v;document\.documentElement\.style\.setProperty\('--barh'/.test(src),'地図と重ねSVGの層分け・下の欄の高さの書き換えは変わったときだけ');
+  ok(/#map,#mapfx\{will-change:transform\}/.test(src)&&/if\(v===last\)return;last=v;for\(const e of \[document\.querySelector\('\.wrap'\),\$\('#status'\)\]\)if\(e\)e\.style\.setProperty\('--barh',v\)/.test(src),'地図と重ねSVGの層分け・下の欄の高さの書き換えは変わったときだけ');
   const b=await chromium.launch();try{const c=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const p=await c.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await p.route(/firebase|gstatic|googleapis/,r=>r.abort());await p.goto('file://'+path.resolve('index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);
   await p.click('#bCreate');await p.waitForTimeout(300);await p.click('#bStart');await p.waitForTimeout(2500);
