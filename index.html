@@ -1792,12 +1792,18 @@ function unlock(){try{if(navigator.audioSession)navigator.audioSession.type='pla
   const lim=ac.createDynamicsCompressor();lim.threshold.value=-2.5;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.08;// 出口の手前で軽く歪ませて（テープ風）音の角を丸め、まとまりを出す。小さい音の大きさは変えない
   {let sat=null;try{sat=ac.createWaveShaper();const n=2048,cu=new Float32Array(n),k=.6;for(let i=0;i<n;i++){const x=i/(n-1)*2-1;cu[i]=Math.tanh(k*x)/k}sat.curve=cu;sat.oversample='2x'}catch{sat=null}
    if(sat){glue.connect(sat);sat.connect(lim)}else glue.connect(lim)}lim.connect(ac.destination);AU.out=glue;
-  // 曲バス：低音を少し太く・こもりを削る・高域に空気感。効果音が鳴る間はダッキングで少し下げる
+  // 曲バス：スマホのスピーカーで聞こえない超低域（38Hz以下）を除き、低音の持ち上げは控えめに（低音が全体の約8割で、出口の圧縮が低音に反応してメロディが沈んでいた）。
+  // こもり（420Hz）を削り、メロディの輪郭（2.6kHz）を少し前に・高域に空気感。効果音が鳴る間はダッキングで少し下げる（2026-11-01）
   AU.bgm=ac.createGain();AU.duck=ac.createGain();
-  {const lo=ac.createBiquadFilter();lo.type='lowshelf';lo.frequency.value=120;lo.gain.value=2.5;const mid=ac.createBiquadFilter();mid.type='peaking';mid.frequency.value=420;mid.Q.value=.9;mid.gain.value=-2;
-   const hi=ac.createBiquadFilter();hi.type='highshelf';hi.frequency.value=9000;hi.gain.value=1.5;AU.bgm.connect(lo);lo.connect(mid);mid.connect(hi);hi.connect(AU.duck);AU.duck.connect(glue)}
+  {const sub=ac.createBiquadFilter();sub.type='highpass';sub.frequency.value=38;sub.Q.value=.7;const lo=ac.createBiquadFilter();lo.type='lowshelf';lo.frequency.value=120;lo.gain.value=.5;const mid=ac.createBiquadFilter();mid.type='peaking';mid.frequency.value=420;mid.Q.value=.9;mid.gain.value=-2.5;
+   const pr=ac.createBiquadFilter();pr.type='peaking';pr.frequency.value=2600;pr.Q.value=.8;pr.gain.value=2;const hi=ac.createBiquadFilter();hi.type='highshelf';hi.frequency.value=9000;hi.gain.value=1.5;AU.bgm.connect(sub);sub.connect(lo);lo.connect(mid);mid.connect(pr);pr.connect(hi);hi.connect(AU.duck);AU.duck.connect(glue)}
   // 効果音バス：超低域のブーンを除去し、少し前に出す
-  AU.se=ac.createGain();{const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=45;const pr=ac.createBiquadFilter();pr.type='peaking';pr.frequency.value=2800;pr.Q.value=.8;pr.gain.value=1.5;AU.se.connect(hp);hp.connect(pr);pr.connect(glue)}
+  AU.se=ac.createGain();{const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=45;const pr=ac.createBiquadFilter();pr.type='peaking';pr.frequency.value=2800;pr.Q.value=.8;pr.gain.value=1.5;AU.se.connect(hp);hp.connect(pr);pr.connect(glue)
+   /* 低音の倍音づけ：ドーン・ゴゴゴなど低音が主の効果音は、スマホのスピーカー（約150Hz以下がほぼ鳴らない）では弱く聞こえるため、
+      150Hz以下だけを取り出して軽く歪ませ、生まれた倍音（約200〜800Hz）を少し足す。低音そのものは変えない（2026-11-01） */
+   try{const lo=ac.createBiquadFilter();lo.type='lowpass';lo.frequency.value=150;lo.Q.value=.6;const sh=ac.createWaveShaper(),n=1024,cu=new Float32Array(n);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;cu[i]=Math.tanh(6*x)}sh.curve=cu;
+    const bp1=ac.createBiquadFilter();bp1.type='highpass';bp1.frequency.value=190;bp1.Q.value=.7;const bp2=ac.createBiquadFilter();bp2.type='lowpass';bp2.frequency.value=900;bp2.Q.value=.7;const eg=ac.createGain();eg.gain.value=.16;
+    hp.connect(lo);lo.connect(sh);sh.connect(bp1);bp1.connect(bp2);bp2.connect(eg);eg.connect(glue)}catch{}}
   // ホール残響：初期反射＋暗くなっていく残響尾（ステレオで左右をずらす）
   const sr=ac.sampleRate,len=Math.floor(sr*2.6),pre=Math.floor(sr*.016),ir=ac.createBuffer(2,len,sr);
   for(let c=0;c<2;c++){const d=ir.getChannelData(c);let lp=0;const fin=sr*.03;for(let i=pre;i<len;i++){const k=(i-pre)/(len-pre),a=.25+.7*k;lp=lp*a+(Math.random()*2-1)*(1-a);d[i]=lp*Math.pow(1-k,2.4)*1.8*Math.min(1,(i-pre)/fin)}
@@ -1809,6 +1815,10 @@ function unlock(){try{if(navigator.audioSession)navigator.audioSession.type='pla
    AU.dly.connect(dl);dl.connect(ll);ll.connect(fl);fl.connect(dr);dr.connect(lr);lr.connect(fr);fr.connect(dl);
    const pl=ac.createStereoPanner?ac.createStereoPanner():ac.createGain(),pr=ac.createStereoPanner?ac.createStereoPanner():ac.createGain();if(pl.pan){pl.pan.value=-.65;pr.pan.value=.65}
    ll.connect(pl);lr.connect(pr);pl.connect(wet);pr.connect(wet);wet.connect(glue);AU.dl=dl;AU.dr=dr}
+  // 残響・こだまへの送り：曲は「曲の音量（SONG_GAIN）・BGMの音量・ダッキング」、効果音は「効果音の音量」に合わせる。
+  // 以前は送りがこれらを通らず、BGMを小さくしても残響だけ大きく残る・効果音の間も残響が下がらない、と響きが濁っていた（2026-11-01）
+  {const mk=(to)=>{const v=ac.createGain(),d=ac.createGain();v.connect(d);d.connect(to);return[v,d]};[AU.mRv,AU.mRvD]=mk(AU.rev);[AU.mDl,AU.mDlD]=mk(AU.dly);
+   AU.se._rv=ac.createGain();AU.se._rv.connect(AU.rev);AU.se._dl=ac.createGain();AU.se._dl.connect(AU.dly)}
   // 音色（倍音を設計した波形）：パルス波（ファミコン風）・オルガン・やわらかいノコギリ波・リード
   const W=(fn,n=40)=>{const re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++){const v=fn(k);re[k]=v[0];im[k]=v[1]}return ac.createPeriodicWave(re,im)};
   AU.waves={pulse25:W(k=>[2/(k*Math.PI)*Math.sin(k*Math.PI*.25),0]),pulse12:W(k=>[2/(k*Math.PI)*Math.sin(k*Math.PI*.125),0]),
@@ -1829,14 +1839,15 @@ function soundState(){const e=document.getElementById('soundChip');if(e){e.textC
 document.addEventListener('visibilitychange',()=>{const ac=AU.ac;if(!ac)return;if(document.hidden){try{ac.suspend()}catch{}}else wake()});
 // ボタンを押したときの小さな音（設定で切替）
 document.addEventListener('click',e=>{if(SET.ui===false)return;const b=e.target&&e.target.closest&&e.target.closest('button');if(b&&!b.disabled&&!b.dataset.nosnd)setTimeout(()=>sfx('ui'),0)},true);
-function setVol(){if(!AU.ac)return;AU.bgm.gain.value=SET.bgm/100*.3;AU.se.gain.value=SET.se/100*.36}
+function setVol(){if(!AU.ac)return;AU.bgm.gain.value=SET.bgm/100*.3;AU.se.gain.value=SET.se/100*.36;
+  /* 残響・こだまの送り：初期設定（BGM40・効果音70）のときに以前と同じ響きの量になるよう、初期設定との比で合わせる */if(AU.mRv){AU.mRv.gain.value=AU.mDl.gain.value=SET.bgm/40;AU.se._rv.gain.value=AU.se._dl.gain.value=SET.se/70}}
 // 同時発音数の目安（演出の量の設定に合わせる）。超えたら曲の飾りの音（パッド・アルペジオ等）を省いて処理落ちを防ぐ
 // 発音中の数は「鳴り終わる予定時刻」で数える（onendedに頼らないので、切替や切断があっても数がずれない）
 function liveNow(){if(!AU.ac)return 0;const n=AU.ac.currentTime;if(AU.ends.length>64)AU.ends=AU.ends.filter(x=>x>n);let c=0;for(const x of AU.ends)if(x>n)c++;return c}
 const polyCap=()=>{const c=SET.fxq==='lite'?70:SET.fxq==='normal'?120:170;return document.body&&document.body.classList.contains('lowfx')?Math.min(c,90):c};const auBusy=()=>liveNow()>polyCap();const rich=()=>SET.fxq!=='lite';
 // ダッキング：効果音を聞きやすくするため、曲の音量を一時的に下げる（長い演出の指定を短い効果音で上書きしない）
 function duckTo(lv,hold,att=.04,rel=.5){if(!AU.ac||!AU.duck)return;const t=AU.ac.currentTime,end=t+att+hold;if(AU.duckEnd>end&&lv>=AU.duckLv)return;
-  const g=AU.duck.gain;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(lv,t+att);g.setValueAtTime(lv,end);g.linearRampToValueAtTime(1,end+rel);AU.duckEnd=end;AU.duckLv=lv}
+  for(const n of [AU.duck,AU.mRvD,AU.mDlD]){if(!n)continue;const g=n.gain;g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(lv,t+att);g.setValueAtTime(lv,end);g.linearRampToValueAtTime(1,end+rel)}AU.duckEnd=end;AU.duckLv=lv}
 function voice(out,t,f,d,o={}){const ac=AU.ac,g=ac.createGain(),v=o.v==null?.15:o.v,a=o.a||.008;let stop=t+d+.05;
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+a);
   if(o.s!=null){const r=o.r||.12,dc=Math.min(o.dc||.12,Math.max(.01,d-a));g.gain.exponentialRampToValueAtTime(Math.max(.0008,v*o.s),t+a+dc);g.gain.setValueAtTime(Math.max(.0008,v*o.s),t+Math.max(a+dc,d));g.gain.exponentialRampToValueAtTime(.0008,t+Math.max(a+dc,d)+r);stop=t+Math.max(a+dc,d)+r+.05}
@@ -1844,7 +1855,7 @@ function voice(out,t,f,d,o={}){const ac=AU.ac,g=ac.createGain(),v=o.v==null?.15:
   if(o.lp){const fl=ac.createBiquadFilter();fl.type='lowpass';fl.Q.value=o.q||.7;fl.frequency.setValueAtTime(o.lp,t);if(o.lpEnd)fl.frequency.exponentialRampToValueAtTime(o.lpEnd,t+(o.lpT||d));node.connect(fl);node=fl}
   if(o.hp){const fl=ac.createBiquadFilter();fl.type='highpass';fl.frequency.value=o.hp;node.connect(fl);node=fl}
   if(o.pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,o.pan));node.connect(p);node=p}
-  node.connect(out);if(o.rev&&AU.rev&&rich()){const s=ac.createGain();s.gain.value=o.rev;node.connect(s);s.connect(AU.rev)}if(o.echo&&AU.dly){const s=ac.createGain();s.gain.value=o.echo;node.connect(s);s.connect(AU.dly)}
+  node.connect(out);if(o.rev&&AU.rev&&rich()){const s=ac.createGain();s.gain.value=o.rev;node.connect(s);s.connect(out._rv||AU.rev)}if(o.echo&&AU.dly){const s=ac.createGain();s.gain.value=o.echo;node.connect(s);s.connect(out._dl||AU.dly)}
   let lfo=null;if(o.vib){lfo=ac.createOscillator();lfo.frequency.value=o.vibR||5.5;const lg=ac.createGain(),vd=o.vibD!=null?o.vibD:Math.min(.25,d*.5);lg.gain.setValueAtTime(0,t);lg.gain.setValueAtTime(0,t+vd*.6);lg.gain.linearRampToValueAtTime(f*o.vib,t+vd+.05);lfo.connect(lg);lfo._g=lg;lfo.start(t);lfo.stop(stop)}
   for(const dt of(o.det?[-o.det,o.det]:[0])){const os=ac.createOscillator();if(o.wave&&AU.waves[o.wave])os.setPeriodicWave(AU.waves[o.wave]);else os.type=o.type||'square';
     os.frequency.setValueAtTime(o.bend?f*o.bend:f,t);if(o.bend)os.frequency.exponentialRampToValueAtTime(f,t+(o.bendT||.06));os.detune.value=dt;if(o.glide)os.frequency.exponentialRampToValueAtTime(Math.max(20,f*o.glide),t+(o.glideT||d));
@@ -1865,7 +1876,7 @@ let NB=null;function noise(out,t,d,o={}){const ac=AU.ac;if(!NB){NB=ac.createBuff
   const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain(),v=o.v||.12;s.buffer=NB;if(d+(o.a||0)>.5)s.loop=true;if(o.rate)s.playbackRate.value=o.rate;f.type=o.bp?'bandpass':o.lp?'lowpass':'highpass';f.frequency.setValueAtTime(o.bp||o.lp||o.hp||4000,t);if(o.q)f.Q.value=o.q;if(o.sweep)f.frequency.exponentialRampToValueAtTime(o.sweep,t+d);
   if(o.a){g.gain.setValueAtTime(.0008,t);g.gain.exponentialRampToValueAtTime(v,t+o.a)}else g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0008,t+Math.max(d,(o.a||0)+.01));
   s.connect(f);f.connect(g);let n=g;if(o.pan&&ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=Math.max(-1,Math.min(1,o.pan));g.connect(p);n=p}n.connect(out);
-  if(o.rev&&AU.rev&&rich()){const x=ac.createGain();x.gain.value=o.rev;n.connect(x);x.connect(AU.rev)}
+  if(o.rev&&AU.rev&&rich()){const x=ac.createGain();x.gain.value=o.rev;n.connect(x);x.connect(out._rv||AU.rev)}
   AU.ends.push(t+d+(o.a||0)+.02);s.onended=()=>{try{n.disconnect()}catch{}};s.start(t,Math.random()*1.4);s.stop(t+d+(o.a||0)+.02)}
 // ===== ドラム（打楽器）=====
 function kick0(o,t,v=.5){const ac=AU.ac,os=ac.createOscillator(),g=ac.createGain();os.type='sine';os.frequency.setValueAtTime(165,t);os.frequency.exponentialRampToValueAtTime(50,t+.09);os.frequency.exponentialRampToValueAtTime(42,t+.3);
@@ -2013,13 +2024,14 @@ const SPOS={};
 // 終盤：手番の上限がある対戦は残り8手番（4人×2周）以内、ない対戦は最終日の21時以降
 const finalStretch=st=>!st.finished&&((st.maxTurn&&st.maxTurn-st.turn<=8)||(st.month===st.days&&st.hour>=21));
 function music(key){if(!AU.ac)return;const ac=AU.ac,now=ac.currentTime;if(SET.bgm===0)key=null;if(key==='@pop')key=POPS[popIdx%POPS.length];if(key===songKey)return;if(songKey&&SONGS[songKey]&&SONGS[songKey].resume)SPOS[songKey]=mStep;
-  if(songGain){const old=songGain;old.gain.cancelScheduledValues(now);old.gain.setValueAtTime(old.gain.value,now);old.gain.linearRampToValueAtTime(0,now+.9);setTimeout(()=>{try{old.disconnect()}catch{}},1300)}
+  if(songGain){const old=songGain;for(const n of [old,old._rv,old._dl]){if(!n)continue;n.gain.cancelScheduledValues(now);n.gain.setValueAtTime(n.gain.value,now);n.gain.linearRampToValueAtTime(0,now+.9)}setTimeout(()=>{for(const n of [old,old._rv,old._dl])try{n&&n.disconnect()}catch{}},1300)}
   songKey=key;clearInterval(mTimer);mTimer=null;songGain=null;if(!key)return;
   // こだまの間隔を曲のテンポ（付点8分）に合わせる
   const sg=SONGS[key];if(sg&&AU.dl){const q=60/sg.bpm*.75;AU.dl.delayTime.setTargetAtTime(q,now,.05);AU.dr.delayTime.setTargetAtTime(q,now,.05)}
-  songGain=ac.createGain();songGain.gain.setValueAtTime(0,now);songGain.gain.linearRampToValueAtTime(SONG_GAIN[key]||1,now+.9);songGain.connect(AU.bgm);mStep=sg&&sg.resume&&SPOS[key]?SPOS[key]-songAt(sg,SPOS[key]).i:0;mNext=now+.12;mTimer=setInterval(sched,25)}
+  songGain=ac.createGain();songGain.gain.setValueAtTime(0,now);songGain.gain.linearRampToValueAtTime(SONG_GAIN[key]||1,now+.9);songGain.connect(AU.bgm);
+  /* 曲ごとの残響・こだまの送り（曲の音量に合わせて増減。0.55＝以前の曲の音量の平均で、平均的な曲は以前と同じ響きの量） */if(AU.mRv){for(const[k,to]of[['_rv',AU.mRv],['_dl',AU.mDl]]){const n=ac.createGain();n.gain.setValueAtTime(0,now);n.gain.linearRampToValueAtTime((SONG_GAIN[key]||1)/.55,now+.9);n.connect(to);songGain[k]=n}}mStep=sg&&sg.resume&&SPOS[key]?SPOS[key]-songAt(sg,SPOS[key]).i:0;mNext=now+.12;mTimer=setInterval(sched,25)}
 // 曲ごとの音量合わせ（test-audio.cjsで測った平均音量を約-29dBにそろえる係数）
-const SONG_GAIN={title:0.58,sea:0.79,pinch:0.69,superpinch:0.58,closing:0.6,ending:0.63,sky:0.57,wait:0.6,okinawa:0.76,pop:0.49,pop2:0.48,pop3:0.47,pop4:0.42,goalrun:0.44,climax:0.44};
+const SONG_GAIN={title:0.58,sea:0.64,pinch:1.15,superpinch:0.81,closing:0.66,ending:0.32,sky:0.37,wait:0.27,okinawa:0.53,pop:0.44,pop2:0.38,pop3:0.5,pop4:0.57,goalrun:0.54,climax:0.37};
 // メロディの下に、コードの音から3度・6度下の音を自動で重ねる（ハモリ）
 function harmBelow(m,ch){let b=-1;for(const c of ch)for(let k=-2;k<=4;k++){const x=c+12*k;if(x<m-2&&x>=m-9&&x>b)b=x}return b}
 function leadNote(out,L,t,f,dur,v,pan,n){const type=L.type==='square'?'chip':L.type,LL={...L,v};
@@ -2169,7 +2181,7 @@ function goalFanfare(t){const ac=AU.ac;if(!ac)return;
   // 歓声（ふくらんで消える）と拍手
   const cheer=(st,len,bp,pan)=>{const s=ac.createBufferSource(),f=ac.createBiquadFilter(),g=ac.createGain();if(!NB){noise(AU.se,st,.01,{v:.0009})}s.buffer=NB;s.loop=true;f.type='bandpass';f.frequency.value=bp;f.Q.value=.8;
     g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(.09,st+.6);g.gain.linearRampToValueAtTime(.06,st+len*.6);g.gain.linearRampToValueAtTime(0,st+len);let n=g;if(ac.createStereoPanner){const p=ac.createStereoPanner();p.pan.value=pan;g.connect(p);n=p}
-    s.connect(f);f.connect(g);n.connect(AU.se);if(AU.rev&&rich()){const x=ac.createGain();x.gain.value=.25;n.connect(x);x.connect(AU.rev)}s.start(st,Math.random()*.5);s.stop(st+len+.05)};
+    s.connect(f);f.connect(g);n.connect(AU.se);if(AU.rev&&rich()){const x=ac.createGain();x.gain.value=.25;n.connect(x);x.connect(AU.se._rv||AU.rev)}s.start(st,Math.random()*.5);s.stop(st+len+.05)};
   cheer(T+.2,3.4,1100,-.4);cheer(T+.3,3.2,1900,.4);
   const claps=rich()?70:30;for(let i=0;i<claps;i++){const at=T+.3+Math.random()*3.2*Math.pow(Math.random(),.6);noise(AU.se,at,.03,{bp:1500+Math.random()*2500,v:.05+Math.random()*.05,pan:Math.random()*1.6-.8})}
   // 鐘のきらめき
