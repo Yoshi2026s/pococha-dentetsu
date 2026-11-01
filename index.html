@@ -607,7 +607,7 @@ html body.ingame #btnRow #actMain #bCard{font-size:14px!important;letter-spacing
 /* 2026-10-31 地図を広く：上の順位の行を詰め、下の操作欄を小さく（ボタンは48pxを保つ）。行動ログはふだん閉じ、タップで履歴を開く */
 html body.ingame #status.rankview .pl{padding-block:0!important;min-height:0!important}html body.ingame #status.rankview{gap:2px!important;padding-bottom:2px!important}
 html body.ingame .bar #actMain button,html body.ingame .bar .toprow>button{height:48px!important;min-height:48px!important}html body.ingame .bar .inner{gap:5px!important}html body.ingame .bar{padding-top:6px!important;padding-bottom:max(6px,env(safe-area-inset-bottom))!important}
-.bar .logpanel:not(.open) .log{display:none!important}.bar .logpanel{min-height:44px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}.bar .logpanel.open{justify-content:flex-start}
+.bar .logpanel:not(.open) .log{display:none!important}.lp-last{display:none}.bar .logpanel:not(.open) .lp-last:not(:empty){display:block;max-width:calc(54% - 8px);margin-top:2px;font-size:12px;line-height:1.35;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar .logpanel:not(.open) .lp-last b{color:inherit}.bar .logpanel:not(.open) h2{max-width:calc(54% - 8px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bar .logpanel{min-height:44px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center}.bar .logpanel.open{justify-content:flex-start}
 /* 背の低い縦画面（高さ620px以下）：順位の行を詰め、手番の表示は小さめ、行動ログは広げるまで1行にして、地図が操作欄に隠れないようにする */@media (orientation:portrait) and (max-height:620px){html body.ingame #status.rankview .pl{padding-block:0!important;min-height:0!important}.ingame #turnText{font-size:11px;line-height:1.3}.bar .logpanel:not(.open) .log{max-height:17px}}.lp-tg{font-size:11px;font-weight:700;color:var(--muted);margin-left:6px}.bar .logpanel.open .log{max-height:min(40vh,320px)}
 .ingame #vGame .mapbox{align-self:stretch}
 /* 第24.4版：メニュー・操作欄 */
@@ -650,7 +650,7 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 #status.rankview .pl-now{font-size:11px!important;color:#fff!important;text-shadow:0 1px 0 rgba(0,0,0,.35)}/* 「番」の文字が灰色で読めなかったので白に */
 #status.rankview .pl-l2 .pl-fan,#status.rankview .pl-l2 .pl-ye,#status.rankview .pl-l2 .pl-goal{font-size:11.5px!important}
 #status.rankview .pl-l2 b{font-size:12.5px!important}
-#status.rankview .pl-tot small{font-size:10px!important}
+#status.rankview .pl-tot small{font-size:11px!important}
 #status.rankview .pl-pos small{font-size:11px}
 /* メニュー・全体を見る：押しやすい大きさに */
 .menubtn{min-height:44px!important;padding:2px 12px!important}
@@ -671,7 +671,7 @@ input[type=text]::placeholder{letter-spacing:.02em;font-size:15px}
 .bar.picking .fanbtn{padding:4px 3px}
 /* 買えるだけ買うの確認：全件が見やすいよう1行を詰め、画面に収まる高さにする */
 .confsheet{max-height:94vh;max-height:94dvh;overflow-y:auto}.confsheet .conf-list{max-height:max(30vh,calc(100vh - 380px))!important;max-height:max(30dvh,calc(100dvh - 380px))!important}.confsheet .conf-row{font-size:12.5px;padding:2px 0}
-.mapbtn{min-height:40px!important;padding:4px 14px!important;font-size:13px!important}
+.mapbtn{min-height:48px!important;padding:4px 14px!important;font-size:13px!important}
 /* 見た目の大きさはそのまま、押せる範囲だけ上下左右に約4px広げて48px以上にする（地図を余計に隠さない。枠の内側から測るので7px） */.mapbtn::after{content:'';position:absolute;inset:-7px;border-radius:inherit}
 #turnText{font-size:12.5px!important;line-height:1.5}
 .goalarrow{font-size:12px!important;padding:4px 10px 4px 6px!important}
@@ -803,7 +803,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
     <div id="actShop" hidden><div class="bl-h" id="shopHead">カードショップ</div><div class="baselist" id="shopList"></div><div class="main"><button id="bShopOk">何もせずに終了する</button><button id="bShopUndo" class="ghost" hidden>↶ 1つ戻す</button><button id="bShopSkip" class="ghost" hidden>全部取り消して終了</button></div></div>
     <div id="actFsell" hidden><div class="fs-head" id="fsHead"></div><div class="fs-rec" id="fsRec"></div><div class="baselist" id="fsList" hidden></div><div class="main"><button id="bFsSell">この物件を売る</button><button id="bFsAlt" class="ghost">ほかの候補を見る</button></div></div>
     <div id="actBuy" hidden><div class="bl-h buyhead" id="buyHead"></div><div class="baselist" id="baseList"></div><div class="main"><button id="bBuy">獲得する</button><button id="bSkip" class="ghost">獲得しない</button></div></div>
-    <div class="panel logpanel" id="logPanel" role="button" tabindex="0" aria-expanded="false" aria-controls="log"><div class="row" style="justify-content:space-between"><h2>行動ログ<small class="lp-tg" aria-hidden="true">▼ タップで広げる</small></h2><span class="muted" id="verify"></span></div><ul class="log" id="log"></ul></div>
+    <div class="panel logpanel" id="logPanel" role="button" tabindex="0" aria-expanded="false" aria-controls="log"><div class="row" style="justify-content:space-between"><h2>行動ログ<small class="lp-tg" aria-hidden="true">▼ タップで広げる</small></h2><span class="muted" id="verify"></span></div><div class="lp-last" id="lpLast"></div><ul class="log" id="log"></ul></div>
     <div class="row barrow2" style="flex-wrap:nowrap"><div class="row stamps" id="stamps"></div><button class="small" id="soundChip" type="button">音 オフ（タップ）</button><span class="chip" id="netChip" style="align-self:center;flex-shrink:0">接続中</span><button class="small" id="bSet">設定</button><button class="small pausebtn" id="bPause" type="button">⏸ 中断</button></div>
   </div>
 </div>
@@ -3490,6 +3490,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   const L=$('#log');L.innerHTML='';chain.slice(-8).reverse().forEach(r=>{if(!r.parent)return;const li=document.createElement('li');const n=document.createElement('span');n.className='n';n.textContent='#'+r.turn;
     const s=document.createElement('span'),ls=r.state.lastSeat,who=document.createElement('b');who.className='lg-who';who.textContent=seatName(ls);if(ls!=null)who.style.color=SEATC[ls];/* 名前を色つきの太字にして、だれの手番かを見分けやすく。CPUの席の手番に毎回「（CPU）」は付けず、人の手番を代わりに進めたときだけ「（代行）」 */
     s.append(who,document.createTextNode(' '+nameize((r.state.ev||[]).map(e=>e.t).filter(Boolean).join('／'))+(String(r.by).startsWith('cpu')&&!(meta.cpu||[]).includes(ls)?'（代行）':'')));li.append(n,s);L.appendChild(li)});
+  /* たたんでいる間も、いちばん新しい行動を1行だけ見せる（空いていた所に表示） */{const pv=$('#lpLast'),f=L.querySelector('li:not(.muted) span:not(.n)');if(pv)pv.textContent=f?f.textContent:''}
   const orphans=[...records.values()].filter(r=>r.rulesVersion===RULES_VERSION&&!chain.includes(r));if(orphans.length){const li=document.createElement('li');li.className='muted';li.textContent=`遅れて届いた行動（無効）${orphans.length}件`;L.appendChild(li)}}
 // 自分の操作待ちの間に、その手番がほかで確定した（時間切れでホストがCPU代行した など）ときは、操作待ちを終わらせる。
 // 以前はここで止まったままになり（busyが戻らない）、以後の自分の手番もずっとCPU代行になっていた。次の自分の手番から、また自分で操作できる
