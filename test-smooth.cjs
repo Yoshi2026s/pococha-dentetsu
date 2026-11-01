@@ -1,6 +1,7 @@
 // なめらかさ（2026-10-31）のテスト（Playwright・Chromium）
 // 1) マスの記号の型（<defs>）はアニメを止める（全マスで使い回すため、動くと地図全体が毎コマ描き直しになる）
 // 2) 待ち時間に上の各プレイヤー欄を作り直さない（中身が同じなら再描画しない）
+// 4) 地図の中のアニメ（波・雲を含む）は動かさない（2026-11-01）
 // 3) 動くもの（コマ・手番の輪・目的地の印・分かれ道）は地図に重ねた別のSVG（#mapfx）に置き、表示範囲・大きさ・位置が地図と常に一致する（2026-11-01）
 const {chromium}=require('playwright');const path=require('path'),fs=require('fs');
 const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
@@ -13,6 +14,8 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
   const d=await p.evaluate(()=>{const els=[...document.querySelectorAll('#map defs *')];const tagged=els.filter(e=>e.classList.contains('sqx')).length;
     const run=document.getAnimations().filter(a=>a.playState==='running'&&a.effect&&a.effect.target&&a.effect.target.closest&&a.effect.target.closest('#map defs')).length;
     const anyAnim=els.filter(e=>{const n=getComputedStyle(e).animationName;return n&&n!=='none'}).length;return {tagged,run,anyAnim}});
+  const mr=await p.evaluate(()=>document.getAnimations().filter(a=>a.playState==='running'&&a.effect&&a.effect.target&&a.effect.target.closest&&a.effect.target.closest('#map')).map(a=>a.animationName||'?'));
+  ok(mr.length===0,'地図（#map）の中で動くアニメがない（波・雲も止める） '+JSON.stringify(mr));
   ok(d.tagged>0&&d.run===0&&d.anyAnim===0,'記号の型のアニメが止まっている '+JSON.stringify(d));
   const m=await p.evaluate(()=>new Promise(r=>{let n=0;const o=new MutationObserver(l=>n+=l.length);o.observe(document.querySelector('#status'),{childList:true,subtree:true});render();render();setTimeout(()=>{o.disconnect();r(n)},1500)}));
   ok(m===0,'中身が同じなら上の欄を作り直さない（変化 '+m+'）');
