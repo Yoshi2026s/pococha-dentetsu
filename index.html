@@ -101,6 +101,10 @@
 .fx.urtxt{position:absolute;left:0;right:0;top:30%;text-align:center;z-index:9;pointer-events:none}
 .fx.urtxt span{display:inline-block;font:900 32px var(--f-display);letter-spacing:.08em;background:linear-gradient(90deg,#ff4fb8,#ffd23f,#33d17a,#3fb6ff,#9d7bff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #000) drop-shadow(0 0 8px #fff);animation:urt 2.6s ease-out forwards}
 @keyframes urt{0%{transform:scale(.3);opacity:0}20%{transform:scale(1.15);opacity:1}35%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
+.bncard{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:40px;height:54px;margin-bottom:4px;border-radius:7px;border:2px solid #fff;font-style:normal;font-size:24px;line-height:1;box-shadow:0 3px 0 rgba(0,0,0,.25),0 0 12px rgba(255,255,255,.6);animation:bnflip .7s cubic-bezier(.2,.9,.3,1.3) both}
+.bncard em{font-style:normal;font-size:10px;font-weight:900;margin-top:3px;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+@keyframes bnflip{0%{transform:perspective(300px) rotateY(180deg) scale(.3);opacity:0}60%{transform:perspective(300px) rotateY(-15deg) scale(1.15);opacity:1}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.bncard{animation:none}}
 .fx.banner.rar-R .bn{box-shadow:0 0 0 2px #fff}
 .fx.banner.rar-SR .bn{box-shadow:0 0 0 2px #fff,0 0 14px 3px rgba(176,107,255,.65)}
 .fx.banner.rar-SSR .bn{box-shadow:0 0 0 3px #fff,0 0 22px 6px rgba(255,210,63,.75)}
@@ -767,7 +771,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
 /* 長いイベント名（コアファンイベントなど）は省略せず2行まで折り返す */.rc-ttl b.ttl-long,.has-main .rc-ttl b.ttl-long,.mr-card .has-main .rc-ttl b.ttl-long{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;font-size:16px!important;line-height:1.25!important;word-break:keep-all;overflow-wrap:anywhere}
 .plsheet .pl-fan{font-size:13px;font-weight:700;margin:6px 0;text-align:left;color:var(--ink)}
 /* ジャストカードの目は3×2の同じ大きさのボタン（48px）に */#justPick>div{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8px}#justPick .jbtn{width:100%;min-height:48px;margin:0}
-/* カード一覧：枚数は名前の横に（2枚以上のときだけ） */.cardbtn .cb-n{margin-left:6px;font-size:.9em;color:var(--pink)}.cs-hint{font-size:12px;margin:2px 0 4px;text-align:center}
+/* カード一覧：枚数は名前の横に（2枚以上のときだけ） */.cardbtn .cb-n{margin-left:6px;font-size:.9em;color:var(--pink)}.cs-hint{font-size:12px;margin:2px 0 4px;text-align:center}.cs-cnt{font-size:12px;font-weight:700;color:var(--muted);margin-left:6px}
 /* 遊び方は短い箇条書きで、スマホでも読みやすく */.howlist{text-align:left;margin:8px 0 10px;padding-left:1.25em;font-size:14px}.howlist li{margin:6px 0;line-height:1.55}
 .sheet>.xclose{position:sticky!important;top:0;align-self:flex-end;float:right;margin:-8px -8px -42px 8px}
 /* 右上の×と見出しが重ならないよう、×のあるカードの見出しは左右に×の幅だけ余白をとる（中央そろえは保つ） */.card>.xclose~h3,.card:has(>.xclose)>h3{padding-inline:52px;font-size:clamp(15px,5.1vw,24px)}
@@ -2561,9 +2565,9 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
   else if(has('superbarrier')&&!(p.shield>0)&&lead)a={type:'roll',card:'superbarrier'};
   else if(has('barrier')&&!has('block')&&!(p.shield>0)&&lv==='strong')a={type:'roll',card:'barrier'};
   else if(has('just')&&dg-bo>=1&&dg-bo<=6)a={type:'roll',card:'just',just:dg-bo};
-  else if(has('linear')&&dg>=24)a={type:'roll',card:'linear'};
-  else if(has('shinkansen')&&dg>=18)a={type:'roll',card:'shinkansen'};
-  else if(has('limited')&&dg>=13)a={type:'roll',card:'limited'};
+  else if(has('linear')&&dg>=20)a={type:'roll',card:'linear'};
+  else if(has('shinkansen')&&dg>=15)a={type:'roll',card:'shinkansen'};
+  else if(has('limited')&&dg>=11)a={type:'roll',card:'limited'};
   else if(has('sleeper')&&dg>=12)a={type:'roll',card:'sleeper'};
   else if(has('oshikatsu')&&baseCount(st,seat)>=4&&st.hour>=12)a={type:'roll',card:'oshikatsu'};
   else if(has('steal')&&st.players.some((q,i)=>i!==seat&&q.hand.length>=2))a={type:'roll',card:'steal'};
@@ -2591,11 +2595,15 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
     if(a.type==='roll'&&!a.card&&T.attack&&leads&&Math.random()<.7){const k=pickU(['allanti','flameattack','antiattack','smallanti','rankdown','stop','slowcard','snatch2','steal','trollcall']);if(k)a=act(k)}
     if(a.type==='roll'&&!a.card&&T.guard&&!(p.shield>0)&&Math.random()<.6){const k=pickU(['superbarrier','barrier','guard','castle','cleanse']);if(k)a=act(k)}
     if(a.type==='roll'&&!a.card&&T.card==='high'&&U.length&&Math.random()<.8){const prog=U.filter(k=>CARDG[k]==='進行'),k=(dg>=7&&prog.length)?prog[Math.floor(Math.random()*prog.length)]:pickU(U.filter(k=>!['goalchange','swap','home','pushtroll','antitroll','storm','shuffle','swaphand'].includes(k)));if(k)a=act(k)}
+    if(a.type==='roll'&&!a.card&&lv!=='weak'&&finalStretch(st)&&U.length){const k=U.filter(k=>!['goalchange','swap','swaphand','pushtroll','home','shopwarp','coupon','draw1','draw2','draw3','progpack','raredraw'].includes(k)).sort((x,y)=>(SHOPP[y]||0)-(SHOPP[x]||0))[0];if(k)a=act(k)}
     if(T.card==='low'&&(a.card||a.type!=='roll')&&!['antitroll','pushtroll','cleanse','recover'].includes(a.card)&&Math.random()<.55)a={type:'roll'}}
   const rmode=T.route||(lv==='weak'?'random':lv==='strong'?'score':'shortest');
   if(a.type==='roll'&&rmode!=='shortest'){const d=preview(st,a).dice,rs=allRoutes(st,d);{const bp=bestPath(p.pos,d,st.goal);if(bp.length)rs.push(bp)}
     if(rmode==='random'){a.route=rs[Math.floor(Math.random()*rs.length)]}else{const dG=D(st.goal),endD=r=>dG[r.length?r[r.length-1]:p.pos],mn=Math.min(...rs.map(endD));let best=null,bv=-1e9;for(const r of rs){if(endD(r)>mn+1)continue;const v=routeScore(st,r);if(v>bv){bv=v;best=r}}a.route=best}}
-  {const pv=preview(st,a);a.buy=cpuBuy(pv,T.buy||lv);if(pv.canShop&&T.shop==='high'&&(pv.hand||[]).length<HANDMAX-2){const av=shopCards(pv.pos).filter(k=>pv.coin>=SHOPP[k]+3000).sort((x,y)=>SHOPP[y]-SHOPP[x]);if(av.length){a.shop=av[Math.floor(Math.random()*Math.min(3,av.length))]}}if(pv.canShop&&!a.shop&&T.shop!=='none'&&lv!=='weak'&&pv.hand&&pv.hand.length>=HANDMAX-1){const sk=pv.hand.filter(k=>k!=='block').sort((x,y)=>SHOPP[x]-SHOPP[y])[0];if(sk)a.sell=[sk]}if(pv.canShop&&!a.shop&&T.shop!=='none'&&!(a.sell&&a.sell.length)){const av=shopCards(pv.pos),pick=L=>L.find(k=>av.includes(k)&&pv.coin>=SHOPP[k]+(lv==='strong'?2000:4000));const want=lv==='weak'?(Math.random()<.3&&av.includes('local')?'local':null):(p.hand.length<4&&pv.coin>=(lv==='strong'?6000:8000)?(lv==='strong'&&!has('block')&&av.includes('block')?'block':pick(pv.coin>=30000?['linear','shinkansen','limited','express']:pv.coin>=15000?['shinkansen','limited','express','local']:['limited','express','local'])||null):null);if(want&&pv.coin>=SHOPP[want]&&(pv.hand||[]).length<HANDMAX)a.shop=want}}if(p.hand.length<(lv==='strong'?3:4))a.reward='card';return Promise.resolve(a)}
+  {const pv=preview(st,a);a.buy=cpuBuy(pv,T.buy||lv);if(pv.canShop&&T.shop==='high'&&(pv.hand||[]).length<HANDMAX-2){const av=shopCards(pv.pos).filter(k=>pv.coin>=SHOPP[k]+3000).sort((x,y)=>SHOPP[y]-SHOPP[x]);if(av.length){a.shop=av[Math.floor(Math.random()*Math.min(3,av.length))]}}if(pv.canShop&&!a.shop&&T.shop!=='none'&&lv!=='weak'&&pv.hand&&pv.hand.length>=HANDMAX-1){const sk=pv.hand.filter(k=>k!=='block').sort((x,y)=>SHOPP[x]-SHOPP[y])[0];if(sk)a.sell=[sk]}if(pv.canShop&&!a.shop&&T.shop!=='none'&&!(a.sell&&a.sell.length)){const av=shopCards(pv.pos),pick=L=>L.find(k=>av.includes(k)&&pv.coin>=SHOPP[k]+(lv==='strong'?2000:4000));const mg=lv==='strong'?2000:4000,pool=L=>L.filter(k=>av.includes(k)&&pv.coin>=SHOPP[k]+mg).sort((x,y)=>SHOPP[y]-SHOPP[x]),one=L=>L.length?L[Math.floor(Math.random()*Math.min(3,L.length))]:null;
+    // 2026.11.02.7：進行カードばかり買わないように、目的地までの距離・手札・ゴールドに合わせて選ぶ
+    const want=lv==='weak'?(Math.random()<.3&&av.includes('local')?'local':null):(p.hand.length<4&&pv.coin>=(lv==='strong'?6000:8000)?(lv==='strong'&&!has('block')&&av.includes('block')?'block':
+      one(pool(dg>=20?['linear','shinkansen','limited','goalnear','nearwarp','airwarp','luckywarp','express']:Math.random()<.5?['limited','bigdice','lucky7','just','express','local','rivalwarp','luckywarp']:['goldsponsor','triple','fanfes','sponsorc','bigyell','rankjump','superbarrier','allanti','flameattack','antiattack','raredraw','draw3','yellrain','rankboost','smallyell','guard']))||pick(['limited','express','local'])||null):null);if(want&&pv.coin>=SHOPP[want]&&(pv.hand||[]).length<HANDMAX)a.shop=want}}if(p.hand.length<(lv==='strong'?3:4))a.reward='card';return Promise.resolve(a)}
 
 // ================= 演出（v2：カメラ・跳ねる駒・足あと・夜景・花火・大きな演出カード） =================
 let shownTip=null,dispState=null;
@@ -2604,7 +2612,8 @@ function onRecords(){metaWait=metaWait.filter(f=>!f());dropStalePending();if(rec
   if(!tipSeenAt.has(tip.id))tipSeenAt.set(tip.id,Date.now());
   if(shownTip&&shownTip!==tip.id){const prevOnChain=chain.some(r=>r.id===shownTip);if(!prevOnChain&&records.get(shownTip))toast('通信の遅れで盤面を直しました');
     const idx=chain.findIndex(r=>r.id===shownTip);const steps=idx>=0?chain.slice(idx+1):[tip];steps.slice(-3).forEach(playOne)}
-  else if(!shownTip){dispState=tip.state;drawPawns(dispState)}
+  // ゲーム開始直後は、最初の記録（0手番）を表示する前に1手番目が届くことがある。そのときも1手番目の演出（カードの帯・イベントなど）を出す（2026.11.02.7）
+  else if(!shownTip){const g=chain.find(r=>r.turn===0);if(g&&tip.turn===1&&Date.now()-(meta.startedAt||0)<6e5){dispState=g.state;drawPawns(dispState);playOne(tip)}else{dispState=tip.state;drawPawns(dispState)}}
   shownTip=tip.id;render()}
 function wait(ms){return new Promise(r=>setTimeout(r,SET.fast?ms/2.5:ms))}
 let playing=Promise.resolve();
@@ -2612,7 +2621,7 @@ let playing=Promise.resolve();
 let animN=0,animIdleAt=0;const animating=()=>animN>0||Date.now()-animIdleAt<(SET.fast?120:250);
 let animGen=0;
 function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(gen!==animGen)return;try{const s=r.state,seat=s.lastSeat,prev=dispState;
-  const cardEv=(s.ev||[]).find(e=>e.k==='card');if(cardEv){const r=LEGACY[cardEv.v]?'N':(CARDR[cardEv.v]||'N'),lv=RARLV[r],gi=GENRES.findIndex(g=>g[0]===CARDG[cardEv.v]),bn=banner((lv>=4?'★ ':'')+(gi>=0?GENRES[gi][1]+' ':'')+CARDN[cardEv.v]+'！',RARBG[r],(LEGACY[cardEv.v]?'':r+'・')+CARDD[cardEv.v]);if(bn)bn.classList.add('rar-'+r);rarFx(r,NODES[(s.lastPath||[])[0]]||NODES[s.players[seat].pos]);if(gi>=0)setTimeout(()=>sfx(CG_SE[gi]),SET.fast?260:560+lv*60);await wait(1300+lv*(SET.fast?100:300))}
+  const cardEv=(s.ev||[]).find(e=>e.k==='card');if(cardEv){const r=LEGACY[cardEv.v]?'N':(CARDR[cardEv.v]||'N'),lv=RARLV[r],gi=GENRES.findIndex(g=>g[0]===CARDG[cardEv.v]),bn=banner((lv>=4?'★ ':'')+(gi>=0?GENRES[gi][1]+' ':'')+CARDN[cardEv.v]+'！',RARBG[r],(LEGACY[cardEv.v]?'':r+'・')+CARDD[cardEv.v]);if(bn){bn.classList.add('rar-'+r);const b0=bn.querySelector('.bn');if(b0)b0.insertAdjacentHTML('afterbegin',`<i class="bncard r-${r}" aria-hidden="true">${gi>=0?GENRES[gi][1]:'🃏'}<em>${LEGACY[cardEv.v]?'旧':r}</em></i>`)}rarFx(r,NODES[(s.lastPath||[])[0]]||NODES[s.players[seat].pos]);if(gi>=0)setTimeout(()=>sfx(CG_SE[gi]),SET.fast?260:560+lv*60);await wait(1300+lv*(SET.fast?100:300))}
   if(s.lastDices&&s.lastDices.length>1){floatNum(NODES[(s.lastPath||[])[0]]||NODES[0],'サイコロ '+s.lastDices.join('+'),'var(--pink)')}
   if(cardEv&&MOVEC.includes(cardEv.v)&&s.lastPath&&s.lastPath.length>1){const a=NODES[s.lastPath[0]],b=NODES[s.lastPath[1]];sfx('rankup');shock(a,'var(--card)');burst('star',a);await wait(500);movePawn(seat,s.lastPath[1]);camTo(b,1.6,400);shock(b,'var(--card)');burst('star',b);await wait(900);camHome()}
   {const tr=$('#turnRing');if(tr)tr.innerHTML=''}
@@ -3728,7 +3737,7 @@ function showAutoConfirm(){const st=pending.st,seat=curSeat(st),left=pending.d-p
 $('#bRoll').onclick=()=>{if(!pending&&dispState&&dispState.finished){showFinal(dispState).then(render);render();return}choose({type:'roll'})};
 $('#bCard').onclick=()=>{if(!pending)return;unlock();const h=pending.st.players[curSeat(pending.st)].hand;const cnt={};h.forEach(k=>cnt[k]=(cnt[k]||0)+1);const o=$('#ov');
   const me=curSeat(pending.st),atHome=pending.st.players[me].pos===START;
-  const ks=Object.keys(cnt);sfx('cgSup');o.innerHTML=`<div class="card cardsheet"><h3>カード</h3>${ks.length?'<p class="muted cs-hint">カードはタップするとすぐ使います</p>'+GENRES.filter(g=>ks.some(k=>CARDG[k]===g[0])).map(g=>`<div class="cg-h"><span>${g[1]} ${g[0]}系</span><small>${g[2]}</small></div>`+ks.filter(k=>CARDG[k]===g[0]).sort(cardSort).map(k=>{const why=cardBlocked(pending.st,me,k);return`<button class="cardbtn cg-${g[0]} rr-${LEGACY[k]?'N':CARDR[k]}" data-k="${k}" ${why?'disabled':''}><i class="cg-ic" aria-hidden="true">${g[1]}</i><b><i class="rar r-${CARDR[k]}">${LEGACY[k]?'旧':CARDR[k]}</i>${CARDN[k]}${cnt[k]>1?`<span class="cb-n">×${cnt[k]}</span>`:''}</b><small>${CARDD[k]}${why?'（'+why+'）':''}</small></button>`}).join('')).join(''):'<p class="muted">カードを持っていません。黄色のカードマスやカードショップで手に入ります。</p>'}<div class="justpick" id="justPick" hidden><p>出す目を選んでください</p><div>${[1,2,3,4,5,6].map(n=>`<button class="jbtn" data-n="${n}">${n}</button>`).join('')}</div></div><button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;
+  const ks=Object.keys(cnt);sfx('cgSup');o.innerHTML=`<div class="card cardsheet"><h3>カード <small class="cs-cnt">手札 ${h.length}/${HANDMAX}枚</small></h3>${ks.length?'<p class="muted cs-hint">カードはタップするとすぐ使います</p>'+GENRES.filter(g=>ks.some(k=>CARDG[k]===g[0])).map(g=>`<div class="cg-h"><span>${g[1]} ${g[0]}系</span><small>${g[2]}</small></div>`+ks.filter(k=>CARDG[k]===g[0]).sort(cardSort).map(k=>{const why=cardBlocked(pending.st,me,k);return`<button class="cardbtn cg-${g[0]} rr-${LEGACY[k]?'N':CARDR[k]}" data-k="${k}" ${why?'disabled':''}><i class="cg-ic" aria-hidden="true">${g[1]}</i><b><i class="rar r-${CARDR[k]}">${LEGACY[k]?'旧':CARDR[k]}</i>${CARDN[k]}${cnt[k]>1?`<span class="cb-n">×${cnt[k]}</span>`:''}</b><small>${CARDD[k]}${why?'（'+why+'）':''}</small></button>`}).join('')).join(''):'<p class="muted">カードを持っていません。黄色のカードマスやカードショップで手に入ります。</p>'}<div class="justpick" id="justPick" hidden><p>出す目を選んでください</p><div>${[1,2,3,4,5,6].map(n=>`<button class="jbtn" data-n="${n}">${n}</button>`).join('')}</div></div><button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;
   $('#ovClose').onclick=()=>{o.hidden=true;o.innerHTML=''};
   o.querySelectorAll('.jbtn').forEach(b=>b.onclick=()=>{const n=+b.dataset.n;o.hidden=true;o.innerHTML='';choose({type:'roll',card:'just',just:n})});
   o.querySelectorAll('.cardbtn').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='just'){$('#justPick').hidden=false;$('#justPick').scrollIntoView({block:'nearest'});return}o.hidden=true;o.innerHTML='';choose(cardAct(k))})};
@@ -3749,7 +3758,7 @@ function drawShop(){const pv=pending.pv;pending.shopOps=pending.shopOps||[];cons
     +(!show.length?`<p class="muted shop-none">${room<=0?'手札がいっぱいで買えません（売ると買えます）':'いまのゴールドで買えるカードはありません'}</p>`:'')+(hid&&show.length?`<p class="muted shop-none">ゴールドが足りないカード${hid}種類は表示していません</p>`:'');
   $('#shopList').innerHTML=`<div class="cg-h"><span>💴 売る（買値の半分）</span><small>${hand.length?'タップで1枚売る':'手札がありません'}</small></div>`+Object.keys(cnt).map(k=>`<button type="button" class="basebtn sellbtn" data-k="${k}"><b>${LEGACY[k]?'':`<i class="rar r-${CARDR[k]}">${CARDR[k]}</i>`}${CARDN[k]} ×${cnt[k]}</b><span>＋${SELLP(k).toLocaleString()}G</span></button>`).join('')+`<div class="cg-h"><span>🛒 買う</span><small>タップで1枚ずつ（終了まで何回でも）</small></div>`+gs;
   $('#shopList').querySelectorAll('.sellbtn').forEach(b=>b.onclick=()=>{ops.push(['s',b.dataset.k]);sfx('step',2);drawShop()});
-  $('#shopList').querySelectorAll('.shopbtn').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(shopSim().coin<priceNow(k)||HANDMAX-shopSim().hand.length<=0)return;ops.push(['b',k]);sfx('buy');drawShop()});
+  $('#shopList').querySelectorAll('.shopbtn').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(shopSim().coin<priceNow(k)||HANDMAX-shopSim().hand.length<=0)return;ops.push(['b',k]);sfx('buy');if((RARLV[CARDR[k]]||0)>=2)setTimeout(()=>sfx('cgBonus'),180);drawShop()});
   $('#bShopUndo').hidden=!ops.length;$('#bShopOk').hidden=false;$('#bShopOk').textContent=ops.length?`売り買いを終了する（${nb?'買う'+nb+'枚':''}${nb&&ns?'・':''}${ns?'売る'+ns+'枚':''}）`:'何もせずに終了する';$('#bShopSkip').hidden=!ops.length;$('#bShopSkip').textContent='全部取り消して終了'}
 $('#bShopOk').onclick=()=>{if(!pending||pending.stage!=='shop')return;const ops=(pending.shopOps||[]).slice();pending.shopOps=null;if(ops.length)sfx('buy');finishChoice({...pending.base,shopOps:ops.length?ops:undefined,shopDone:true})};
 $('#bShopSkip').onclick=()=>{if(!pending||pending.stage!=='shop')return;pending.shopOps=null;finishChoice({...pending.base,shopDone:true})};
