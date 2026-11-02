@@ -406,7 +406,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .pz-icon{font-size:42px;line-height:1}.pz-where{font-weight:800;color:var(--pink)}
 .pz-code{display:flex;flex-direction:column;align-items:center;padding:6px;border-radius:14px;border:2.5px dashed var(--outline,#2b2236)}.pz-code b{font-family:var(--f-display);font-size:30px;letter-spacing:.25em;color:var(--pink)}.pz-code small{font-size:11px;color:var(--muted)}
 .pausebtn{background:var(--panel);color:var(--ink);border-color:var(--outline,#2b2236);flex-shrink:0}
-.resumebox{border-color:var(--pink)}.resumelist{display:flex;flex-direction:column;gap:8px}
+.resumebox{border-color:var(--pink)}.resumelist{display:flex;flex-direction:column;gap:8px}.resumerow{display:flex;gap:8px;align-items:stretch}.resumerow .resumebtn{flex:1 1 auto;min-width:0}.resumerow .rs-t{flex:1 1 auto;min-width:0}.resumerow .rs-code,.resumerow .rs-go{flex:0 0 auto}@media (max-width:420px){.resumerow .rs-code{font-size:16px;letter-spacing:.08em}.resumerow .rs-go{font-size:0}.resumerow .rs-go::after{content:'▶';font-size:16px}.resumerow .resumebtn{gap:8px;padding:8px 10px}}.resumedel{flex:0 0 auto;min-width:52px;min-height:48px;padding:4px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-size:16px;line-height:1.1;border-radius:16px}.resumedel small{font-size:11px;font-weight:700}.resumeundo{margin:2px 0 0;font-size:13px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.resumeundo button{min-height:44px;padding:4px 14px}
 .resumebtn{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel);color:var(--ink);border-radius:16px;padding:8px 12px}
 .rs-code{font-family:var(--f-display);font-size:20px;letter-spacing:.15em;color:var(--pink)}.rs-t{display:flex;flex-direction:column;flex:1;min-width:0;line-height:1.3}.rs-t b{font-size:14px}.rs-t small{font-size:11px;color:var(--muted);font-family:var(--f-body);font-weight:400}
 .rs-go{font-size:13px;color:var(--pink);white-space:nowrap}
@@ -1119,7 +1119,10 @@ function collection(c){c=norm(c);return{path:c,doc:id=>doc(c+'/'+id),
   async get(){await tick();return colSnap(c)},async list(){await tick();return colSnap(c)},
   async add(v){const id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);await doc(c+'/'+id).set(v);return doc(c+'/'+id)},
   onSnapshot(fn){const L={fn},a=colL.get(c)||[];a.push(L);colL.set(c,a);setTimeout(()=>fn(colSnap(c)),0);return()=>{colL.set(c,(colL.get(c)||[]).filter(x=>x!==L))}}}}
-const db={doc,collection};
+/* セーブの削除（2026-11-01）：部屋のデータ（games/部屋コード と、その下の手番・席など）をまとめて消す。元に戻せるよう、消した中身を返す */
+function purge(prefix){prefix=norm(prefix);const bak={};ls.keys().filter(k=>k==='d:'+prefix||k.startsWith('d:'+prefix+'/')).forEach(k=>{bak[k]=ls.get(k);ls.del(k)});return bak}
+function restore(bak){for(const k in bak||{})ls.set(k,bak[k])}
+const db={doc,collection,purge,restore};
 const user={id:async()=>uid,can:async()=>true,profiles:async ids=>{const o={};ids.forEach(i=>o[i]={name:i===uid?'あなた':'プレイヤー'});return o},profile:async()=>({id:uid,name:'あなた'})};
 /* 端末内モードは常に用意しておき、オンライン接続（匿名ログイン）に失敗したときの切替先にも使う */
 window.__PD_LOCAL={use:async n=>n==='db'?db:n==='user'?user:null,local:true};
@@ -2256,8 +2259,17 @@ function mergeRooms(a,b){const m=new Map();[...validRooms(a),...validRooms(b)].f
 async function refreshResume(){const box=$('#resumeList');if(!box||!db)return;if(myId&&!myRooms){try{const d=await db.doc('players/'+myId).get();myRooms=d.exists&&Array.isArray(d.data().rooms)?d.data().rooms:[]}catch{myRooms=[]}}
   const L=mergeRooms(loadRooms(),myRooms||[]).filter(x=>!x.done).slice(0,5);const rows=[];
   for(const r of L){try{const sn=await db.doc('games/'+r.c).get();if(!sn.exists)continue;const m=sn.data();if(m.rulesVersion!==RULES_VERSION||(m.phase==='ended'||m.phase==='closed'))continue;
-    const st=m.paused?'中断中':m.phase==='playing'?'対戦中':'準備中';rows.push(`<button type="button" class="resumebtn" data-c="${r.c}"><span class="rs-code">${r.c}</span><span class="rs-t"><b>${st}</b><small>${r.m?`${r.m}日目 ${r.w}:00まで進行`:m.phase==='playing'?'1日目 18:00（まだ動いていない）':'部屋でメンバー待ち'}・${new Date(r.at).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})}</small></span><span class="rs-go">続きから ▶</span></button>`)}catch{}}
-  box.innerHTML=rows.join('');box.querySelectorAll('.resumebtn').forEach(b=>b.onclick=()=>enter(b.dataset.c));render()}
+    const st=m.paused?'中断中':m.phase==='playing'?'対戦中':'準備中';rows.push(`<div class="resumerow"><button type="button" class="resumebtn" data-c="${r.c}"><span class="rs-code">${r.c}</span><span class="rs-t"><b>${st}</b><small>${r.m?`${r.m}日目 ${r.w}:00まで進行`:m.phase==='playing'?'1日目 18:00（まだ動いていない）':'部屋でメンバー待ち'}・${new Date(r.at).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'})}</small></span><span class="rs-go">続きから ▶</span></button><button type="button" class="resumedel ghost" data-c="${r.c}" aria-label="部屋${r.c}の続きを削除">🗑<small>削除</small></button></div>`)}catch{}}
+  box.innerHTML=rows.join('')+(lastDel?`<p class="resumeundo">部屋${lastDel.c}の続きを削除しました <button type="button" class="ghost" id="bUndoDel">元に戻す</button></p>`:'');box.querySelectorAll('.resumebtn').forEach(b=>b.onclick=()=>enter(b.dataset.c));
+  box.querySelectorAll('.resumedel').forEach(b=>b.onclick=()=>deleteSave(b.dataset.c));{const u=$('#bUndoDel');if(u)u.onclick=undoDelete}render()}
+/* 続きからの削除（2026-11-01）：端末内の対戦は部屋のデータごと消す。オンラインの部屋はほかの人の対戦なので、自分の一覧からだけ消す。直後は「元に戻す」で戻せる */
+let lastDel=null,lastDelT=0;
+function setRooms(L){myRooms=L;try{localStorage.setItem('poco-rooms',JSON.stringify(L))}catch{}if(db&&db.online&&myId)db.doc('players/'+myId).set({rooms:L,at:Date.now()}).catch(()=>{})}
+async function deleteSave(c){if(!/^[A-Z2-9]{4}$/.test(c))return;const online=!!(db&&db.online);
+  if(!confirm(online?`部屋${c}を「続きから遊ぶ」の一覧から消しますか？\n（オンラインの部屋なので、ほかの人の対戦データは消えません）`:`部屋${c}の続きのデータを削除しますか？\nこの端末に保存した対戦の記録が消えます。`))return;
+  const all=mergeRooms(loadRooms(),myRooms||[]),ent=all.find(x=>x.c===c)||{c,at:Date.now()};let bak=null;if(!online&&db&&db.purge)bak=db.purge('games/'+c);
+  setRooms(all.filter(x=>x.c!==c));lastDel={c,ent,bak};clearTimeout(lastDelT);lastDelT=setTimeout(()=>{lastDel=null;refreshResume()},12000);toast(`部屋${c}の続きを削除しました`);refreshResume()}
+function undoDelete(){const d=lastDel;if(!d)return;lastDel=null;clearTimeout(lastDelT);if(d.bak&&db&&db.restore)db.restore(d.bak);setRooms(mergeRooms([d.ent],loadRooms()));toast(`部屋${d.c}の続きを元に戻しました`);refreshResume()}
 function randCode(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const b=new Uint32Array(4);crypto.getRandomValues(b);return[...b].map(x=>a[x%a.length]).join('')}
 async function createRoom(){unlock();if(db.online){if(busy)return;busy=true;try{const c=randCode();await db.online.create(c,RULES_VERSION);await enter(c)}catch(e){toast(errText(e))}finally{busy=false}return;}try{for(let i=0;i<6;i++){const c=randCode();const ref=db.doc('games/'+c);const l=await ref.acquire({holder:myId,ttlMs:5000});if(!l.acquired)continue;const s=await ref.get();if(s.exists)continue;
   await ref.set({phase:'lobby',seed:randCode()+randCode()+randCode(),host:myId,createdAt:Date.now(),rulesVersion:RULES_VERSION,cpu:[],days:2});await db.doc('games/'+c+'/seats/0').set({uid:myId,ready:true});return enter(c)}toast('部屋コードが作れませんでした。もう一度どうぞ')}catch(e){toast(errText(e))}}
