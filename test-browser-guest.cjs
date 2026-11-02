@@ -1,5 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert');const fb=require('firebase/compat/app').default;require('firebase/compat/auth');require('firebase/compat/firestore');
-const code=process.argv[2];if(!/^[A-Z2-9]{4}$/.test(code))throw Error('テスト部屋コードが必要');
+// 公開ブラウザで作った専用テスト部屋に、Node.js から2Pとして参加して手番を送る手動テスト（実行：node test-browser-guest.cjs 部屋コード）。
+// 部屋コードなしで実行したとき（テストの一括実行など）は、何もせずに「SKIP」と表示して終える（通信先のデータを使うため、自動では実行しない）
+const code=process.argv[2];if(!code){console.log('SKIP 別環境の手番確認（手動テスト：部屋コードを引数に付けて実行）');process.exit(0)}if(!/^[A-Z2-9]{4}$/.test(code))throw Error('テスト部屋コードは4文字（A〜Zと2〜9）で指定してください');
 const cfg=JSON.parse(fs.readFileSync('firebase-config.js','utf8').replace('window.FIREBASE_CONFIG = ','').replace(/;\s*$/,''));
 const app=fb.initializeApp(cfg,'browser-guest'),auth=app.auth(),store=app.firestore();let room,stop=()=>{},ended=false,working=false;
 const timeout=setTimeout(()=>finish(new Error('別環境の手番確認は時間切れ')),180000);

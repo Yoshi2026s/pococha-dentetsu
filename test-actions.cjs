@@ -22,7 +22,7 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
   if(seat>=0){await p.click(`#status .pl[data-seat="${seat}"]`);await p.waitForTimeout(400);
     const pr=await p.evaluate(s=>{const box=document.querySelector('#ov:not([hidden]) .pl-recent');if(!box)return null;const ts=[...box.querySelectorAll('.n')].map(e=>+e.textContent.slice(1));return{n:ts.length,mine:ts.every(t=>{const r=[...records.values()].find(x=>x.turn===t&&x.state);return r&&r.state.lastSeat===s})}},seat);
     ok(pr&&pr.n>=1&&pr.n<=3&&pr.mine,tag+' 最近の手番 '+JSON.stringify(pr));await p.evaluate(()=>{const b=document.querySelector('#bPClose');b&&b.click()})}else fail.push(tag+' 最近の手番を確かめる相手がいない');
-  const tr=await p.evaluate(()=>{const tp=curTip().state,cs=curSeat(tp),old=tp.troll;dispState.troll=cs;tp.troll=cs;drawPawns(dispState);render();const pw=document.querySelector('#pw'+cs+' .pw-tr');const mk=document.querySelector(`#status .pl[data-seat="${cs}"] .trollmark`);
+  const tr=await p.evaluate(()=>{const tp=curTip().state,vs=dispState&&dispState.turn<tp.turn?dispState:tp,cs=curSeat(vs)/* CPUの演出中は画面の表示が最新の手番より遅れるので、画面に出ている番の人に取りつかせる */,old=tp.troll;dispState.troll=cs;tp.troll=cs;drawPawns(dispState);render();const pw=document.querySelector('#pw'+cs+' .pw-tr');const mk=document.querySelector(`#status .pl[data-seat="${cs}"] .trollmark`);
     const tt=document.querySelector('#turnText').textContent;dispState.troll=null;tp.troll=old;drawPawns(dispState);render();return{pw:!!pw,mk:mk&&mk.textContent,tt:/ラグ王が取りついています/.test(tt),gone:!document.querySelector('.pw-tr')}});
   ok(tr.pw&&tr.mk==='😈お邪魔'&&tr.tt&&tr.gone,tag+' 取りつき中の表示 '+JSON.stringify(tr));
   if(errs.length)fail.push(tag+' JSエラー '+errs.join(' / '));await c.close()}}finally{await b.close()}
