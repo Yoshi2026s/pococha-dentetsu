@@ -125,7 +125,25 @@
 
 .rar{display:inline-block;font-style:normal;font-size:10px;font-weight:900;line-height:1;padding:2px 5px 1px;margin-right:5px;border-radius:6px;vertical-align:1px;color:#fff;border:1.5px solid rgba(0,0,0,.35);letter-spacing:.02em}
 .r-N{background:#7b8494}.r-R{background:#2f86de}.r-SR{background:#8a3cf0}.r-SSR{background:linear-gradient(135deg,#ff5fa8,#ff9a3d);}.r-UR{background:linear-gradient(135deg,#ffe36a,#ff8a3d 45%,#ff4fb8 75%,#7a5cff);color:#2b1600;text-shadow:0 0 2px #fff}
-.shopbtn.local{border-style:dashed}
+.shopbtn.local{border-style:solid}
+/* カードの見た目（2026.11.02.6）：レア度ごとの枠・光、ジャンルのマーク、地域限定の目印 */
+.cardbtn,#shopList .basebtn.shopbtn{position:relative;overflow:hidden;isolation:isolate}
+.cardbtn:not(:disabled):active,#shopList .shopbtn:not(:disabled):active{transform:scale(.97)}
+.cg-ic{position:absolute;right:6px;bottom:4px;font-style:normal;font-size:26px;line-height:1;opacity:.22;pointer-events:none;z-index:-1}
+.cardbtn.rr-R,.shopbtn.rr-R{border-color:#3fb6ff}
+.cardbtn.rr-SR,.shopbtn.rr-SR{border-color:#b06bff;box-shadow:0 0 10px rgba(176,107,255,.45)}
+.cardbtn.rr-SSR,.shopbtn.rr-SSR{border-color:#ff7fbf;box-shadow:0 0 12px rgba(255,127,191,.55),inset 0 0 10px rgba(255,210,63,.25)}
+.cardbtn.rr-UR,.shopbtn.rr-UR{border-color:transparent;background:linear-gradient(135deg,color-mix(in srgb,#ffd23f 22%,var(--panel)),var(--panel)) padding-box,linear-gradient(120deg,#ff4fb8,#ffd23f,#33d17a,#3fb6ff,#9d7bff,#ff4fb8) 0 0/300% 100% border-box;animation:urframe 3s linear infinite;box-shadow:0 0 14px rgba(255,210,63,.6)}
+@keyframes urframe{to{background-position:0 0,300% 0}}
+.cardbtn.rr-SR::after,.cardbtn.rr-SSR::after,.cardbtn.rr-UR::after,.shopbtn.rr-SSR::after,.shopbtn.rr-UR::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.4) 50%,transparent 65%);transform:translateX(-120%);animation:cshine 3.2s ease-in-out infinite;pointer-events:none}
+.cardbtn.rr-UR::after,.shopbtn.rr-UR::after{animation-duration:2.2s}
+@keyframes cshine{55%,100%{transform:translateX(120%)}}
+.cardbtn:disabled::after,.shopbtn:disabled::after{display:none}.cardbtn:disabled,.shopbtn:disabled{animation:none}
+#shopList .shopbtn.local{border:3px solid #ff9f1a;background:linear-gradient(135deg,color-mix(in srgb,#ffb300 30%,var(--panel)),var(--panel))}
+.lim{display:inline-block;align-self:flex-start;font-style:normal;font-weight:900;font-size:11px;line-height:1.2;color:#fff;background:linear-gradient(90deg,#ff7a00,#ff3f8f);border-radius:999px;padding:2px 8px;margin-bottom:2px;box-shadow:0 1px 0 rgba(0,0,0,.2)}
+#shopList>.cg-h.lim-h{background:linear-gradient(90deg,color-mix(in srgb,#ffb300 35%,transparent),transparent);border-left:4px solid #ff9f1a;border-radius:6px;padding:4px 8px}
+.shop-none{flex:0 0 100%;margin:4px 0;font-size:12px}
+@media (prefers-reduced-motion:reduce){.cardbtn,.shopbtn{animation:none!important}.cardbtn::after,.shopbtn::after{display:none}}
 </style>
 <style id="readfix">
 /* 文字の見やすさ改善（第24.7版）：ランク札・メニュー・自分の名前・地図上の文字 */
@@ -1366,7 +1384,6 @@ const CARDDEF=[
  // 進行（サイコロ）：[キー,名前,ジャンル,レア,効果]
  ['local','各駅停車カード','進行','N','サイコロ1個＋2マス（3〜8）'],
  ['express','急行カード','進行','N','サイコロ2個（2〜12）'],
- ['turbo','ターボカード','進行','R','サイコロ1個の目を2倍（2〜12）'],
  ['lucky7','ラッキー7カード','進行','R','必ず7マス進む'],
  ['just','ジャストカード','進行','R','出したい目（1〜6）で進む'],
  ['bigdice','大きい目カード','進行','R','サイコロ2個・3〜6の目だけ出る（6〜12）'],
@@ -1375,12 +1392,11 @@ const CARDDEF=[
  ['shinkansen','新幹線カード','進行','SSR','サイコロ4個＋3マス（7〜27）'],
  ['linear','リニアカード','進行','UR','サイコロ5個＋5マス（10〜35）'],
  // 移動
- ['home','帰宅カード','移動','N','スタートの大牟田駅へ戻る'],
  ['shopwarp','ショップワープ','移動','N','一番近いカードショップへ一瞬で移動'],
  ['warp','ワープ配信','移動','R','ランダムな駅へ一瞬で移動'],
- ['luckywarp','ラッキーワープ','移動','R','ランダムなプラスマスへ一瞬で移動'],
- ['airwarp','空港ワープ','移動','SR','ランダムな空港の駅へ一瞬で移動'],
- ['ownwarp','拠点ワープ','移動','SR','物件がある自分の駅へ一瞬で移動（なければランダムな駅）'],
+ ['luckywarp','ラッキーワープ','移動','R','目的地に近いプラスマス（近い順に8か所のどれか）へ一瞬で移動'],
+ ['airwarp','空港ワープ','移動','SR','目的地に近い空港の駅（近い順に2か所のどちらか）へ一瞬で移動'],
+ ['ownwarp','拠点ワープ','移動','SR','物件がある自分の駅のうち、目的地に一番近い駅へ一瞬で移動（なければランダムな駅）'],
  ['rivalwarp','追いかけワープ','移動','SR','目的地に一番近い人のいる場所へ一瞬で移動'],
  ['nearwarp','目的地ちかくワープ','移動','SSR','目的地から3〜10マスの駅へ一瞬で移動'],
  ['goalnear','目的地すぐそばワープ','移動','UR','目的地から1〜3マスの駅へ一瞬で移動'],
@@ -1400,7 +1416,7 @@ const CARDDEF=[
  // 攻撃
  ['smallanti','小さなアンチカード','攻撃','N','総G1位の人のゴールドを基本G×1減らす（ブロックで防がれる）。その後サイコロ'],
  ['steal','横取りカード','攻撃','R','カードを一番多く持つ人から1枚もらってからサイコロ'],
- ['rankdown','評価ダウンカード','攻撃','R','総G1位の人のランク−15pt（ブロックで防がれる）。その後サイコロ'],
+ ['rankdown','評価ダウンカード','攻撃','R','総G1位の人のランク−25pt（ブロックで防がれる）。その後サイコロ'],
  ['antiattack','アンチ襲来カード','攻撃','SR','総G1位の人のゴールドを基本G×2減らす（ブロックで防がれる）。その後サイコロ'],
  ['slowcard','のろのろカード','攻撃','SR','目的地に一番近い人の次のサイコロを1〜3にする（ブロックで防がれる）。その後サイコロ'],
  ['flameattack','炎上させるカード','攻撃','SSR','総G1位の人のコアファン−5人・ランク−20pt（ブロックで防がれる）。その後サイコロ'],
@@ -1410,17 +1426,14 @@ const CARDDEF=[
  // 防御
  ['guard','小さなバリア','防御','N','このあと1回まで、マイナスや攻撃を防ぐ。その後サイコロ'],
  ['block','ブロックカード','防御','R','持っているだけで、マイナスマス・炎上・攻撃カード・荒らしのいたずらを1回防ぐ'],
- ['antitroll','お祓いカード','防御','R','取りついた荒らしラグ王を追い払う。その後サイコロ'],
  ['cleanse','おきよめカード','防御','R','のろのろ・足止めを解除し、荒らしラグ王も追い払い、バリア1回分を張る。その後サイコロ'],
- ['recover','ゴールド回復カード','防御','R','ゴールドがマイナスなら0に戻す（マイナスでなければ基本G×1もらう）。その後サイコロ'],
+ ['recover','ゴールド回復カード','防御','R','ゴールドがマイナスなら0に戻して基本G×1もらう（マイナスでなければ基本G×2もらう）。その後サイコロ'],
  ['barrier','バリアカード','防御','SR','このあと2回まで、マイナスや攻撃を防ぐバリアを張る。その後サイコロ'],
  ['castle','防衛パック','防御','SR','ブロックカードを2枚もらってからサイコロ'],
  ['superbarrier','鉄壁バリア','防御','SSR','このあと4回まで、マイナスや攻撃を防ぐバリアを張る。その後サイコロ'],
  // 策略
- ['sunny','晴れ乞いカード','策略','N','天気を晴れにする（プラスマスが増え、マイナスが減る）。その後サイコロ'],
+ ['sunny','晴れ乞いカード','策略','N','天気を晴れにして、コアファン1人をもらう（プラスマスが増え、マイナスが減る）。その後サイコロ'],
  ['pushtroll','荒らし押し付けカード','策略','R','取りついた荒らしラグ王を、総G1位の人に押し付けてからサイコロ'],
- ['storm','嵐を呼ぶカード','策略','R','天気を嵐にする（プラスマスが減り、マイナスが増える）。その後サイコロ'],
- ['shuffle','手札シャッフル','策略','SR','全員の手札を混ぜて、同じ枚数ずつ配り直す。その後サイコロ'],
  ['swaphand','手札こうかん','策略','SR','カードを一番多く持つ人と手札をまるごと入れかえる（ブロックで防がれる）。その後サイコロ'],
  ['swap','いれかえカード','策略','SSR','目的地に一番近い人と、いる場所を入れかえる（ブロックで防がれる）'],
  ['goalchange','目的地チェンジ','策略','SSR','サイコロで進んだあと、目的地を別の駅に変える（全員のコアファンはリセット）'],
@@ -1428,25 +1441,25 @@ const CARDDEF=[
  // サポート
  ['draw1','カード1枚パック','サポート','N','カードを1枚引いてからサイコロ'],
  ['draw2','カードパック','サポート','R','カードを2枚引いてからサイコロ'],
- ['coupon','半額クーポン','サポート','R','次にカードショップで買う1枚目が半額になる。その後サイコロ'],
+ ['coupon','半額クーポン','サポート','R','次にカードショップで買う2枚が半額になる。その後サイコロ'],
  ['progpack','進行パック','サポート','R','進行カードを2枚引いてからサイコロ'],
  ['draw3','カード3枚パック','サポート','SR','カードを3枚引いてからサイコロ'],
  ['raredraw','レアパック','サポート','SSR','SR以上のカードを1枚引いてからサイコロ'],
 ];
-// 廃止したカード（手札に残っている分だけ使える。山札・ショップには出ない）
-const LEGACY={boost:['ブーストカード（旧）','サイコロを2個振る'],boost2:['ダブルブースト（旧）','サイコロを3個振る'],buzz:['バズりカード（旧）','サイコロを4個振る＋ランク10pt']};
+// 廃止したカード（手札に残っている分だけ使える。山札・ショップには出ない）。2026.11.02.6 で帰宅・ターボ・お祓い・嵐を呼ぶ・手札シャッフルを廃止（ほかのカードと同じ働き・使う場面がほとんどない）
+const LEGACY={home:['帰宅カード（旧）','スタートの大牟田駅へ戻る','移動'],turbo:['ターボカード（旧）','サイコロ1個の目を2倍（2〜12）'],antitroll:['お祓いカード（旧）','取りついた荒らしラグ王を追い払う。その後サイコロ','防御'],storm:['嵐を呼ぶカード（旧）','天気を嵐にする。その後サイコロ','策略'],shuffle:['手札シャッフル（旧）','全員の手札を混ぜて配り直す。その後サイコロ','策略'],boost:['ブーストカード（旧）','サイコロを2個振る'],boost2:['ダブルブースト（旧）','サイコロを3個振る'],buzz:['バズりカード（旧）','サイコロを4個振る＋ランク10pt']};
 const RARITY=['N','R','SR','SSR','UR'],RARW={N:12,R:7,SR:4,SSR:2,UR:1},RARP={N:1500,R:3000,SR:5000,SSR:8000,UR:12000},RARN={N:'ノーマル',R:'レア',SR:'スーパーレア',SSR:'ダブルスーパーレア',UR:'ウルトラレア'};
-// ショップの値段：カードごとに効果の強さで決める（同じレア度でも強いほど高く、弱いものは安く。300〜15,000G）。表にないカードはレア度の値段
-const CARDP={local:500,express:1000,turbo:1500,lucky7:2000,just:2500,bigdice:3000,limited:4500,sleeper:5000,shinkansen:8000,linear:13000,
- home:300,shopwarp:800,warp:1500,luckywarp:2500,airwarp:3000,ownwarp:4000,rivalwarp:6000,nearwarp:9000,goalnear:15000,
+// ショップの値段：カードごとに効果の強さで決める（同じレア度でも強いほど高く、弱いものは安く。500〜15,000G）。表にないカードはレア度の値段
+const CARDP={local:500,express:1000,lucky7:2000,just:2500,bigdice:3000,limited:4500,sleeper:5000,shinkansen:8000,linear:13000,
+ shopwarp:800,warp:1500,luckywarp:3000,airwarp:4500,ownwarp:4500,rivalwarp:6000,nearwarp:9000,goalnear:15000,
  fanletter:800,smallyell:1200,rankboost:2000,yellrain:2500,double:4000,oshikatsu:4500,bigyell:5000,sponsorc:5500,rankjump:6000,fanfes:7000,triple:7500,goldsponsor:12000,
- smallanti:1000,rankdown:2000,steal:2500,slowcard:4000,antiattack:4500,snatch2:6000,stop:7000,flameattack:8000,allanti:12000,
- guard:600,antitroll:1200,block:1500,recover:2000,cleanse:2500,barrier:3500,castle:4000,superbarrier:7000,
- sunny:500,storm:1500,pushtroll:2500,shuffle:3000,swaphand:5000,trollcall:6000,swap:8000,goalchange:9000,
- draw1:1400,coupon:800,draw2:2800,progpack:3500,draw3:4500,raredraw:6000};
+ smallanti:1000,rankdown:2500,steal:2500,slowcard:4000,antiattack:4500,snatch2:6000,stop:7000,flameattack:8000,allanti:12000,
+ guard:600,block:1500,recover:2000,cleanse:2500,barrier:3500,castle:4000,superbarrier:7000,
+ sunny:600,pushtroll:2500,swaphand:5000,trollcall:6000,swap:8000,goalchange:9000,
+ draw1:1400,coupon:1000,draw2:2800,progpack:3500,draw3:4500,raredraw:6000};
 const CARDN={},CARDG={},CARDD={},CARDR={},SHOPP={};
 CARDDEF.forEach(([k,n,g,r,d])=>{CARDN[k]=n;CARDG[k]=g;CARDR[k]=r;CARDD[k]=d;SHOPP[k]=CARDP[k]||RARP[r]});
-for(const k in LEGACY){CARDN[k]=LEGACY[k][0];CARDD[k]=LEGACY[k][1];CARDG[k]='進行';CARDR[k]='N'}
+for(const k in LEGACY){CARDN[k]=LEGACY[k][0];CARDD[k]=LEGACY[k][1];CARDG[k]=LEGACY[k][2]||'進行';CARDR[k]='N'}
 const GENRES=[['進行','🎲','サイコロを増やす・決めるカード'],['移動','🚄','一気に別の場所へ行くカード'],['ボーナス','💰','ゴールド・コアファン・ランクptがもらえるカード'],['攻撃','⚡','ほかの人のじゃまをするカード'],['防御','🛡️','じゃまやマイナスを防ぐカード'],['策略','🎭','ゲームの流れを変えるカード'],['サポート','🎁','カードを集めるカード']];
 // 山札：レア度が高いほど出にくい
 const CARDW=CARDDEF.map(([k,,,r])=>[k,RARW[r]]);
@@ -1598,15 +1611,15 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     if(used==='goldsponsor'){const g=G(p,B*8);p.coin+=g;p.earned+=g;ev('bonuscard',`大口スポンサー ＋${g.toLocaleString()}G`)}
     if(used==='sleeper'){ev('bonuscard','寝台特急 コアファン＋3人');yellAdd(p,seat,3)}
     if(used==='smallanti'){const v=top(),q=s.players[v];if(!block(q,'小さなアンチ')){q.coin-=B;ev('attack',`${v+1}Pに小さなアンチ −${B.toLocaleString()}G`,v)}}
-    if(used==='rankdown'){const v=top(),q=s.players[v];if(!block(q,'評価ダウン')){ev('attack',`${v+1}Pの評価ダウン ランク−15pt`,v);ptAdd(q,v,-15,'評価ダウンされた')}}
+    if(used==='rankdown'){const v=top(),q=s.players[v];if(!block(q,'評価ダウン')){ev('attack',`${v+1}Pの評価ダウン ランク−25pt`,v);ptAdd(q,v,-25,'評価ダウンされた')}}
     if(used==='stop'){const v=near(),q=s.players[v];if(!block(q,'足止めカード')){q.slow=2;ev('attack',`${v+1}Pの次のサイコロが1に`,v)}}
     if(used==='allanti'){const l=B*2;s.players.forEach((q,v)=>{if(v===seat)return;if(!block(q,'全員アンチ')){q.coin-=l;ev('attack',`${v+1}Pにアンチ −${l.toLocaleString()}G`,v)}})}
     if(used==='guard'){p.shield=(p.shield||0)+1;ev('defend','小さなバリアを張った（1回まで防ぐ）')}
     if(used==='superbarrier'){p.shield=(p.shield||0)+4;ev('defend','鉄壁バリアを張った（4回まで防ぐ）')}
     if(used==='cleanse'){p.slow=0;if(s.troll===seat)s.troll=null;p.shield=(p.shield||0)+1;ev('defend','おきよめ！ 状態をリセットしてバリア1回分')}
-    if(used==='recover'){if(p.coin<0){ev('defend',`ゴールド回復 ${p.coin.toLocaleString()}G → 0G`);p.coin=0}else{p.coin+=B;ev('defend',`ゴールド回復 ＋${B.toLocaleString()}G`)}}
+    if(used==='recover'){if(p.coin<0){ev('defend',`ゴールド回復 ${p.coin.toLocaleString()}G → 0G ＋${B.toLocaleString()}G`);p.coin=B}else{p.coin+=B*2;ev('defend',`ゴールド回復 ＋${(B*2).toLocaleString()}G`)}}
     if(used==='castle'){let c=0;for(let t=0;t<2;t++)if(p.hand.length<HANDMAX){p.hand.push('block');c++}ev('defend',`防衛パック ブロックカード${c}枚`)}
-    if(used==='sunny'){s.weather=0;ev('weather','晴れ乞い！ 天気が晴れになった',0)}
+    if(used==='sunny'){s.weather=0;ev('weather','晴れ乞い！ 天気が晴れになった・コアファン＋1人',0);yellAdd(p,seat,1)}
     if(used==='storm'){s.weather=3;ev('weather','嵐を呼んだ！ 天気が嵐になった',3)}
     if(used==='shuffle'){const all=[],cnt=s.players.map(q=>q.hand.length);s.players.forEach(q=>{all.push(...q.hand);q.hand=[]});for(let a=all.length-1;a>0;a--){const b=Math.floor(R()*(a+1));[all[a],all[b]]=[all[b],all[a]]}let x=0;s.players.forEach((q,i)=>{q.hand=all.slice(x,x+cnt[i]);x+=cnt[i]});ev('strategy','手札シャッフル！ 全員の手札が混ざった')}
     if(used==='swaphand'){let v=-1,mx=-1;s.players.forEach((q,i)=>{if(i!==seat&&q.hand.length>mx){mx=q.hand.length;v=i}});const q=s.players[v];if(!block(q,'手札こうかん')){const h=p.hand;p.hand=q.hand;q.hand=h;ev('strategy',`${v+1}Pと手札を入れかえた`,v)}}
@@ -1614,16 +1627,16 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     if(used==='draw1'||used==='draw3'){const nn=used==='draw1'?1:3;let got=[];for(let k=0;k<nn;k++){const c=drawCard(R);if(p.hand.length<HANDMAX){p.hand.push(c);got.push(CARDN[c])}}ev('getcard2',`${CARDN[used]}「${got.join('」「')||'（手札がいっぱい）'}」`)}
     if(used==='progpack'){let got=[];const W=CARDW.filter(([k])=>CARDG[k]==='進行');for(let k=0;k<2;k++){const c=pickW(W,R());if(p.hand.length<HANDMAX){p.hand.push(c);got.push(CARDN[c])}}ev('getcard2',`進行パック「${got.join('」「')||'（手札がいっぱい）'}」`)}
     if(used==='raredraw'){const W=CARDW.filter(([k])=>['SR','SSR','UR'].includes(CARDR[k]));const c=pickW(W,R());if(p.hand.length<HANDMAX)p.hand.push(c);ev('getcard2',`レアパック「${CARDN[c]}」（${CARDR[c]}）`)}
-    if(used==='coupon'){p.coupon=(p.coupon||0)+1;ev('bonuscard','半額クーポンをゲット（次のショップの1枚目が半額）')}
+    if(used==='coupon'){p.coupon=(p.coupon||0)+2;ev('bonuscard','半額クーポンをゲット（次にショップで買う2枚が半額）')}
     if(used==='bigyell'){const g=G(p,B*3);p.coin+=g;p.earned+=g;ev('bigyell',`大型コアファン ＋${g.toLocaleString()}G・コアファン＋3人`,g);yellAdd(p,seat,3)}
     const path=[p.pos];let reached=false,d=null,txt='';s.lastDices=null;
     if(action.type==='warp'){const c=ST.map((_,i)=>i).filter(i=>i!==p.pos);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);reached=to===s.goal;txt='ワープ配信で'+NODES[to].name+'へ'}
     else if(action.type==='home'){if(p.pos===START)throw new Error('already home');p.pos=START;path.push(START);reached=START===s.goal;txt='帰宅カードで大牟田へ'}
     else if(action.type==='nearwarp'){const dg=D(s.goal);let c=ST.map((_,i)=>i).filter(i=>i!==p.pos&&i!==s.goal&&dg[i]>=3&&dg[i]<=10);if(!c.length)c=ST.map((_,i)=>i).filter(i=>i!==p.pos&&i!==s.goal&&dg[i]<=16);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);txt='目的地ちかくワープで'+NODES[to].name+'へ'}
-    else if(action.type==='airwarp'){const c=[...AIRPORTS].map(id=>SIDX[id]).filter(i=>i!==p.pos);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);reached=to===s.goal;txt='空港ワープで'+NODES[to].name+'へ'}
+    else if(action.type==='airwarp'){const dg=D(s.goal);const c=[...AIRPORTS].map(id=>SIDX[id]).filter(i=>i!==p.pos&&i!==s.goal).sort((a,b)=>dg[a]-dg[b]||a-b).slice(0,2);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);reached=to===s.goal;txt='空港ワープで'+NODES[to].name+'へ'}
     else if(action.type==='shopwarp'){const dd=D(p.pos);let to=-1,bd=1e9;NODES.forEach((n,i)=>{if(n.type==='shop'&&i!==p.pos&&dd[i]<bd){bd=dd[i];to=i}});if(to<0)throw new Error('no shop');p.pos=to;path.push(to);txt='ショップワープでカードショップへ'}
-    else if(action.type==='luckywarp'){const c=NODES.map((n,i)=>n.type==='plus'&&i!==p.pos?i:-1).filter(i=>i>=0);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);txt='ラッキーワープでプラスマスへ'}
-    else if(action.type==='ownwarp'){let c=ST.map((_,i)=>i).filter(i=>i!==p.pos&&own(s,i).some(x=>x===seat));if(!c.length)c=ST.map((_,i)=>i).filter(i=>i!==p.pos);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);reached=to===s.goal;txt='拠点ワープで'+NODES[to].name+'へ'}
+    else if(action.type==='luckywarp'){const dg=D(s.goal);const c=NODES.map((n,i)=>n.type==='plus'&&i!==p.pos?i:-1).filter(i=>i>=0).sort((a,b)=>dg[a]-dg[b]||a-b).slice(0,8);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);txt='ラッキーワープでプラスマスへ'}
+    else if(action.type==='ownwarp'){const dg=D(s.goal);let c=ST.map((_,i)=>i).filter(i=>i!==p.pos&&i!==s.goal&&own(s,i).some(x=>x===seat)).sort((a,b)=>dg[a]-dg[b]||a-b).slice(0,1);if(!c.length)c=ST.map((_,i)=>i).filter(i=>i!==p.pos);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);reached=to===s.goal;txt='拠点ワープで'+NODES[to].name+'へ'}
     else if(action.type==='rivalwarp'){const v=near(),to=s.players[v].pos;if(to===p.pos)throw new Error('same place');p.pos=to;path.push(to);reached=to===s.goal;txt=`追いかけワープで${v+1}Pのいる場所へ`}
     else if(action.type==='goalnear'){const dg=D(s.goal);let c=ST.map((_,i)=>i).filter(i=>i!==p.pos&&i!==s.goal&&dg[i]>=1&&dg[i]<=3);if(!c.length)c=ST.map((_,i)=>i).filter(i=>i!==p.pos&&i!==s.goal&&dg[i]<=8);const to=c[Math.floor(R()*c.length)];p.pos=to;path.push(to);txt='目的地すぐそばワープで'+NODES[to].name+'へ'}
     else if(action.type==='swap'){const v=near(),q=s.players[v];if(block(q,'いれかえ'))txt='いれかえカード（ブロックされた）';else{const a=p.pos;p.pos=q.pos;q.pos=a;path.push(p.pos);reached=p.pos===s.goal&&p.pos!==a;txt=`${v+1}Pといる場所を入れかえた`}}
@@ -2139,6 +2152,14 @@ const SE={
   step:(t,k)=>{if(dsOK()){try{dsPlay(AU.se,dsStep(),t,1,0,0)}catch{}}else[0,.075].forEach((dt,j)=>{noise(AU.se,t+dt,.05,{lp:380,v:.13-j*.03,pan:j?.15:-.15});voice(AU.se,t+dt,96,.06,{type:'sine',v:.1-j*.02,glide:.7})});voice(AU.se,t,mtof(72+Math.min(k,12)*2),.08,{wave:'pulse25',v:.05,lp:3600,s:.5,dc:.03,r:.04})},
   yell:t=>{[72,76,79,84,88,91].forEach((n,i)=>bell(t+i*.05,n,.09,-.5+i*.2,.6));noise(AU.se,t,.45,{bp:2500,sweep:9000,q:1,v:.05,a:.12});noise(AU.se,t+.05,.55,{bp:1000,q:.6,v:.04,a:.1,rev:.3})},
   anti:t=>{voice(AU.se,t,392,.55,{wave:'warm',v:.12,glide:.45,lp:1700,vib:.03,vibR:9,vibD:.02});noise(AU.se,t,.22,{bp:500,v:.08});voice(AU.se,t+.3,160,.35,{type:'sine',v:.14,glide:.5})},
+  // カードのジャンルごとの音（2026.11.02.6）：進行＝汽笛、移動＝ワープ、ボーナス＝コイン、攻撃＝電撃、防御＝バリア、策略＝まほう、サポート＝カードをめくる
+  cgProg:t=>{[[71,.0],[75,.0],[78,.0]].forEach(([n])=>voice(AU.se,t,mtof(n),.42,{wave:'warm',v:.05,lp:2400,a:.03,vib:.01,vibR:6}));[0,.09,.18].forEach((d,i)=>noise(AU.se,t+.45+d,.06,{lp:500+i*80,v:.1}))},
+  cgMove:t=>{noise(AU.se,t,.5,{bp:350,sweep:7000,q:1.4,v:.13,a:.25});voice(AU.se,t+.1,mtof(60),.45,{type:'sine',v:.07,glide:4,glideT:.45});bell(t+.48,96,.07,.3,.5);bell(t+.55,100,.05,-.3,.4)},
+  cgBonus:t=>{[84,88,91,96,100].forEach((n,i)=>bell(t+i*.055,n,.08,-.4+i*.2,.5));noise(AU.se,t,.35,{hp:7000,v:.04,a:.05});[0,.07,.14].forEach(d=>voice(AU.se,t+.3+d,mtof(103),.06,{type:'square',v:.025,lp:6000}))},
+  cgAtk:t=>{voice(AU.se,t,1400,.28,{type:'sawtooth',v:.07,glide:.12,lp:3000});noise(AU.se,t,.18,{bp:1800,q:2,v:.12});kick(AU.se,t+.05,.35);noise(AU.se,t+.16,.25,{lp:900,v:.09})},
+  cgDef:t=>{voice(AU.se,t,mtof(72),.6,{type:'sine',v:.07,vib:.012,vibR:7,a:.05,rev:.4});voice(AU.se,t,mtof(79),.6,{type:'triangle',v:.04,a:.05});bell(t+.06,84,.08,-.2,.8);bell(t+.14,91,.06,.2,.7);noise(AU.se,t,.5,{bp:5200,q:3,v:.035,a:.15})},
+  cgStrat:t=>{[72,75,79,82,86,89].forEach((n,i)=>bell(t+i*.07,n,.07,-.5+i*.2,.7));voice(AU.se,t,mtof(84),.6,{type:'sine',v:.05,glide:2,glideT:.6,rev:.6,vib:.02,vibR:9})},
+  cgSup:t=>{for(let i=0;i<6;i++)noise(AU.se,t+i*.035,.025,{hp:2800,v:.07+i*.01,pan:i%2?.3:-.3});bell(t+.25,88,.08,0,.6);bell(t+.31,95,.06,.2,.5)},
   card:t=>{noise(AU.se,t,.2,{bp:900,sweep:5200,q:1.2,v:.11,a:.07});noise(AU.se,t+.15,.02,{hp:3200,v:.12});bell(t+.16,88,.08,.25,.6);bell(t+.22,93,.05,-.25,.5)},
   // 駅に到着：オリジナルの到着チャイム＋ブレーキの空気音
   station:t=>{[76,72,79].forEach((n,i)=>{bell(t+i*.18,n,.13,(i-1)*.25,1.1);mar(t+i*.18,n-12,.06)});noise(AU.se,t+.75,.55,{hp:3600,sweep:1600,v:.035,a:.03,pan:.2})},
@@ -2491,7 +2512,8 @@ function routeScoreOld(st,route){const seat=curSeat(st),p=st.players[seat],end=r
   if(st.troll!=null&&st.troll!==seat&&st.players[st.troll].pos===end&&st.troll!==seat)v-=300;
   return v}
 // そのカードを今使えるか（使えない理由の文字。使えるなら空）
-function cardBlocked(st,me,k){const p=st.players[me];if(k==='block')return'持っているだけで効きます';if(k==='home'&&p.pos===START)return'いま大牟田にいます';if((k==='pushtroll'||k==='antitroll')&&st.troll!==me)return'荒らしラグ王が取りついている時だけ';
+function cardBlocked(st,me,k){const p=st.players[me];if(k==='block')return'持っているだけで効きます';if(k==='home'&&p.pos===START)return'いま大牟田にいます';if((k==='pushtroll'||k==='antitroll')&&st.troll!==me)return'荒らしラグ王が取りついている時だけ';if(k==='sunny'&&st.weather===0)return'もう晴れています';if(k==='storm'&&st.weather===3)return'もう嵐です';if(k==='trollcall'&&st.troll!=null&&st.troll!==me){const as=[0,1,2,3].map(i=>i===me?-1:assets(st,i));if(as.indexOf(Math.max(...as))===st.troll)return'もう総G1位の人に取りついています'}
+  if(k==='swap'){const dg=D(st.goal);let b=-1,bd=1e9;st.players.forEach((q,i)=>{if(i!==me&&dg[q.pos]<bd){bd=dg[q.pos];b=i}});if(b<0||st.players[b].pos===p.pos)return'同じ場所にいます'}
   if((k==='steal'||k==='snatch2'||k==='swaphand')&&!st.players.some((q,i)=>i!==me&&q.hand.length))return'だれもカードを持っていません';
   if(k==='rivalwarp'){const dg=D(st.goal);let b=-1,bd=1e9;st.players.forEach((q,i)=>{if(i!==me&&dg[q.pos]<bd){bd=dg[q.pos];b=i}});if(b<0||st.players[b].pos===p.pos)return'同じ場所にいます'}
   if(k==='cleanse'&&!p.slow&&st.troll!==me&&(p.shield||0)>0)return'';return''}
@@ -2502,7 +2524,7 @@ async function cpuDecide(st){const seat=curSeat(st);let pre=null,st2=st;
   try{const s1=applyTurn(st,a,meta.seed,{noForce:true});if(s1.needPost&&s1.needPost.length)a.postSell=s1.needPost}catch(e){}
   return a}
 function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goal)[p.pos],ch=cpuChar(seat),T=(ch&&ch.t)||{},lv=ch?ch.lv:((meta&&meta.cpuLv)||'normal');let a={type:'roll'};
-  const has=k=>p.hand.includes(k),bo=st.boost===seat?1:0;
+  const has=k=>p.hand.includes(k),bo=st.boost===seat?1:0,wnear=(L,n)=>{const dG=D(st.goal),c=L.filter(i=>i!==p.pos&&i!==st.goal).map(i=>dG[i]).sort((a,b)=>a-b).slice(0,n);return c.length?c[c.length-1]:1e9};
   const as=[0,1,2,3].map(i=>assets(st,i)),lead=as.some((v,i)=>i!==seat&&v>as[seat]*1.15),dgs=st.players.map(q=>D(st.goal)[q.pos]),closer=st.players.some((q,i)=>i!==seat&&dgs[i]<dg-8);
   if(lv==='weak'){const c=p.hand[Math.floor(Math.random()*p.hand.length)];if(c&&!cardBlocked(st,seat,c)&&Math.random()<.3)a=cardAct(c,1+Math.floor(Math.random()*6))}
   else if(has('antitroll')&&st.troll===seat)a={type:'roll',card:'antitroll'};
@@ -2513,7 +2535,10 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
   else if(has('nearwarp')&&dg>=16)a={type:'nearwarp'};
   else if(has('rivalwarp')&&closer&&dg>=12&&!cardBlocked(st,seat,'rivalwarp'))a={type:'rivalwarp'};
   else if(has('swap')&&closer&&dg>=10)a={type:'swap'};
-  else if(has('airwarp')&&dg>=26)a={type:'airwarp'};
+  else if(has('airwarp')&&dg>=14&&wnear([...AIRPORTS].map(id=>SIDX[id]),2)<=dg-10)a={type:'airwarp'};
+  else if(has('ownwarp')&&dg>=12&&wnear(ST.map((_,i)=>i).filter(i=>own(st,i).some(x=>x===seat)),1)<=dg-8)a={type:'ownwarp'};
+  else if(has('luckywarp')&&dg>=12&&wnear(NODES.map((n,i)=>n.type==='plus'?i:-1).filter(i=>i>=0),8)<=dg-6)a={type:'luckywarp'};
+  else if(has('goalchange')&&dg>=22&&!closer)a={type:'roll',card:'goalchange'};
   else if(has('goalchange')&&dg>=30&&!closer)a={type:'roll',card:'goalchange'};
   else if(has('allanti')&&lead)a={type:'roll',card:'allanti'};
   else if(has('flameattack')&&lead)a={type:'roll',card:'flameattack'};
@@ -2548,6 +2573,17 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
   else if(has('lucky7')&&dg>=7)a={type:'roll',card:'lucky7'};else if(has('bigdice')&&dg>=9)a={type:'roll',card:'bigdice'};else if(has('express')&&dg>=7)a={type:'roll',card:'express'};else if(has('turbo')&&dg>=7)a={type:'roll',card:'turbo'};else if(has('local')&&dg>=4)a={type:'roll',card:'local'};
   else if(has('triple')&&lv==='strong')a={type:'roll',card:'triple'};else if(has('double')&&lv==='strong')a={type:'roll',card:'double'};else if(has('smallyell'))a={type:'roll',card:'smallyell'};else if(has('fanletter'))a={type:'roll',card:'fanletter'};
   else if(has('bigyell')&&(lv==='strong'||dg<6))a={type:'roll',card:'bigyell'};
+  // 使う場面がはっきりしているカードは、その場面で使う（2026.11.02.6）
+  else if(has('recover')&&p.coin<BASEPT[p.rank]*2)a={type:'roll',card:'recover'};
+  else if(has('sunny')&&st.weather>=2)a={type:'roll',card:'sunny'};
+  else if(has('trollcall')&&lead&&st.troll!==seat&&!cardBlocked(st,seat,'trollcall'))a={type:'roll',card:'trollcall'};
+  else if(has('snatch2')&&st.players.some((q,i)=>i!==seat&&q.hand.length>=3))a={type:'roll',card:'snatch2'};
+  else if(has('swaphand')&&st.players.some((q,i)=>i!==seat&&q.hand.length>=p.hand.length+2))a={type:'roll',card:'swaphand'};
+  else if(has('coupon')&&!(p.coupon>0))a={type:'roll',card:'coupon'};
+  else if(has('shopwarp')&&p.hand.length<=4&&p.coin>=8000&&dg>=8)a={type:'shopwarp'};
+  else if(!lead&&!(p.shield>0)&&!has('block')&&['castle','barrier','guard'].some(has))a={type:'roll',card:['castle','barrier','guard'].find(has)};
+  else if(lv!=='weak'&&(has('triple')||has('double')))a={type:'roll',card:has('triple')?'triple':'double'};
+  else if(has('sunny')&&st.weather===1)a={type:'roll',card:'sunny'};
   // キャラごとのクセ（第28版）
   {const U=usableCards(st,seat),plain=a.type==='roll'&&!a.card,pickU=L=>{const c=L.filter(k=>U.includes(k));return c.length?c[Math.floor(Math.random()*c.length)]:null},act=k=>cardAct(k,Math.max(1,Math.min(6,dg-bo)));
     const leads=[0,1,2,3].some(i=>i!==seat&&assets(st,i)>assets(st,seat));
@@ -2576,7 +2612,7 @@ let playing=Promise.resolve();
 let animN=0,animIdleAt=0;const animating=()=>animN>0||Date.now()-animIdleAt<(SET.fast?120:250);
 let animGen=0;
 function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(gen!==animGen)return;try{const s=r.state,seat=s.lastSeat,prev=dispState;
-  const cardEv=(s.ev||[]).find(e=>e.k==='card');if(cardEv){const r=LEGACY[cardEv.v]?'N':(CARDR[cardEv.v]||'N'),lv=RARLV[r],bn=banner((lv>=4?'★ ':'')+CARDN[cardEv.v]+'！',RARBG[r],(LEGACY[cardEv.v]?'':r+'・')+CARDD[cardEv.v]);if(bn)bn.classList.add('rar-'+r);rarFx(r,NODES[(s.lastPath||[])[0]]||NODES[s.players[seat].pos]);await wait(1300+lv*(SET.fast?100:300))}
+  const cardEv=(s.ev||[]).find(e=>e.k==='card');if(cardEv){const r=LEGACY[cardEv.v]?'N':(CARDR[cardEv.v]||'N'),lv=RARLV[r],gi=GENRES.findIndex(g=>g[0]===CARDG[cardEv.v]),bn=banner((lv>=4?'★ ':'')+(gi>=0?GENRES[gi][1]+' ':'')+CARDN[cardEv.v]+'！',RARBG[r],(LEGACY[cardEv.v]?'':r+'・')+CARDD[cardEv.v]);if(bn)bn.classList.add('rar-'+r);rarFx(r,NODES[(s.lastPath||[])[0]]||NODES[s.players[seat].pos]);if(gi>=0)setTimeout(()=>sfx(CG_SE[gi]),SET.fast?260:560+lv*60);await wait(1300+lv*(SET.fast?100:300))}
   if(s.lastDices&&s.lastDices.length>1){floatNum(NODES[(s.lastPath||[])[0]]||NODES[0],'サイコロ '+s.lastDices.join('+'),'var(--pink)')}
   if(cardEv&&MOVEC.includes(cardEv.v)&&s.lastPath&&s.lastPath.length>1){const a=NODES[s.lastPath[0]],b=NODES[s.lastPath[1]];sfx('rankup');shock(a,'var(--card)');burst('star',a);await wait(500);movePawn(seat,s.lastPath[1]);camTo(b,1.6,400);shock(b,'var(--card)');burst('star',b);await wait(900);camHome()}
   {const tr=$('#turnRing');if(tr)tr.innerHTML=''}
@@ -2619,7 +2655,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   if(evs.some(e=>e.k==='mono'))setTimeout(()=>{comments('mono',6);sfx('rankup');pillar(pNode,'#ffcf3a');banner('独占！','#ffcf3a',(pNode.name||'')+' 決算'+(pNode.mono||2)+'倍');fireworks(2)},SET.fast?500:1100);
   if(evs.some(e=>e.k==='buy')){comments('buy',3);sfx('buy');houseRise(pNode,SEATC[seat]);burst('coin',pNode);banner('物件獲得！','var(--station)',pNode.name||'');coinsFly(pNode,seat,6,true)}
   const tr=evs.find(e=>e.k==='troll');if(tr){sfx('troll');vib([40,30,40,30,40]);glitch();staticNoise(1100);comments('troll',6);const big=lateGame(s);
-    await showOverlay(`<div class="trollbig glitchy">${trollSvg(big)}</div><h3>${big?'超・':''}荒らしラグ王 参上</h3><p class="tr-who">${esc(nameize(tr.t))}</p><p class="tr-help">取りつかれた人は、自分の番のたびに<b>いたずら</b>されます（ゴールド浪費・ランクダウン・カードを捨てる・物件が離れる など）。<br>お祓い・おきよめカードで追い払えます。同じマスに来た人には乗り移ります。</p>`,SET.fast?1600:3000,'troll')}
+    await showOverlay(`<div class="trollbig glitchy">${trollSvg(big)}</div><h3>${big?'超・':''}荒らしラグ王 参上</h3><p class="tr-who">${esc(nameize(tr.t))}</p><p class="tr-help">取りつかれた人は、自分の番のたびに<b>いたずら</b>されます（ゴールド浪費・ランクダウン・カードを捨てる・物件が離れる など）。<br>おきよめカードで追い払えます。同じマスに来た人には乗り移ります。</p>`,SET.fast?1600:3000,'troll')}
   {const bk=evs.find(e=>e.k==='block'&&/荒らしのいたずら/.test(e.t));if(bk&&!evs.some(e=>e.k==='mischief'))setTimeout(()=>{sfx('stamp');banner('🛡 いたずらを防いだ！','#3aa0ff',(seat!=null?seatName(seat)+'：':'')+'ブロックカードで荒らしラグ王をガード')},SET.fast?400:900)}
   const mi=evs.find(e=>e.k==='mischief');if(mi){sfx('troll');glitch();/* いたずらの中身は専用のカードで大きく見せる（2026-11-01。以前はお知らせ1行で見落としやすかった） */
     const good=/改心/.test(mi.t),nothing=/何も起きなかった/.test(mi.t),body=nameize(mi.t).replace(/^荒らしラグ王が/,'').replace(/^ゴールドを浪費\s*/,'').replace(/^荒らしコメント\s*/,'').replace(/^カード(「.*」)を捨てられた$/,'$1').replace(/^荒らしのせいで物件(「.*」)が離れた$/,'$1（半額で戻る）').replace(/^回線落ち（何も起きなかった）$/,'何も起きなかった').replace(/^改心\s*/,''),who=seat!=null?seatName(seat):'',big=lateGame(s);
@@ -3281,6 +3317,7 @@ async function goalRoulette(next){const names=NODES.filter((x,i)=>x.type==='stat
   const b=e&&e.querySelector('b');let delay=50,tot=0,end=SET.fast?900:1900;while(tot<end){if(b)b.textContent=names[Math.floor(Math.random()*names.length)];sfx('roulTick');await wait(delay);tot+=delay;delay=Math.min(260,delay*1.12)}
   if(b){b.textContent=NODES[next].name;b.classList.add('hit')}sfx('roulStop');const m=NODES[next];camTo(m,1.4,SET.fast?400:800);await wait(SET.fast?400:800);shock(m,'#ffd23f');pillar(m,'#ffd23f');burst('star',m);await wait(SET.fast?700:1500);camHome()}
 // ===== レア度に応じた演出（第27版）：N→R→SR→SSR→URの順に光・花火・音・BGM演出が豪華になる =====
+const CG_SE=['cgProg','cgMove','cgBonus','cgAtk','cgDef','cgStrat','cgSup'];// GENRES と同じ順
 const RARC={N:'#9aa3b2',R:'#3fb6ff',SR:'#b06bff',SSR:'#ff7fbf',UR:'#ffd23f'},RARLV={N:0,R:1,SR:2,SSR:3,UR:4};
 const RARBG={N:'linear-gradient(90deg,#5b6577,#7b8494)',R:'linear-gradient(90deg,#1f6fc4,#3fb6ff)',SR:'linear-gradient(90deg,#5a22c4,#b06bff)',SSR:'linear-gradient(90deg,#ff3f8f,#ff8a3d,#ffd23f)',UR:'linear-gradient(90deg,#ff4fb8,#ffd23f,#33d17a,#3fb6ff,#9d7bff,#ff4fb8)'};
 // BGMを一時的に小さくして、レアな演出の音を目立たせる
@@ -3691,18 +3728,25 @@ function showAutoConfirm(){const st=pending.st,seat=curSeat(st),left=pending.d-p
 $('#bRoll').onclick=()=>{if(!pending&&dispState&&dispState.finished){showFinal(dispState).then(render);render();return}choose({type:'roll'})};
 $('#bCard').onclick=()=>{if(!pending)return;unlock();const h=pending.st.players[curSeat(pending.st)].hand;const cnt={};h.forEach(k=>cnt[k]=(cnt[k]||0)+1);const o=$('#ov');
   const me=curSeat(pending.st),atHome=pending.st.players[me].pos===START;
-  const ks=Object.keys(cnt);o.innerHTML=`<div class="card cardsheet"><h3>カード</h3>${ks.length?'<p class="muted cs-hint">カードはタップするとすぐ使います</p>'+GENRES.filter(g=>ks.some(k=>CARDG[k]===g[0])).map(g=>`<div class="cg-h"><span>${g[1]} ${g[0]}系</span><small>${g[2]}</small></div>`+ks.filter(k=>CARDG[k]===g[0]).map(k=>{const why=cardBlocked(pending.st,me,k);return`<button class="cardbtn cg-${g[0]}" data-k="${k}" ${why?'disabled':''}><b><i class="rar r-${CARDR[k]}">${LEGACY[k]?'旧':CARDR[k]}</i>${CARDN[k]}${cnt[k]>1?`<span class="cb-n">×${cnt[k]}</span>`:''}</b><small>${CARDD[k]}${why?'（'+why+'）':''}</small></button>`}).join('')).join(''):'<p class="muted">カードを持っていません。黄色のカードマスやカードショップで手に入ります。</p>'}<div class="justpick" id="justPick" hidden><p>出す目を選んでください</p><div>${[1,2,3,4,5,6].map(n=>`<button class="jbtn" data-n="${n}">${n}</button>`).join('')}</div></div><button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;
+  const ks=Object.keys(cnt);sfx('cgSup');o.innerHTML=`<div class="card cardsheet"><h3>カード</h3>${ks.length?'<p class="muted cs-hint">カードはタップするとすぐ使います</p>'+GENRES.filter(g=>ks.some(k=>CARDG[k]===g[0])).map(g=>`<div class="cg-h"><span>${g[1]} ${g[0]}系</span><small>${g[2]}</small></div>`+ks.filter(k=>CARDG[k]===g[0]).sort(cardSort).map(k=>{const why=cardBlocked(pending.st,me,k);return`<button class="cardbtn cg-${g[0]} rr-${LEGACY[k]?'N':CARDR[k]}" data-k="${k}" ${why?'disabled':''}><i class="cg-ic" aria-hidden="true">${g[1]}</i><b><i class="rar r-${CARDR[k]}">${LEGACY[k]?'旧':CARDR[k]}</i>${CARDN[k]}${cnt[k]>1?`<span class="cb-n">×${cnt[k]}</span>`:''}</b><small>${CARDD[k]}${why?'（'+why+'）':''}</small></button>`}).join('')).join(''):'<p class="muted">カードを持っていません。黄色のカードマスやカードショップで手に入ります。</p>'}<div class="justpick" id="justPick" hidden><p>出す目を選んでください</p><div>${[1,2,3,4,5,6].map(n=>`<button class="jbtn" data-n="${n}">${n}</button>`).join('')}</div></div><button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;
   $('#ovClose').onclick=()=>{o.hidden=true;o.innerHTML=''};
   o.querySelectorAll('.jbtn').forEach(b=>b.onclick=()=>{const n=+b.dataset.n;o.hidden=true;o.innerHTML='';choose({type:'roll',card:'just',just:n})});
   o.querySelectorAll('.cardbtn').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='just'){$('#justPick').hidden=false;$('#justPick').scrollIntoView({block:'nearest'});return}o.hidden=true;o.innerHTML='';choose(cardAct(k))})};
+// カードの並び：レア度の高い順→値段の高い順（旧カードは最後）
+const cardSort=(a,b)=>(!!LEGACY[a]-!!LEGACY[b])||(RARITY.indexOf(CARDR[b])-RARITY.indexOf(CARDR[a]))||((SHOPP[b]||0)-(SHOPP[a]||0));
 // カードショップ：買う（何枚でも）と売る（買値の半分）をえらんで、まとめて確定
 function shopSim(){const pv=pending.pv,ops=pending.shopOps||[];let coin=pv.coin,hand=(pv.hand||[]).slice(),cp=(pending.pv.coupon!=null?pending.pv.coupon:(pending.st.players[curSeat(pending.st)].coupon||0));
   for(const[o,k]of ops){if(o==='s'){hand.splice(hand.lastIndexOf(k),1);coin+=SELLP(k)}else{let pr=SHOPP[k];if(cp>0){pr=fl100(pr/2);cp--}coin-=pr;hand.push(k)}}return{coin,hand,cp}}
 function drawShop(){const pv=pending.pv;pending.shopOps=pending.shopOps||[];const ops=pending.shopOps,{coin,hand,cp}=shopSim(),room=HANDMAX-hand.length,priceNow=k=>cp>0?fl100(SHOPP[k]/2):SHOPP[k];
   const nb=ops.filter(o=>o[0]==='b').length,ns=ops.filter(o=>o[0]==='s').length;
-  $('#shopHead').innerHTML=`<div>🛍️ ${shopPref(pv.pos)}のカードショップ${cp>0?'（🎟️半額クーポンあり）':''}</div><div class="sh-st">所持 ${coin===pv.coin?`<b>${coin.toLocaleString()}G</b>`:`${pv.coin.toLocaleString()}G → <b>${coin.toLocaleString()}G</b>`}・手札 ${hand.length}/${HANDMAX}枚${ops.length?`（買った${nb}・売った${ns}）`:''}</div>`;
+  $('#shopHead').innerHTML=`<div>🛍️ ${shopPref(pv.pos)}のカードショップ${cp>0?`（🎟️半額クーポン×${cp}）`:''}</div><div class="sh-st">所持 ${coin===pv.coin?`<b>${coin.toLocaleString()}G</b>`:`${pv.coin.toLocaleString()}G → <b>${coin.toLocaleString()}G</b>`}・手札 ${hand.length}/${HANDMAX}枚${ops.length?`（買った${nb}・売った${ns}）`:''}</div>`;
   const cnt={};hand.forEach(k=>cnt[k]=(cnt[k]||0)+1);
-  const avail=shopCards(pv.pos);const gs=GENRES.map(g=>{const ks=avail.filter(k=>CARDG[k]===g[0]);if(!ks.length)return'';return`<div class="cg-h"><span>${g[1]} ${g[0]}系</span></div>`+ks.map(k=>{const pr=priceNow(k),n=ops.filter(o=>o[0]==='b'&&o[1]===k).length;return`<button type="button" class="basebtn shopbtn${n?' on':''}${SHOP_ALL(k)?'':' local'}" data-k="${k}" ${(coin<pr||room<=0)?'disabled':''}><b><i class="rar r-${CARDR[k]}">${CARDR[k]}</i>${CARDN[k]}${n?' 買った×'+n:''}</b><span>${pr.toLocaleString()}G${pr<SHOPP[k]?' 🎟️':''}</span><small>${SHOP_ALL(k)?'':'📍この地域限定・'}${CARDD[k]}</small></button>`}).join('')}).join('');
+  // 表示するのは「いまのゴールドで買える」カードだけ（この来店で買ったカードは、買えなくなっても枚数が分かるように残す）
+  const bought=k=>ops.filter(o=>o[0]==='b'&&o[1]===k).length,avail=shopCards(pv.pos),show=avail.filter(k=>(room>0&&coin>=priceNow(k))||bought(k)),hid=avail.length-show.length;
+  const sbtn=k=>{const pr=priceNow(k),n=bought(k),loc=!SHOP_ALL(k),gi=GENRES.find(g=>g[0]===CARDG[k]);return`<button type="button" class="basebtn shopbtn rr-${CARDR[k]}${n?' on':''}${loc?' local':''}" data-k="${k}" ${(coin<pr||room<=0)?'disabled':''}><i class="cg-ic" aria-hidden="true">${gi?gi[1]:''}</i>${loc?'<em class="lim">📍地域限定</em>':''}<b><i class="rar r-${CARDR[k]}">${CARDR[k]}</i>${CARDN[k]}${n?' 買った×'+n:''}</b><span>${pr.toLocaleString()}G${pr<SHOPP[k]?' 🎟️':''}</span><small>${CARDD[k]}</small></button>`};
+  const locs=show.filter(k=>!SHOP_ALL(k)).sort(cardSort);
+  const gs=(locs.length?`<div class="cg-h lim-h"><span>📍 この地域限定</span><small>${esc(shopPref(pv.pos))}のショップでしか買えません</small></div>`+locs.map(sbtn).join(''):'')+GENRES.map(g=>{const ks=show.filter(k=>SHOP_ALL(k)&&CARDG[k]===g[0]).sort(cardSort);if(!ks.length)return'';return`<div class="cg-h"><span>${g[1]} ${g[0]}系</span></div>`+ks.map(sbtn).join('')}).join('')
+    +(!show.length?`<p class="muted shop-none">${room<=0?'手札がいっぱいで買えません（売ると買えます）':'いまのゴールドで買えるカードはありません'}</p>`:'')+(hid&&show.length?`<p class="muted shop-none">ゴールドが足りないカード${hid}種類は表示していません</p>`:'');
   $('#shopList').innerHTML=`<div class="cg-h"><span>💴 売る（買値の半分）</span><small>${hand.length?'タップで1枚売る':'手札がありません'}</small></div>`+Object.keys(cnt).map(k=>`<button type="button" class="basebtn sellbtn" data-k="${k}"><b>${LEGACY[k]?'':`<i class="rar r-${CARDR[k]}">${CARDR[k]}</i>`}${CARDN[k]} ×${cnt[k]}</b><span>＋${SELLP(k).toLocaleString()}G</span></button>`).join('')+`<div class="cg-h"><span>🛒 買う</span><small>タップで1枚ずつ（終了まで何回でも）</small></div>`+gs;
   $('#shopList').querySelectorAll('.sellbtn').forEach(b=>b.onclick=()=>{ops.push(['s',b.dataset.k]);sfx('step',2);drawShop()});
   $('#shopList').querySelectorAll('.shopbtn').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(shopSim().coin<priceNow(k)||HANDMAX-shopSim().hand.length<=0)return;ops.push(['b',k]);sfx('buy');drawShop()});
@@ -3754,16 +3798,16 @@ const SYS=[
  ['🎯 目的','ゲームの目的',`<p>決めた日数のあいだ、九州・沖縄から全国の駅をめぐって「ゴールド」を集めるすごろくです。</p><h4>優勝の条件</h4><p>最後の0:00決算のあと、<b>ゴールド＋物件の合計＋ランクボーナス</b>が一番多い人の優勝です。</p><h4>目的地</h4><p>目的地は全国の駅からランダムで決まります。<b>ぴったり止まったときだけ</b>1番乗り（通り過ぎてもゴールになりません）。分かれ道で「🎯ぴったり着ける」と出た道を選ぶと止まれます。1番乗りすると賞金・コアファン・ランクptがもらえ、次の目的地が決まったあとで、着いた駅の物件を獲得できます。</p><h4>1番乗りの報酬</h4><ul><li><b>賞金</b>：前の目的地から遠いほど、またランクが高いほど多くなります（沖縄の駅は1.2倍）。</li><li><b>コアファン＋5人</b>・<b>ランク＋50pt</b></li><li>目的地が変わると、お邪魔キャラが誰かに取りつきます。</li></ul>`],
  ['🎲 手番','1手番の流れ',`<ul><li>自分の番になったら「サイコロ」を振るか、「カード」を1枚使います。</li><li>サイコロが増えるカードを使うと、画面のサイコロもその数だけ並びます。</li><li>分かれ道では光る矢印か下のボタンで進む方向を選びます。「おまかせ」は、目的地にぴったり止まれる道を最優先し、無理ならプラス・コアファン・イベント・買える駅など止まるマスの損得をみて、いちばん得な道を選びます。押すと先に止まる場所と理由・道のりが出るので、確かめてから進めます。「1つ戻す」で1マス前に戻れます。</li><li>止まったマスの効果が起きます。駅なら物件、カードショップならカードの売り買いができます。</li><li>だれが何をしたかは、下の<b>行動ログ</b>で確かめられます（たたんでいる間も最新の1手番を表示。タップで広げると、手番ごとに名前・ゴールドの増減・できごとを1行ずつ表示）。上のプレイヤー欄をタップすると、その人の<b>最近の手番</b>も見られます。</li></ul><p>持ち時間があり、時間が切れると自動で進みます。</p>`],
  ['🟢 マス','マスの種類',`<ul><li><b>緑＋ プラスマス</b>：ゴールドが増える</li><li><b>赤− マイナスマス</b>：ゴールドが減る</li><li><b>青 コアファンマス</b>：コアファンがもらえる（コアファンイベントつき）</li><li><b>黄 カードマス</b>：カードが1枚もらえる</li><li><b>お祭り色 イベントマス</b>：いろいろなイベントが起きる</li><li><b>紫の袋 カードショップ</b>：カードを買う・売る</li><li><b>駅</b>：物件を獲得できる</li></ul><p>空港（✈）どうしは紫の点線の空路、港どうしは白い点線のフェリー航路でつながっていて、少ないマスで遠くへ行けます。<b>空港マス・港マスに止まると、空港や港ならではのイベント</b>が起きます。</p><h4>もらえる量の決まり方</h4><ul><li><b>プラスマス</b>：ランクの基本ゴールドをもとに、<b>時間帯と天気の倍率</b>・物件数ボーナスがかかります。</li><li><b>マイナスマス</b>：基本ゴールドをもとに、時間帯と天気の倍率がかかります（ブロックカードで防げます）。</li><li><b>コアファンマス</b>：1〜3人に時間帯と天気の倍率がかかり、物件5件以上で＋1人・12件以上で＋2人、ランク帯が1つ上がるごとに＋1人されます。さらにコアファンイベントで人数が増えたり、ゴールド・ランクptがついたりします。</li></ul><p>倍率は「🕒 時間」の表、または地図の左上の時刻・天気をタップすると見られます。</p>`],
- ['🕒 時間','時間と天気',`<p>4人が1回ずつ動く1周が「1時間」です。18:00にスタートし、毎日0:00に決算があります。</p><p>時間帯（朝・昼・ゴールデン・深夜）と天気（晴れ・くもり・雨・嵐）で、<b>プラスマス・マイナスマス・コアファンマスでもらえる量が変わります</b>。実際の倍率は「時間帯の倍率×天気の倍率」です（例：ゴールデン×晴れのプラスマスは ${xf(PLUSM.tz[2]*PLUSM.wx[0])}）。</p>${wxTables(-1,-1)}<ul><li>ゴールデン（19〜23時）は、プラスもコアファンも大きいかせぎどき。深夜はコアファンが増えますが、マイナスも大きくなります。</li><li>天気は <b>0:00・6:00・12:00・18:00</b> に変わります。晴れが出やすく、嵐はめったに出ません。</li><li>嵐はマイナスが ${xf(MINUSM.wx[3])}・コアファンが ${xf(YELLM.wx[3])}。ピンチでもありチャンスでもあります。</li><li>「晴れ乞いカード」「嵐を呼ぶカード」で天気を変えられます。台風などのイベントで嵐になることもあります。</li></ul><p>プレイ中は、地図の左上の時刻・天気をタップすると、いまの倍率が見られます。</p>`],
+ ['🕒 時間','時間と天気',`<p>4人が1回ずつ動く1周が「1時間」です。18:00にスタートし、毎日0:00に決算があります。</p><p>時間帯（朝・昼・ゴールデン・深夜）と天気（晴れ・くもり・雨・嵐）で、<b>プラスマス・マイナスマス・コアファンマスでもらえる量が変わります</b>。実際の倍率は「時間帯の倍率×天気の倍率」です（例：ゴールデン×晴れのプラスマスは ${xf(PLUSM.tz[2]*PLUSM.wx[0])}）。</p>${wxTables(-1,-1)}<ul><li>ゴールデン（19〜23時）は、プラスもコアファンも大きいかせぎどき。深夜はコアファンが増えますが、マイナスも大きくなります。</li><li>天気は <b>0:00・6:00・12:00・18:00</b> に変わります。晴れが出やすく、嵐はめったに出ません。</li><li>嵐はマイナスが ${xf(MINUSM.wx[3])}・コアファンが ${xf(YELLM.wx[3])}。ピンチでもありチャンスでもあります。</li><li>「晴れ乞いカード」で天気を晴れにできます。台風などのイベントで嵐になることもあります。</li></ul><p>プレイ中は、地図の左上の時刻・天気をタップすると、いまの倍率が見られます。</p>`],
  ['🏠 物件','物件と決算',`<p>駅に止まると、ゴールドを使ってその土地の名物「物件」を獲得できます。</p><ul><li>毎日0:00の決算で、物件からゴールドがもらえます。</li><li>ゴールドがマイナスになったら、プラスに戻るまで物件を売却します（売値は獲得したときの値段）。売る物件はおすすめが出ますが、ほかの物件を選ぶこともできます。</li><li>1つの駅の物件を1人ですべて獲得すると「独占」になり、その駅の物件の決算が<b>1.4〜2.0倍</b>になります（物件の値段の合計が高い駅・物件が多い駅ほど倍率が高い）。</li><li>物件の数が増えるほど、マスやイベントでもらえるゴールドも増えます。</li></ul><h4>物件数ボーナス</h4><p>物件数が節目に届くと、プラスマスやイベントでもらえるゴールドが増えます。</p><table class="xtab"><tr><th>物件数</th><td>ボーナス</td></tr>${TIERS.slice(0,8).map((t,i)=>`<tr><th>${t}件〜</th><td>＋${Math.round(TB[i]*100)}%</td></tr>`).join('')}</table><p class="muted">このあとも${TIERS[TIERS.length-1].toLocaleString()}件（＋${Math.round(TB[TB.length-1]*100)}%）まで段階的に増えます。</p><p>プレイヤー欄をタップすると、自分の物件の一覧と決算の見込みが見られます。</p>`],
  ['💰 決算','0:00の決算',`<p>毎日0:00に決算があり、次の3つが順に行われます。</p><h4>1. ゴールドの支給</h4><ul><li><b>物件から</b>：物件ごとの「毎日のゴールド」の合計（独占していれば倍率つき。「推し活カード」を使っていれば1.5倍）。</li><li><b>ランクから</b>：基本ゴールド×（前の決算からの時間÷6）。</li></ul><h4>2. 締めの条件（ランクpt）</h4><table class="xtab"><tr><th>条件（24時間の日）</th><td>ランクpt</td></tr>${CONDS.map(c=>`<tr><th>${c[1]}</th><td>＋${c[2]}</td></tr>`).join('')}</table><ul><li>ゴールド目標は「その日にかせいだ量が基本ゴールドの8倍以上」です。コアファンは「その日に増えた量」で数えます。</li><li>1日目（18:00〜0:00）のように短い日は、時間に合わせて条件がゆるくなります（6時間ならポコチャレ1回・コアファン3人・基本の2倍）。</li><li><b>1つもクリアできないとランクダウン</b>します。</li></ul><h4>3. 新人応援ブースト</h4><p>決算のあと、総Gがいちばん少ない人は次の決算まで<b>サイコロ＋1・コアファンマス1.5倍</b>（お邪魔のいたずらで減る量も一部半分）になります。次の日は総Gの少ない人から順に動きます。</p><p>最後の日の決算でまだゴールドがマイナスの人は、物件が自動で売却されます。</p>`],
  ['💖 コアファン','コアファン',`<p>コアファンは人数で数え、コアファンマス・イベント・ポコチャレ・目的地1番乗りなどで増えます。</p><ul><li>10人の節目を初めて超えるたびに、<b>基本ゴールドの2倍</b>のボーナスがもらえます。</li><li>コアファンマスは時間帯と天気で量が変わります（ゴールデン ${xf(YELLM.tz[2])}・深夜 ${xf(YELLM.tz[3])}・雨 ${xf(YELLM.wx[2])}・嵐 ${xf(YELLM.wx[3])}）。</li><li>コアファンマスでは、12種類の<b>コアファンイベント</b>のどれかが起きます（人数が2倍・3倍になったり、ゴールドやランクptがついたりすることも）。イベントマスでも、コアファンが増減する「ファン交流」のイベントが起きます。</li><li>毎日<b>0:00の決算のあと</b>、全員のコアファンは0人に戻ります（10人ボーナスも最初から）。目的地が変わっても0人には戻りません。</li><li>いまの人数と「あと何人で次のボーナスか」は、プレイヤー欄をタップするか、コアファンが増えたときの結果カードで見られます。</li><li>0:00の締めの条件「コアファン10人獲得」は、その日に増えた量で数えます。</li></ul>`],
  ['⭐ ランク','ランク帯',`<p>E・D・C・B・A・Sの6つの帯に、それぞれ1〜6の段階があります（全員E1スタート）。</p><ul><li>ランクが高いほど基本のゴールドが増え、マス・イベント・決算でもらえる量が増えます。</li><li>ランクptは目的地1番乗り・イベント・ポコチャレ・0:00の締めの条件などで貯まり、必要数に届くとランクアップします。</li><li>ランクptが0を下回ったり、0:00の締めの条件を1つもクリアできなかったりすると、ランクダウンします。</li></ul><h4>帯ごとの目安</h4>${rankTable()}<ul><li>基本ゴールド（説明の「基本G」）は、マス・イベント・決算・ボーナスでもらえる量の基準です。</li><li>終了時ボーナスは、最後の決算のあとで総Gに足されます。</li><li>次の段階までの必要ptは、E1の${NEED.E1}ptから少しずつ増えます。</li><li>ランクptがもらえる主なもの：目的地1番乗り＋50・ポコチャレ達成＋20・締めの条件＋15〜20。</li></ul>`],
- ['🃏 カード','カード',`<p>カードは7つのジャンルに分かれています。</p><ul>${GENRES.map(g=>`<li><b>${g[1]} ${g[0]}系</b>：${g[2]}</li>`).join('')}</ul><h4>レア度</h4><div class="rarrow">${RARITY.map(r=>RB(r)+'<small>'+RARN[r]+'</small>').join('')}</div><p>効果が高いほどレア度が高く、カードマスなどで引いたときに出にくくなります。ショップでの値段はカードごとの効果の強さで決まり、同じレア度でも強いカードほど高く、弱いカードは安くなります（300〜15,000G）。レアなカードほど、使ったときの演出や音も豪華になります。</p><h4>持ち方・使い方</h4><ul><li>手札は最大${HANDMAX}枚まで持てます。</li><li>自分の番に1枚使えます。持っているだけで効くカードもあります。</li><li>カードマス・イベント・ポコチャレの報酬・カードショップで手に入ります。</li></ul><p>どんなカードがあるかは、遊びながら見つけてください。</p>`],
- ['🛍️ ショップ','カードショップ',`<ul><li>カードショップのマスに止まると、「終了する」を押すまで、好きな順番で何回でもカードを売ったり買ったりできます。「1つ戻す」で取り消せます。</li><li>売るときの値段は、買う値段の半分です。</li><li>ショップは<b>県ごとに品ぞろえが違います</b>。進行系のカードと、${RB('N')}${RB('R')}のカードは、どこのショップでも買えます。</li><li>その地域でしか買えないカードには「📍この地域限定」と表示されます。</li></ul>`],
+ ['🃏 カード','カード',`<p>カードは7つのジャンルに分かれています。</p><ul>${GENRES.map(g=>`<li><b>${g[1]} ${g[0]}系</b>：${g[2]}</li>`).join('')}</ul><h4>レア度</h4><div class="rarrow">${RARITY.map(r=>RB(r)+'<small>'+RARN[r]+'</small>').join('')}</div><p>効果が高いほどレア度が高く、カードマスなどで引いたときに出にくくなります。ショップでの値段はカードごとの効果の強さで決まり、同じレア度でも強いカードほど高く、弱いカードは安くなります（500〜15,000G）。レアなカードほど、使ったときの演出や音も豪華になります。</p><h4>持ち方・使い方</h4><ul><li>手札は最大${HANDMAX}枚まで持てます。</li><li>自分の番に1枚使えます。持っているだけで効くカードもあります。</li><li>カードマス・イベント・ポコチャレの報酬・カードショップで手に入ります。</li></ul><p>どんなカードがあるかは、遊びながら見つけてください。</p>`],
+ ['🛍️ ショップ','カードショップ',`<ul><li>カードショップのマスに止まると、「終了する」を押すまで、好きな順番で何回でもカードを売ったり買ったりできます。「1つ戻す」で取り消せます。</li><li>売るときの値段は、買う値段の半分です。</li><li>ショップは<b>県ごとに品ぞろえが違います</b>。進行系のカードと、${RB('N')}${RB('R')}のカードは、どこのショップでも買えます。</li><li>その地域でしか買えないカードは、一覧のいちばん上に「📍この地域限定」としてまとめ、オレンジの枠と「📍地域限定」の印で目立たせています。</li><li>一覧には、いまのゴールドで買えるカードだけが出ます（売ってゴールドが増えると、買えるカードが増えます）。</li></ul>`],
  ['🎪 イベント','イベント',`<p>イベントマスに止まると、5つのジャンルのどれかのイベントが起きます。</p><ul>${EVGENRES.map(g=>`<li><b>${g[1]} ${g[0]}</b></li>`).join('')}</ul><p>イベントにもレア度があり、効果が大きいイベントほどめったに起きず、演出も豪華になります。ハプニングの中には、防御系のカードで防げるものもあります。</p>`],
  ['🏅 ポコチャレ','ポコチャレ',`<p>0:00・6:00・12:00・18:00に、全員共通の3つのお題（ポコチャレ）が出ます。下の「ポコチャレ」ボタンを押すと、内容と進み具合を確認できます。</p><h4>達成の報酬</h4><ul><li>ゴールド（基本ゴールドの4倍）か、カード1枚のどちらかを選べます。</li><li>どちらを選んでも<b>コアファン＋2人・ランク＋20pt</b>。</li><li>「マイナス0回」のお題は、6時間の締めのときに判定します。</li></ul>`],
- ['👾 お邪魔','お邪魔キャラ',`<p>誰かが目的地に着くと、お邪魔キャラ「荒らしラグ王」が誰かに取りつくことがあります（終盤は「超・荒らしラグ王」になり、いたずらが強くなります）。</p><ul><li>取りつかれた人は、<b>自分の番のたびに</b>いたずらをされます：ゴールドを浪費／荒らしコメントでランク−pt・コアファン−1人／カードを1枚捨てられる／物件が1件離れる（半額で戻る）／回線落ち（何も起きない）／まれに改心してゴールドをくれる。</li><li>いたずらの中身は「荒らしラグ王のいたずら」のカードで大きく表示され、行動ログにも😈つきで残ります。ブロックカードを持っていると防げることがあります。</li><li>取りつかれている人は、上のプレイヤー欄に「😈お邪魔」、地図のコマの上に😈が付き、その人の番は専用のBGM（お邪魔の曲）に変わります。</li><li>お祓い・おきよめカードで追い払えます。押し付けカードでほかの人に移せます。同じマスに止まった人には乗り移ります。</li></ul>`],
+ ['👾 お邪魔','お邪魔キャラ',`<p>誰かが目的地に着くと、お邪魔キャラ「荒らしラグ王」が誰かに取りつくことがあります（終盤は「超・荒らしラグ王」になり、いたずらが強くなります）。</p><ul><li>取りつかれた人は、<b>自分の番のたびに</b>いたずらをされます：ゴールドを浪費／荒らしコメントでランク−pt・コアファン−1人／カードを1枚捨てられる／物件が1件離れる（半額で戻る）／回線落ち（何も起きない）／まれに改心してゴールドをくれる。</li><li>いたずらの中身は「荒らしラグ王のいたずら」のカードで大きく表示され、行動ログにも😈つきで残ります。ブロックカードを持っていると防げることがあります。</li><li>取りつかれている人は、上のプレイヤー欄に「😈お邪魔」、地図のコマの上に😈が付き、その人の番は専用のBGM（お邪魔の曲）に変わります。</li><li>おきよめカードで追い払えます。押し付けカードでほかの人に移せます。同じマスに止まった人には乗り移ります。</li></ul>`],
  ['🤖 CPU','CPUキャラと名前',`<ul><li>空いた席には、えらんだ強さ（弱い・普通・強い）のCPUキャラが入ります。強さごとに10人いて、毎回ランダムで決まります。</li><li>キャラごとに、出身地・職業・性格などのプロフィールと、カードをよく使う・物件を買いまくる・最短で目的地を目指すなどの<b>プレイのクセ</b>があります。</li><li>キャラは方言やくせのある話し方で、場面ごとにひとりごとを言います。</li><li>上のプレイヤー欄をタップすると、プロフィールを見たり、<b>名前を変えたり</b>できます（自分の名前と、CPUの名前）。ホストはCPUキャラの入れかえもできます。</li><li>部屋の画面でも、自分の表示名を変えられます。</li></ul>`],
  ['🔊 設定','音・演出・設定',`<ul><li>メニューの「音と設定」で、BGM・効果音の音量、演出の速さ、振動などを変えられます。</li><li>BGMはふだん軽快なPOPの曲。目的地まであと少し・終盤・お邪魔が取りついたとき・空路・海路・沖縄では、その場面の曲に変わります（全15曲・すべてオリジナル）。</li><li>時間帯と天気は、地図の左上の小窓に空の色・太陽や月・雨などで表示されます。</li><li>ボタンを押した小さな音は「ボタンを押した音」で切り替えられます。古いスマホで音が途切れるときは「演出の量」を「控えめ」にしてください。</li><li>レア度が高いカードやイベントでは、光・花火・効果音・BGMの演出が豪華になります。</li><li>端末の「視差効果を減らす」がオンのときは、動きの多い演出をひかえめにします。</li><li>タイトル画面の「📲 ホーム画面に追加」で、スマホのホーム画面にアイコンを作れます（iPhoneはSafariの共有ボタンから。ホーム画面から開いたときの保存はSafariとは別になります）。</li></ul>`],
  ['⏸ 中断','中断と再開・対戦',`<ul><li>部屋を作ると4文字の部屋コードができます。最大4人で参加し、開始時の空席はCPUになります。開始後は新しく参加できませんが、同じ端末の同じブラウザなら途中で抜けても戻れます。</li><li>途中でやめるときはメニューの「ゲームを中断する」。次はタイトル画面の「続きから遊ぶ」か部屋コードで、続きから遊べます。</li><li>ゲームが更新されたときは、全員ページを開き直してから遊んでください。</li></ul>`]];
@@ -3772,7 +3816,7 @@ let sysI=0;
 function showWx(){const ds=dispState;if(!ds)return;unlock();const tz=TZ(ds.hour),wx=ds.weather||0,w=WEATHER[wx],nx=(Math.floor(ds.hour/6)+1)*6%24,o=$('#ov');
   o.innerHTML=`<div class="card sheet wxsheet"><h3>🕒 時間帯と天気</h3><p class="wxlead">${ds.month}日目 ${ds.hour}:00・<b>${TZN[tz]}</b>・${w[0]} <b>${w[1]}</b></p>
     <p class="muted" style="font-size:12px;margin:0">いまマスに止まったときの倍率（時間帯×天気）</p><div class="wxnow"><div><small>プラスマス</small><b>${xf(PLUSM.tz[tz]*PLUSM.wx[wx])}</b></div><div><small>マイナスマス</small><b>${xf(MINUSM.tz[tz]*MINUSM.wx[wx])}</b></div><div><small>コアファンマス</small><b>${xf(YELLM.tz[tz]*YELLM.wx[wx])}</b></div></div>
-    ${wxTables(tz,wx)}<ul style="padding-left:1.2em;font-size:13px;line-height:1.6"><li>4人が1回ずつ動くと1時間進みます。</li><li>${nx===0?`次の天気の変化と決算は <b>0:00</b>（あと${(24-ds.hour)%24||24}時間）。`:`次に天気が変わるのは <b>${nx}:00</b>（あと${(nx-ds.hour+24)%24||24}時間）、決算は <b>0:00</b>（あと${(24-ds.hour)%24||24}時間）。`}</li><li>「晴れ乞いカード」「嵐を呼ぶカード」で天気を変えられます。</li></ul>
+    ${wxTables(tz,wx)}<ul style="padding-left:1.2em;font-size:13px;line-height:1.6"><li>4人が1回ずつ動くと1時間進みます。</li><li>${nx===0?`次の天気の変化と決算は <b>0:00</b>（あと${(24-ds.hour)%24||24}時間）。`:`次に天気が変わるのは <b>${nx}:00</b>（あと${(nx-ds.hour+24)%24||24}時間）、決算は <b>0:00</b>（あと${(24-ds.hour)%24||24}時間）。`}</li><li>「晴れ乞いカード」で天気を晴れにできます。</li></ul>
     <div class="row" style="justify-content:center"><button class="ghost" id="wxMore">📖 くわしい説明</button><button id="ovClose">とじる</button></div></div>`;o.hidden=false;
   $('#ovClose').onclick=()=>{o.hidden=true;o.innerHTML=''};$('#wxMore').onclick=()=>showSys(SYS.findIndex(x=>x[0].includes('時間')))}
 function showSys(i,back){if(Number.isInteger(i))sysI=i;unlock();const o=$('#ov'),[ic,h,body]=SYS[sysI];

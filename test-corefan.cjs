@@ -50,11 +50,11 @@ async function open(b,file){const c=await b.newContext({viewport:{width:390,heig
   ok(/コアファン王/.test(r.award)&&/合計9人/.test(r.award),'最終結果のコアファン王');
   ok(/0:00の決算のあと/.test(r.help)&&!/目的地が変わるたびに、全員のコアファン|目的地が変わると、全員のコアファンは0/.test(r.help),'説明が新しいルールでない');
   if(p.errs.length)fail.push('JSエラー '+p.errs.join(' / '));
-  // 以前の対戦（fy なし）は前の版と同じ計算
+  // 以前の対戦（fy なし）は前の版と同じ計算（山札のカードの種類は版で変わるので、引いたカードの名前と手札は比べない）
   if(OLD){const q=await open(b,OLD);
     const inputs=await p.evaluate(()=>{const base=JSON.parse(JSON.stringify(curTip().state));delete base.fy;const L=[];for(const ty of ['yell','event','plus','station','airport','port']){const ks=NODES.map((n,i)=>i).filter(i=>NODES[i].type===ty&&ADJ[i]&&ADJ[i].length);for(const k of ks.slice(0,4))for(let tr=0;tr<6;tr++){const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*13+k;L.push({st,k})}}
       {const g=base.goal;for(let tr=0;tr<8;tr++){const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players.forEach(x=>x.ye=7);st.players[seat].pos=ADJ[g][tr%ADJ[g].length];st.rng=tr*7;L.push({st,k:g})}}return {L,seed:meta.seed}});
-    const run=pg=>pg.evaluate(({L,seed})=>L.map(({st,k})=>{try{return JSON.stringify(applyTurn(st,{type:'roll',route:[k],buy:false,reward:'coin',shopDone:true},seed,{noForce:true}))}catch(e){return 'ERR '+e.message}}),inputs);
+    const run=pg=>pg.evaluate(({L,seed})=>L.map(({st,k})=>{try{const r=applyTurn(st,{type:'roll',route:[k],buy:false,reward:'coin',shopDone:true},seed,{noForce:true});r.players.forEach(x=>delete x.hand);(r.ev||[]).forEach(e=>{if(typeof e.v==='string'&&CARDN[e.v])delete e.v});return JSON.stringify(r).replace(/カード(「[^」]*」)+/g,'カード「」')}catch(e){return 'ERR '+e.message}}),inputs);
     const a=await run(p),c2=await run(q);let diff=0,same=0;a.forEach((x,i)=>{if(x===c2[i])same++;else diff++});
     const de=await p.evaluate(()=>{const st=JSON.parse(JSON.stringify(curTip().state));delete st.fy;st.players.forEach(q=>{q.ye=12;q.yb=10});st.since=6;let n=0;dayEnd(st,()=>rand('x',n++));return JSON.stringify(st)});
     const de2=await q.evaluate(()=>{const st=JSON.parse(JSON.stringify(curTip().state));st.players.forEach(q=>{q.ye=12;q.yb=10});st.since=6;let n=0;dayEnd(st,()=>rand('x',n++));return JSON.stringify(st)});
