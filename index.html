@@ -99,6 +99,8 @@
 @keyframes rarf{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
 @keyframes rarspin{0%{opacity:0;transform:scale(.6) rotate(0)}20%{opacity:1}100%{opacity:0;transform:scale(1.7) rotate(200deg)}}
 .fx.urtxt{position:absolute;left:0;right:0;top:30%;text-align:center;z-index:9;pointer-events:none}
+.bnur{display:block;text-shadow:none;font:400 20px/1.1 var(--f-pop);letter-spacing:.08em;margin-bottom:4px;background:linear-gradient(90deg,#ff4fb8,#ffd23f,#33d17a,#3fb6ff,#9d7bff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #000) drop-shadow(0 0 6px #fff);animation:urt 2.3s ease-out forwards}
+@media (prefers-reduced-motion:reduce){.bnur{animation:none}}
 .fx.urtxt span{display:inline-block;font:900 32px var(--f-display);letter-spacing:.08em;background:linear-gradient(90deg,#ff4fb8,#ffd23f,#33d17a,#3fb6ff,#9d7bff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #000) drop-shadow(0 0 8px #fff);animation:urt 2.6s ease-out forwards}
 @keyframes urt{0%{transform:scale(.3);opacity:0}20%{transform:scale(1.15);opacity:1}35%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
 .bncard{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:40px;height:54px;margin-bottom:4px;border-radius:7px;border:2px solid #fff;font-style:normal;font-size:24px;line-height:1;box-shadow:0 3px 0 rgba(0,0,0,.25),0 0 12px rgba(255,255,255,.6);animation:bnflip .7s cubic-bezier(.2,.9,.3,1.3) both}
@@ -3337,7 +3339,8 @@ function rarFx(r,n,bad){const lv=RARLV[r]||0;if(!n)return;
   if(lv>=1)burst('star',n);
   if(lv>=2){pillar(n,RARC[r]);fxEl('rarfx l'+lv,'',null,null,lv>=4?2600:1400)}
   if(lv>=3){duckBgm(lv>=4?3.4:1.8);fireworks(lv>=4?6:2);burst('confetti',n);comments('rare',lv>=4?10:6);vib(lv>=4?[60,40,60,40,200]:[40,30,40])}
-  if(lv>=4){setTimeout(()=>fireworks(4),1000);fxEl('urtxt','<span>ULTRA RARE</span>',null,null,2600)}}
+  // 直前にURの帯（カードを使ったとき）が出ていれば、ULTRA RARE は帯の中の一番上に入れる（帯と重ねて出すと、カードの絵や名前に文字がかぶるため）
+  if(lv>=4){setTimeout(()=>fireworks(4),1000);const bn=[...document.querySelectorAll('#mapbox .fx.banner.rar-UR')].pop(),b0=bn&&Date.now()-(+bn.dataset.t||0)<500&&bn.querySelector('.bn');if(b0)b0.insertAdjacentHTML('afterbegin','<b class="bnur">ULTRA RARE</b>');else fxEl('urtxt','<span>ULTRA RARE</span>',null,null,2600)}}
 // 着地の衝撃波
 function shock(n,color){const p=mapPt(n);const e=fxEl('shock','',p.x,p.y,700);if(e)e.style.borderColor=color}
 // 光の柱（ランクアップ・改心）
