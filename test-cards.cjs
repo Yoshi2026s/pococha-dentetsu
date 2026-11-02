@@ -4,8 +4,8 @@
 // 3) 値段：全カードに値段がある・500〜15,000G・カードパックは引いたカードを売るより高い
 // 4) 強化した効果：空港・拠点・ラッキーワープの行き先、クーポン2枚、ゴールド回復、晴れ乞い、評価ダウン
 // 5) ショップ：買えるカードだけ出る・地域限定が先頭にまとまり印が付く・買ったカードの枚数が残る
-// 6) カード一覧：レア度の枠・ジャンルのマーク・レア度の高い順
-// 7) CPU同士で何十試合か回して、カードの使用でエラーが出ない・どのカードも使われる
+// 6) カード一覧：レア度の枠・ジャンルのマーク・レア度の高い順・手札の枚数
+// 7) CPU同士で何十試合か回して、カードの使用でエラーが出ない・どのカードも使われる・ショップで買うカードがかたよらない
 const {JSDOM,VirtualConsole}=require('jsdom');const fs=require('fs'),assert=require('assert');
 const errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>{if(!e.message.includes('Not implemented'))errors.push(e.message)});
 const html=fs.readFileSync('index.html','utf8'),s=html.replace(/<script[^>]+src=[^>]+><\/script>/g,'');
@@ -78,16 +78,17 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=x=>w.eval(x);try{
   E(`pending.stage=null;pending.shopOps=null`);
   // 6) カード一覧
   const cs=E(`(()=>{pending.st.players[curSeat(pending.st)].hand=['local','linear','express','goalnear','warp','home','sunny'];document.querySelector('#bCard').click();
-    const bs=[...document.querySelectorAll('#ov .cardbtn')];const r={n:bs.length,rr:bs.every(b=>/rr-/.test(b.className)&&b.querySelector('.cg-ic')),prog:bs.filter(b=>b.classList.contains('cg-進行')).map(b=>b.dataset.k),old:(bs.find(b=>b.dataset.k==='home')||{}).className||''};
+    const bs=[...document.querySelectorAll('#ov .cardbtn')];const r={cnt:(document.querySelector('#ov .cs-cnt')||{}).textContent||'',n:bs.length,rr:bs.every(b=>/rr-/.test(b.className)&&b.querySelector('.cg-ic')),prog:bs.filter(b=>b.classList.contains('cg-進行')).map(b=>b.dataset.k),old:(bs.find(b=>b.dataset.k==='home')||{}).className||''};
     const o=document.querySelector('#ov');o.hidden=true;o.innerHTML='';return r})()`);
-  ok(cs.n===7&&cs.rr,'カード一覧の枠とマーク '+JSON.stringify(cs));ok(cs.prog.join()==='linear,express,local','レア度の高い順 '+cs.prog);ok(/cg-移動/.test(cs.old)&&/rr-N/.test(cs.old),'旧カードのジャンル表示 '+cs.old);
+  ok(cs.cnt==='手札 7/20枚','カード一覧の手札の枚数 '+cs.cnt);ok(cs.n===7&&cs.rr,'カード一覧の枠とマーク '+JSON.stringify(cs));ok(cs.prog.join()==='linear,express,local','レア度の高い順 '+cs.prog);ok(/cg-移動/.test(cs.old)&&/rr-N/.test(cs.old),'旧カードのジャンル表示 '+cs.old);
   ok(E(`CG_SE.length===GENRES.length&&CG_SE.every(k=>typeof SE[k]==='function')`),'ジャンルの効果音');
   // 7) CPU同士の対戦
-  const r7=await E(`(async()=>{const use={},errs=[];for(let g=0;g<30;g++){const seed='CPU'+g;meta.seed=seed;meta.cpu=[0,1,2,3];meta.cpuLv=['normal','strong','weak'][g%3];let st=genesisState(seed,3);
-      for(let t=0;t<400&&!st.finished;t++){const a=await cpuDecide(st);let s1;try{s1=applyTurn(st,a,seed)}catch(e){errs.push((a.card||a.type)+':'+e.message);break}const ce=(s1.ev||[]).find(e=>e.k==='card');if(ce)use[ce.v]=(use[ce.v]||0)+1;st=s1}}
-    return{use,errs}})()`);
+  const r7=await E(`(async()=>{const use={},buy={},errs=[];for(let g=0;g<30;g++){const seed='CPU'+g;meta.seed=seed;meta.cpu=[0,1,2,3];meta.cpuLv=['normal','strong','weak'][g%3];let st=genesisState(seed,3);
+      for(let t=0;t<400&&!st.finished;t++){const a=await cpuDecide(st);if(a.shop)buy[a.shop]=(buy[a.shop]||0)+1;let s1;try{s1=applyTurn(st,a,seed)}catch(e){errs.push((a.card||a.type)+':'+e.message);break}const ce=(s1.ev||[]).find(e=>e.k==='card');if(ce)use[ce.v]=(use[ce.v]||0)+1;st=s1}}
+    return{use,buy,errs}})()`);
   ok(!r7.errs.length,'CPUのカード使用でエラー：'+r7.errs.slice(0,5).join(' / '));
   const unused=keys.filter(k=>k!=='block'&&!r7.use[k]);ok(unused.length<=3,'CPUが使わないカード：'+unused.join(','));
+  ok(Object.keys(r7.buy).length>=12,'CPUがショップで買うカードがかたよっている：'+JSON.stringify(r7.buy));
   ok(!errors.length,'ページのエラー：'+errors.slice(0,3).join(' / '));
 }catch(e){fails++;console.log('NG 例外',e.stack)}
 console.log(fails?`カード総点検：${fails}件NG`:'カード総点検：すべてOK');process.exit(fails?1:0)},1500);
