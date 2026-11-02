@@ -1,7 +1,7 @@
 // ホーム画面に追加・メニューの中断（2026-11-02）のテスト（Playwright・Chromium）
 // 1) manifest.webmanifest・アイコン（180/192/512px）・head の manifest と apple-touch-icon  2) タイトル画面の「ホーム画面に追加」（48px以上）
 // 3) iPhone・Android・アプリ内ブラウザーで案内の中身が変わる  4) Androidなどは確認画面（beforeinstallprompt）を出す  5) ホーム画面から開いているときはボタンを出さない
-// 6) メニューに「ゲームを中断する」→中断の確認が出る  7) iPhone（試験中）：ボタンで共有画面を直接開き、閉じたあとに手順の案内と「もう一度共有画面を開く」
+// 6) メニューに「ゲームを中断する」→中断の確認が出る  7) iPhone：ボタンからの共有画面には「ホーム画面に追加」が出ない（実機で確認）ので開かず、Safariの共有ボタンの場所を案内
 const {chromium}=require('playwright');const path=require('path'),fs=require('fs');
 const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
 const UA={ios:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',android:'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36',line:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari Line/14.0.0'};
@@ -16,12 +16,11 @@ const UA={ios:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKi
     await p.click('#bA2hs');await p.waitForTimeout(300);const t=await p.evaluate(()=>document.querySelector('#ov:not([hidden]) .a2sheet')?document.querySelector('.a2sheet').innerText:'');
     ok(k==='ios'?/共有ボタン/.test(t)&&/ホーム画面に追加/.test(t)&&/Safariで開いたときとは別/.test(t):k==='android'?/︙/.test(t)&&/アプリをインストール/.test(t):/Safariで開く/.test(t),k+' 案内の中身 '+t.slice(0,80));
     await p.click('#a2Close');if(errs.length)fail.push(k+' JSエラー '+errs.join(' / '));await c.close()}
-  {const c=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,userAgent:UA.ios});await c.addInitScript(()=>{window.__sh=[];navigator.share=d=>{window.__sh.push(d);return Promise.resolve()}});const p=await c.newPage();
+  {const c=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,userAgent:UA.ios});await c.addInitScript(()=>{window.__sh=0;navigator.share=()=>{window.__sh++;return Promise.resolve()}});const p=await c.newPage();
     await p.route(/firebase|gstatic|googleapis/,r=>r.abort());await p.route('https://poco.test/**',r=>{const u=new URL(r.request().url());const f=u.pathname.replace(/^\/+/,'')||'index.html';try{r.fulfill({body:fs.readFileSync(f),contentType:/\.html$/.test(f)?'text/html':/\.png$/.test(f)?'image/png':'application/json'})}catch{r.fulfill({status:404,body:''})}});
     await p.goto('https://poco.test/index.html');await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);await p.click('#bA2hs');await p.waitForTimeout(400);
-    const r=await p.evaluate(()=>({n:window.__sh.length,url:window.__sh[0]&&window.__sh[0].url,sheet:!!document.querySelector('#ov:not([hidden]) .a2sheet'),again:!!document.querySelector('#a2Share'),steps:/共有ボタン/.test((document.querySelector('.a2steps')||{}).textContent||'')}));
-    ok(r.n===1&&r.url==='https://poco.test/index.html'&&r.sheet&&r.again&&r.steps,'iPhone：共有画面を直接開く→手順の案内 '+JSON.stringify(r));
-    await p.click('#a2Share');await p.waitForTimeout(200);ok(await p.evaluate(()=>window.__sh.length===2),'もう一度共有画面を開く');await c.close()}
+    const r=await p.evaluate(()=>({sh:window.__sh,t:(document.querySelector('#ov:not([hidden]) .a2steps')||{}).textContent||''}));
+    ok(r.sh===0&&/アドレスバーにある共有ボタン/.test(r.t)&&/ゲームの中のボタンから開く共有画面には「ホーム画面に追加」が出ません/.test(r.t)&&/アクションを編集/.test(r.t),'iPhone：共有画面は開かず、Safariの共有ボタンの場所を案内 '+JSON.stringify(r));await c.close()}
   {const c=await b.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,userAgent:UA.android});const p=await c.newPage();await p.route(/firebase|gstatic|googleapis/,r=>r.abort());await p.goto('file://'+path.resolve('index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);
     await p.evaluate(()=>{const e=new Event('beforeinstallprompt',{cancelable:true});e.prompt=()=>{window.__pr=(window.__pr||0)+1;return Promise.resolve()};e.userChoice=Promise.resolve({outcome:'accepted'});dispatchEvent(e)});
     await p.click('#bA2hs');await p.waitForTimeout(300);ok(await p.evaluate(()=>window.__pr===1&&document.querySelector('#ov').hidden),'Android：確認画面を出す（案内は出さない）');await c.close()}
@@ -31,4 +30,4 @@ const UA={ios:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKi
     const mp=await p.evaluate(()=>{const b=document.querySelector('#mnPause');return b?[b.textContent,b.getBoundingClientRect().height]:null});ok(mp&&/ゲームを中断する/.test(mp[0])&&mp[1]>=44,'メニューの中断ボタン '+JSON.stringify(mp));
     await p.click('#mnPause');await p.waitForTimeout(500);ok(await p.evaluate(()=>/ここで中断しますか/.test(document.querySelector('#ov').innerText)),'中断の確認が出る');await c.close()}
   }finally{await b.close()}
-  if(fail.length){console.error('FAIL ホーム画面に追加・中断\n'+fail.join('\n'));process.exitCode=1}else console.log('PASS ホーム画面に追加・中断（manifest・アイコン・案内・確認画面・iPhoneの共有画面・ホーム画面では非表示・メニューの中断）')})();
+  if(fail.length){console.error('FAIL ホーム画面に追加・中断\n'+fail.join('\n'));process.exitCode=1}else console.log('PASS ホーム画面に追加・中断（manifest・アイコン・案内・確認画面・iPhoneの案内・ホーム画面では非表示・メニューの中断）')})();
