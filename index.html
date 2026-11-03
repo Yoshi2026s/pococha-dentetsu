@@ -183,7 +183,7 @@
 /* 配信モードはポコチャレのボタンを隠すので、下のボタンを3列（メニュー・カード・サイコロ）にする。4列のままだと空きの列ができ、「サイコロ」が「サイ…」と切れていた（2026.11.03.4） */html body.stream .bar .btnrow{grid-template-columns:1fr 1fr 1.6fr}
 /* 配信モード（黒い画面・白い文字）で、おまかせルートの結果と選んだ物件のボタンが明るい背景のままで、白い文字が読めなかった。「配信モードを終わる」も押しやすい48pxに（2026.11.03.4） */html body.stream .autoconf{background:#0f2a1b;color:#fff}html body.stream .basebtn.on{background:color-mix(in srgb,var(--pink) 38%,#222);color:#fff}html body.stream #exitStream{min-height:48px;padding-inline:14px}
 /* ボタンを続けて押したとき（ショップの売る・カードの連続購入など）に、iPhoneで画面が拡大しないように。地図の指での拡大・移動はそのまま（2026.11.03.6） */button,select,input,label,[role=button],.optbtn,.basebtn{touch-action:manipulation}
-/* 通信対戦：ほかの人の番の途中経過の吹き出し（地図の下・2026.11.04.2） */.livebub{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:7;max-width:calc(100% - 96px);box-sizing:border-box;padding:5px 12px;border-radius:999px;background:rgba(20,14,30,.86);color:#fff;font-size:12.5px;font-weight:800;line-height:1.35;border:2px solid var(--c,#ff5fa8);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+/* 通信対戦：ほかの人の番の途中経過の吹き出し（地図の下・2026.11.03.11） */.livebub{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:7;max-width:calc(100% - 96px);box-sizing:border-box;padding:5px 12px;border-radius:999px;background:rgba(20,14,30,.86);color:#fff;font-size:12.5px;font-weight:800;line-height:1.35;border:2px solid var(--c,#ff5fa8);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 /* 「この先にも分かれ道」は「この先にも／分かれ道」の位置でだけ折り返す */.optbtn .ob-f{word-break:keep-all;overflow-wrap:anywhere}/* 小さい画面でも「買えるだけ獲得（2件・2,300G）」を1行に収める（2026.11.03.1） */@media (max-width:374px){#bBuyAll{font-size:13.5px;padding-inline:8px;white-space:nowrap;letter-spacing:-.02em}}
 </style></head><body>
 <title>ポコチャ電鉄・全国編</title><meta name="theme-color" content="#fff0f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#17111f" media="(prefers-color-scheme: dark)"><meta name="apple-mobile-web-app-title" content="ポコチャ電鉄・全国編"><meta name="description" content="Pocochaライバーが全国の駅をめぐる、4人対戦のすごろくゲーム">
@@ -2376,12 +2376,12 @@ const KEEP=40;function pruneOld(tipTurn){if(db.online)return;const cut=tipTurn-K
   if(canWrite)for(let t=Math.max(0,cut-3);t<cut;t++){try{db.doc('games/'+code+'/locks/'+t).delete().catch(()=>{})}catch{}}}
 // 先読みした手番を取り消す：演出をやり直さずに、サーバーの最新盤面へ表示を合わせる
 function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.delete(id);VOK.clear();const t=curTip();if(t&&shownTip===id){shownTip=t.id;dispState=t.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}render()}
-/* 手番の途中経過のリアルタイム表示（通信対戦・2026.11.04.1）：自分の番でサイコロを振った・道を1マス進めたら、目と道を送る（最大で約0.25秒に1回にまとめる）。
+/* 手番の途中経過のリアルタイム表示（通信対戦・2026.11.03.10）：自分の番でサイコロを振った・道を1マス進めたら、目と道を送る（最大で約0.25秒に1回にまとめる）。
    ほかの人の画面では、確定を待たずにサイコロと駒の移動を見せ、確定した記録が同じ道ならもう一度は動かさない */
 let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null;
 function sendLive(o){if(!db||!db.online||liveOff||!code||!db.online.setLive)return;liveQ={...o,c:code};if(liveT)return;
   const go=async()=>{liveT=0;const q=liveQ;liveQ=null;if(!q)return;try{await db.online.setLive(q.c,q)}catch(e){if(e&&/permission/.test(String(e.code||e.message)))liveOff=true}if(liveQ&&!liveT)liveT=setTimeout(go,250)};liveT=setTimeout(go,0)}
-/* 自分の番の画面の状態（道選び・カード選び・物件選び・ショップ・報酬・売却・1番乗り）から途中経過を作り、変わったときだけ送る（2026.11.04.2） */
+/* 自分の番の画面の状態（道選び・カード選び・物件選び・ショップ・報酬・売却・1番乗り）から途中経過を作り、変わったときだけ送る（2026.11.03.11） */
 function liveFromPending(){try{if(!pending||!db||!db.online||!meta||meta.phase!=='playing'||!pending.st)return;const st=pending.st,seat=curSeat(st);if(seat!==mySeat())return;
   let stage=pending.stage,info='';const cs=document.querySelector('#ov:not([hidden]) .cardsheet');if(stage==='act'){if(!cs)return;stage='card'}
   const pv=pending.pv,yen=v=>v.toLocaleString()+'G';
