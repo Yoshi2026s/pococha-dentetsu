@@ -93,7 +93,7 @@ service cloud.firestore {
       && ((!a.proxy && m.seatUids[a.seat]==me() && !(a.seat in m.cpu))
        || (a.proxy && m.host==me() && (a.seat in m.cpu || request.time >= m.turnAt+duration.value(m.get('cpuTimeoutSec',90),'s'))));}
     allow get: if member(c) && (room(c).host==me() || id==string(room(c).revision)+'-'+me() || resource.data.uid==me());
-    allow list: if host(c);
+    allow list: if member(c);
     allow create: if member(c) && id==string(request.resource.data.revision)+'-'+me() && validAction();
     allow update: if host(c) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in ['processed','rejected'];
     allow delete: if false;
