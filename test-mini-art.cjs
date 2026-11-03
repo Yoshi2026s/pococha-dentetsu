@@ -13,7 +13,7 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   // 絵は正しいSVG（パースできる）
   for(const k of E('Object.keys(MI)')){const div=d.createElement('div');div.innerHTML=E(`miniArt("${k}",1)`);const svg=div.querySelector('svg.mini');assert(svg&&svg.querySelectorAll('*').length>3,'絵が壊れている：'+k)}
   // 実際の結果カード：プラスマスは小銭の絵と▲、マイナスマスは財布の絵と▼
-  E(`window.land=(ty)=>{const base=curTip().state;const k=NODES.findIndex((n,i)=>n.type===ty&&ADJ[i]&&ADJ[i].length);for(let tr=0;tr<20;tr++){const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*7;
+  E(`window.land=(ty)=>{const base=curTip().state;const k=NODES.findIndex((n,i)=>n.type===ty&&ADJ[i]&&ADJ[i].length);for(let tr=0;tr<120;tr++)/* 乱数しだいで止まれない回があるので、試す回数を多めに（2026.11.03.3） */{const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*7;
     try{const s2=applyTurn(st,{type:'roll',route:[k],buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true});if(s2.players[seat].pos!==k)continue;const mv=(s2.ev||[]).find(e=>e.k==='move');const r=resultInfo(s2,st,seat,mv?mv.t:'',NODES[k]);return {art:r.art,tone:r.tone,html:resultHTML(r)}}catch(e){}}return null}`);
   const plus=E("land('plus')"),minus=E("land('minus')"),ev=E("land('event')");
   assert.equal(plus.art,'coins');assert.equal(plus.tone,1);assert(plus.html.includes('class="rc-art"')&&plus.html.includes('M49.5 56.5'),'プラスマスに▲の絵がない');
