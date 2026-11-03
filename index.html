@@ -2380,8 +2380,15 @@ function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.dele
    ほかの人の画面では、確定を待たずにサイコロと駒の移動を見せ、確定した記録が同じ道ならもう一度は動かさない */
 let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null,liveStepGen=0;
 /* ほかの人が分かれ道で迷っている候補（A/B/C…）を、自分の地図にも出す（押せない表示だけ・2026.11.03.12） */
-function liveOptsDraw(L){const g=$('#liveopts');if(!g)return;const o=L&&L.stage==='route'?(L.opts||[]).filter(x=>NODES[x]):[];if(!o.length){g.innerHTML='';return}if(!g.children.length)$('#mapbox').querySelectorAll('.fx.respop').forEach(e=>{if(e.dataset.out)return;e.dataset.out=1;try{e.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'})}catch{}setTimeout(()=>e.remove(),230)});/* 候補に重なる結果カードは消す */
-  g.innerHTML=o.map((x,k)=>{const n=NODES[x],c=OPTC[k%OPTC.length];return`<g transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})"><circle class="optpulse" r="12.5" fill="none" stroke="${c}" stroke-width="2"/><circle r="9.5" fill="${c}" stroke="#fff" stroke-width="2.2" opacity=".92"/><text y="3.6" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="var(--f-display)">${OPTL[k%OPTL.length]}</text></g>`}).join('')}
+function liveOptsDraw(L){const g=$('#liveopts');if(!g)return;const tip=curTip();if(!L||!tip||tip.turn!==L.turn){g.innerHTML='';return}
+  const p=(L.path||[]).filter(x=>NODES[x]),o=L.stage==='route'?(L.opts||[]).filter(x=>NODES[x]):[],col=SEATC[L.seat]||'#ff5fa8',out=[];
+  if(o.length&&!g.querySelector('.lo-opt'))$('#mapbox').querySelectorAll('.fx.respop').forEach(e=>{if(e.dataset.out)return;e.dataset.out=1;try{e.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'})}catch{}setTimeout(()=>e.remove(),230)});/* 候補に重なる結果カードは消す */
+  /* その番に進んだ道を線で残す */if(p.length>1)out.push(`<polyline points="${p.map(x=>NODES[x].x.toFixed(1)+','+NODES[x].y.toFixed(1)).join(' ')}" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/><polyline points="${p.map(x=>NODES[x].x.toFixed(1)+','+NODES[x].y.toFixed(1)).join(' ')}" fill="none" stroke="${col}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 5.5"/>`);
+  /* 進み終えたら、止まるマスを光る輪で示す */if(L.d&&p.length-1>=L.d){const n=NODES[p[p.length-1]];out.push(`<g transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})"><circle class="optpulse" r="14" fill="none" stroke="${col}" stroke-width="2.6"/><circle r="11" fill="none" stroke="#fff" stroke-width="3"/><circle r="11" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="3 2.5"/></g>`)}
+  /* 分かれ道の候補（A/B/C…）と、その先の駅の名前 */o.forEach((x,k)=>{const n=NODES[x],c=OPTC[k%OPTC.length],tw=towardName(p[p.length-1],x);out.push(`<g class="lo-opt" transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})"><circle class="optpulse" r="12.5" fill="none" stroke="${c}" stroke-width="2"/><circle r="9.5" fill="${c}" stroke="#fff" stroke-width="2.2" opacity=".92"/><text y="3.6" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="var(--f-display)">${OPTL[k%OPTL.length]}</text>${tw?`<text y="21" text-anchor="middle" font-size="8" font-weight="800" fill="${c}" stroke="#fff" stroke-width="2.6" paint-order="stroke" font-family="var(--f-display)">${esc(tw)}方面</text>`:''}</g>`)});
+  g.innerHTML=out.join('')}
+/* 分かれ道の候補 x から、次の駅（または次の分かれ道）までたどって、その駅の名前を返す */
+function towardName(from,x){try{let prev=from,cur=x;for(let i=0;i<40;i++){const n=NODES[cur];if(n&&n.type==='station')return n.name;const nx=(ADJ[cur]||[]).filter(y=>y!==prev);if(nx.length!==1)return'';prev=cur;cur=nx[0]}}catch{}return''}
 function sendLive(o){if(!db||!db.online||liveOff||!code||!db.online.setLive)return;liveQ={...o,c:code};if(liveT)return;
   const go=async()=>{liveT=0;const q=liveQ;liveQ=null;if(!q)return;try{await db.online.setLive(q.c,q)}catch(e){if(e&&/permission/.test(String(e.code||e.message)))liveOff=true}if(liveQ&&!liveT)liveT=setTimeout(go,250)};liveT=setTimeout(go,0)}
 /* 自分の番の画面の状態（道選び・カード選び・物件選び・ショップ・報酬・売却・1番乗り）から途中経過を作り、変わったときだけ送る（2026.11.03.11） */
@@ -2396,7 +2403,7 @@ function liveFromPending(){try{if(!pending||!db||!db.online||!meta||meta.phase!=
 function onLive(L){try{if(!L||!meta||L.uid===myId||meta.paused||meta.phase!=='playing')return;const tip=curTip();
   if(!tip||tip.pred||tip.state.finished||tip.turn!==L.turn||curSeat(tip.state)!==L.seat||!seats[L.seat]||seats[L.seat].uid!==L.uid)return;
   liveLast=L;/* 前の手番の演出がまだ終わっていない人は、演出が終わった時点でこの途中経過に追いつく */if(animating()||!dispState||dispState.turn!==tip.turn)return;
-  const prevStage=liveCur&&liveCur.turn===L.turn?liveCur.stage:'';liveCur={turn:L.turn,seat:L.seat,d:L.d||0,n:Math.max(0,(L.path||[]).length-1),stage:L.stage||'route',info:L.info||'',fork:(L.opts||[]).length>0};
+  const prevStage=liveCur&&liveCur.turn===L.turn?liveCur.stage:'';liveCur={turn:L.turn,seat:L.seat,d:L.d||0,n:Math.max(0,(L.path||[]).length-1),stage:L.stage||'route',info:L.info||'',fork:(L.opts||[]).length>0,last:(L.path||[]).length?(L.path||[])[(L.path||[]).length-1]:null};if(prevStage&&prevStage!==liveCur.stage&&['buy','shop','reward','fsell'].includes(liveCur.stage))sfx('station');
   const p=(L.path||[]).filter(x=>NODES[x]);
   if(L.card&&CARDN[L.card]&&!(liveCard&&liveCard.turn===L.turn+1)){liveCard={turn:L.turn+1,card:L.card};cardBan(L.card,NODES[p[0]]||NODES[tip.state.players[L.seat].pos])}
   if(L.d&&liveRolled!==L.turn){liveRolled=L.turn;rollCube(L.d,L.ds&&L.ds.length>1?L.ds:null,L.card||null);sfx('dice');if(L.ds&&L.ds.length>1)floatNum(NODES[p[0]]||NODES[tip.state.players[L.seat].pos],'サイコロ '+L.ds.join('+'),'var(--pink)')}
@@ -2413,7 +2420,7 @@ function liveBubble(){try{const mb=$('#mapbox');if(!mb)return;let e=$('#liveBub'
   const on=!!(db&&db.online&&meta&&meta.phase==='playing'&&!meta.paused&&tip&&c&&c.turn===tip.turn&&curSeat(tip.state)===c.seat&&c.seat!==mySeat()&&!animating()&&liveText(c));
   if(!on){if(e)e.hidden=true;return}if(!e){e=document.createElement('div');e.id='liveBub';e.className='livebub';e.setAttribute('aria-live','polite');mb.appendChild(e)}
   const t=seatName(c.seat)+'：'+liveText(c);if(e.textContent!==t)e.textContent=t;e.style.setProperty('--c',SEATC[c.seat]||'var(--pink)');e.hidden=false}catch{}}
-function liveText(c){if(!c)return'';if(c.info)return c.info;if(c.d)return`🎲${c.d}・`+(c.fork?`分かれ道で選び中（あと${Math.max(0,c.d-c.n)}マス）`:`あと${Math.max(0,c.d-c.n)}マス`);return''}
+function liveText(c){if(!c)return'';if(c.info)return c.info;if(c.d&&c.n>=c.d&&NODES[c.last]){const n=NODES[c.last];return`🎲${c.d}・📍${n.type==='station'?n.name+'駅':(SQNAME[n.type]||'マス')}に止まる`}if(c.d)return`🎲${c.d}・`+(c.fork?`分かれ道で選び中（あと${Math.max(0,c.d-c.n)}マス）`:`あと${Math.max(0,c.d-c.n)}マス`);return''}
 /* ほかの参加者の操作を受け取ったら、ホストの確定（もう1往復）を待たずに同じ計算で結果を先に表示する。サーバーの記録が届いたら照合し、違えば直す（ホスト以外・2026.11.03.8） */
 function predictAction(a){try{if(!a||a.status!=='pending'||!meta||meta.host===myId||meta.paused||!meta.seed||a.uid===myId)return;const tip=curTip();
   if(!tip||tip.pred||tip.state.finished||tip.id!==a.parent||tip.turn!==a.revision||curSeat(tip.state)!==a.seat)return;
