@@ -26,7 +26,7 @@ async function open(b,file){const c=await b.newContext({viewport:{width:390,heig
     out.yell={kinds:[...seen],min:Math.min(...gains),n:gains.length};
     // イベントマスの追加イベント
     const ek=NODES.map((n,i)=>i).filter(i=>NODES[i].type==='event'&&ADJ[i]&&ADJ[i].length),fe=new Set();
-    for(const k of ek.slice(0,12))for(let tr=0;tr<30;tr++){const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*29+k;
+    for(const k of ek)for(let tr=0;tr<60&&fe.size<3;tr++){/* 乱数しだいでファン交流が3種類出ない回があるので、試す数を多めに（2026.11.03.8） */const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*29+k;
       try{const s2=applyTurn(st,{type:'roll',route:[k],buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true});const e=(s2.ev||[]).find(e=>e.k==='event');if(e&&/^f_/.test(e.v))fe.add(e.v)}catch(e){}}
     out.fanEv=[...fe];
     // 表示：結果カードの補足・プレイヤー欄

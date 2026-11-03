@@ -1099,7 +1099,9 @@ h2{font-family:var(--f-pop);font-weight:400;letter-spacing:.03em}
  async leave(c){const r=game(c);await fs.runTransaction(async tx=>{const d=await tx.get(r);if(!d.exists)return;const m=d.data(),i=m.seatUids.indexOf(uid());if(i<0)return;
  if(m.phase!=='lobby')return;
  if(m.host===uid()){tx.update(r,{phase:'closed'});return;}const a=m.seatUids.slice();a[i]='';tx.update(r,{seatUids:a,members:m.members.filter(u=>u!==uid())});tx.delete(r.collection('seats').doc(String(i)));});},
- async requests(c){return game(c).collection('actions').where('status','==','pending').get();}
+ async requests(c){return game(c).collection('actions').where('status','==','pending').get();},
+ /* ホスト以外：届いた操作で結果を先読みするための監視。ルールが未反映（読めない）ときは何も表示せず止める */
+ watchPending(c,fn){let off=null;try{off=game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};}
  };
  const db={doc,collection,online};
  const room={async join(name){const c=name.slice(1).toUpperCase(),base=game(c),me=uid(),pref=base.collection('peers').doc(me);let pres={},listeners=[],peerFns=[],connFns=[],last=[],disconnectSec=45;
@@ -2332,6 +2334,7 @@ async function enter(c){unlock();c=normCode(c);if(!/^[A-Z0-9]{4}$/.test(c)){cons
   if(db.online&&s.data().host===myId){let processing=false;const queued=new Map();/* 処理中に届いた要求も捨てずに順に処理する（以前は2秒ごとの見回りまで待っていた） */const process=async(id,data)=>{queued.set(id,data);if(processing)return;processing=true;try{while(queued.size&&meta&&meta.host===myId&&code===c){const [qid,qd]=queued.entries().next().value;queued.delete(qid);try{if(!(qd&&await db.online.processFast(c,qid,qd,curTip(),meta,applyTurn,curSeat)))await db.online.process(c,qid,applyTurn,curSeat)}catch(e){toast(errText(e))}}}finally{processing=false}};
    unsub.push(db.online.watchActions(c,process));
    const poll=setInterval(async()=>{if(!meta||meta.host!==myId||meta.paused)return;try{const q=await db.online.requests(c);for(const d of q.docs)await process(d.id)}catch(e){toast(errText(e))}},2000);unsub.push(()=>clearInterval(poll));}
+  if(db.online&&s.data().host!==myId&&db.online.watchPending)unsub.push(db.online.watchPending(c,(id,a)=>{if(code===c)predictAction(a)}));
   if(canWrite&&myId&&s.data().phase==='lobby')autoSeat(c);
   if(room){try{grp=await room.join('g'+c.toLowerCase());grp.on('sync',m=>{if(!m.isMe&&code===c)relay(m.data)});grp.on('stamp',m=>{floatStamp(STAMPS[(m.data&&m.data.i)|0]||'');sfx('stamp')});
     grp.onPeers(ch=>{peers=ch.peers;render()});{const m=mySeat();if(m>=0)grp.presence({seat:m}).catch(()=>{})}
@@ -2368,6 +2371,11 @@ const KEEP=40;function pruneOld(tipTurn){if(db.online)return;const cut=tipTurn-K
   if(canWrite)for(let t=Math.max(0,cut-3);t<cut;t++){try{db.doc('games/'+code+'/locks/'+t).delete().catch(()=>{})}catch{}}}
 // 先読みした手番を取り消す：演出をやり直さずに、サーバーの最新盤面へ表示を合わせる
 function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.delete(id);VOK.clear();const t=curTip();if(t&&shownTip===id){shownTip=t.id;dispState=t.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}render()}
+/* ほかの参加者の操作を受け取ったら、ホストの確定（もう1往復）を待たずに同じ計算で結果を先に表示する。サーバーの記録が届いたら照合し、違えば直す（ホスト以外・2026.11.03.8） */
+function predictAction(a){try{if(!a||a.status!=='pending'||!meta||meta.host===myId||meta.paused||!meta.seed||a.uid===myId)return;const tip=curTip();
+  if(!tip||tip.pred||tip.state.finished||tip.id!==a.parent||tip.turn!==a.revision||curSeat(tip.state)!==a.seat)return;
+  const act=JSON.parse(a.actionJson);delete act.end;if(meta.endReq&&!tip.state.days)act.end=true;const st=applyTurn(tip.state,act,meta.seed),id=st.turn+'-1';if(records.has(id))return;
+  records.set(id,{id,turn:st.turn,grant:1,parent:tip.id,by:(a.proxy?'cpu':'s')+a.seat+':'+a.uid,action:act,state:JSON.parse(JSON.stringify(st)),rulesVersion:RULES_VERSION,pred:Date.now()});onRecords()}catch{}}
 // サーバーの記録で先読みを置きかえる。内容が違えば表示を直す
 function confirmPred(id,data){const old=records.get(id);records.set(id,data);if(!old||!old.pred)return;if(JSON.stringify(old.state)===JSON.stringify(data.state))return;VOK.clear();if(shownTip===id){dispState=data.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}}
 async function takeTurn(holder,forSeat,decide){const myCode=code;
@@ -2623,7 +2631,7 @@ function onRecords(){metaWait=metaWait.filter(f=>!f());dropStalePending();if(rec
     const idx=chain.findIndex(r=>r.id===shownTip);const steps=idx>=0?chain.slice(idx+1):[tip];steps.slice(-3).forEach(playOne)}
   // ゲーム開始直後は、最初の記録（0手番）を表示する前に1手番目が届くことがある。そのときも1手番目の演出（カードの帯・イベントなど）を出す（2026.11.02.7）
   else if(!shownTip){const g=chain.find(r=>r.turn===0);if(g&&tip.turn===1&&Date.now()-(meta.startedAt||0)<6e5){dispState=g.state;drawPawns(dispState);playOne(tip)}else{dispState=tip.state;drawPawns(dispState)}}
-  shownTip=tip.id;render()}
+  shownTip=tip.id;render();/* 記録が届いたら、1秒ごとの見回りを待たずに次の手番を判定する（通信対戦・2026.11.03.8） */if(db&&db.online)setTimeout(tick,0)}
 function wait(ms){return new Promise(r=>setTimeout(r,SET.fast?ms/2.5:ms))}
 let playing=Promise.resolve();
 // 演出中は次の手番（CPU・自分の操作）を始めない。演出が終わった時点から手番の持ち時間を数える
@@ -3617,7 +3625,8 @@ function tick(){dropStalePending();if(db&&db.online&&meta&&meta.phase==='playing
   const seat=curSeat(tip.state),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),me=mySeat();
   if(seat===me&&!busy&&tip.id!==sentTip&&!tip.pred&&age<(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)&&!animating()){busy=true;const t0=tip.id;takeTurn('s'+me+':'+myId,me,myDecide).catch(e=>toast(errText(e))).finally(()=>{busy=false;pending=null;const g=$('#ghost');if(g)g.innerHTML='';clearChoices();/* 道選びの途中で手番が終わった（時間切れ・中断・通信待ち）ときは、先に進めた駒を表示中の盤面の位置へ戻す */const t=curTip();if(t&&t.id===t0&&dispState&&!animating()){localWalk=null;stepLeft(me,null,0);drawPawns(dispState)}render()})}
   const humans=[0,1,2,3].filter(i=>seats[i]&&seatOnline(i)),runner=db.online?seats.findIndex(s=>s&&s.uid===meta.host):(humans.length?Math.min(...humans):-1),isCpu=(meta.cpu||[]).includes(seat);
-  if(runner===me&&!proxyBusy&&tip.id!==sentTip&&!tip.pred&&!animating()&&(isCpu?age>=0:age>=(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE+30000))){proxyBusy=true;
+  /* 通信対戦のCPUの手番は、ホストの画面の演出が終わるのを待たずに確定して全員へ送る（演出は各自の画面で順に再生される）。参加者がホストの演出＋通信の往復を毎回待っていたのをなくす。演出の待ちは1つまで（2026.11.03.8） */const animOk=!animating()||(db.online&&isCpu&&animN<=1);
+  if(runner===me&&!proxyBusy&&tip.id!==sentTip&&!tip.pred&&animOk&&(isCpu?age>=0:age>=(db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE+30000))){proxyBusy=true;
     takeTurn('cpu'+seat+':'+myId,seat,st=>new Promise(r=>setTimeout(()=>r(cpuDecide(st)),SET.fast?80:180))).catch(e=>toast('CPUの手番を進められませんでした。理由：'+errReason(e))).finally(()=>{proxyBusy=false})}
   render()}
 

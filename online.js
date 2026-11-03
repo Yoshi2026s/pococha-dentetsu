@@ -82,7 +82,9 @@
  async leave(c){const r=game(c);await fs.runTransaction(async tx=>{const d=await tx.get(r);if(!d.exists)return;const m=d.data(),i=m.seatUids.indexOf(uid());if(i<0)return;
  if(m.phase!=='lobby')return;
  if(m.host===uid()){tx.update(r,{phase:'closed'});return;}const a=m.seatUids.slice();a[i]='';tx.update(r,{seatUids:a,members:m.members.filter(u=>u!==uid())});tx.delete(r.collection('seats').doc(String(i)));});},
- async requests(c){return game(c).collection('actions').where('status','==','pending').get();}
+ async requests(c){return game(c).collection('actions').where('status','==','pending').get();},
+ /* ホスト以外：届いた操作で結果を先読みするための監視。ルールが未反映（読めない）ときは何も表示せず止める */
+ watchPending(c,fn){let off=null;try{off=game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};}
  };
  const db={doc,collection,online};
  const room={async join(name){const c=name.slice(1).toUpperCase(),base=game(c),me=uid(),pref=base.collection('peers').doc(me);let pres={},listeners=[],peerFns=[],connFns=[],last=[],disconnectSec=45;
