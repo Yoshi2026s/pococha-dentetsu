@@ -24,6 +24,9 @@ function client(id){const store=env.authenticatedContext(id).firestore(),auth={c
  await test('開始後の新規参加拒否',()=>assertFails(client('late').api.then(z=>z.join('ABCD'))));
  await test('参加者は保留中の行動を一覧で読める（先読み用）',()=>assertSucceeds(a.store.collection('pdGames/ABCD/actions').where('status','==','pending').get()));
  await test('部屋の外の人は行動を一覧で読めない',()=>assertFails(client('late').store.collection('pdGames/ABCD/actions').where('status','==','pending').get()));
+ await test('再招待：ホストは次の部屋コードを書ける',()=>assertSucceeds(h.store.doc('pdGames/ABCD').update({next:'WXYZ'})));
+ await test('再招待：参加者は次の部屋コードを書けない',()=>assertFails(a.store.doc('pdGames/ABCD').update({next:'QRST'})));
+ await test('再招待：部屋コードの形でない値は拒否',()=>assertFails(h.store.doc('pdGames/ABCD').update({next:'abc'})));
  await test('開始後の第三者盤面読取拒否',()=>assertFails(client('late').store.doc('pdGames/ABCD/turns/0-0').get()));
  await test('ホストの存在確認保存',()=>h.store.doc('pdGames/ABCD/peers/host').set({uid:'host',presence:{seat:0},at:fb.firestore.FieldValue.serverTimestamp()}));
  let tip=(await h.store.doc('pdGames/ABCD/turns/0-0').get()).data();tip={...tip,state:JSON.parse(tip.stateJson)};

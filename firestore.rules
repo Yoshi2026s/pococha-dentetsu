@@ -54,6 +54,7 @@ service cloud.firestore {
       || (resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paused','resumedAt'])
         && (request.resource.data.paused==null || (request.resource.data.paused is map && request.resource.data.paused.by==me() && request.resource.data.paused.keys().hasOnly(['by','seat','at','turn']))))
       || (resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['endReq']) && request.resource.data.endReq.by==me())
+      || (me()==resource.data.host && resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['next']) && request.resource.data.next is string && request.resource.data.next.matches('^[A-HJ-NP-Z2-9]{4}$'))
       || (me()==resource.data.host && resource.data.phase=='lobby' && request.resource.data.phase=='playing'
        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phase','cpu','cpuChar','seed','tipId','revision','turnAt','paused'])
        && readySeat(c,resource.data,0)&&readySeat(c,resource.data,1)&&readySeat(c,resource.data,2)&&readySeat(c,resource.data,3)
