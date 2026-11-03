@@ -24,10 +24,10 @@ setTimeout(async()=>{const w=dom.window,d=w.document,E=c=>w.eval(c);try{
   const songs=E(`(()=>{const got=[];const keep=music;music=k=>got.push(k);const out={};const t=curTip(),st=t.state,bk=JSON.stringify(st);
     const go=(k,fn)=>{Object.assign(st,JSON.parse(bk));fn(st);dispState=st;got.length=0;render();out[k]=got[got.length-1]};
     /* 目的地はランダムなので、近いときの曲（goalrun）が優先されないよう、全員を目的地から遠い場所に置いてから確かめる */
-    const farAll=s=>{const d=D(s.goal),f=d.findIndex(v=>v>=8);s.players.forEach(p=>p.pos=f);return d};
+    const farAll=s=>{const d=D(s.goal),f=d.findIndex((v,i)=>v>=8&&!NODES[i].oki);/* 沖縄のマスは沖縄の曲になるので選ばない（2026.11.04.3） */s.players.forEach(p=>p.pos=f);return d};
     go('day1',s=>{farAll(s)});go('day2',s=>{farAll(s);s.month=2});
-    go('near',s=>{const k=D(s.goal).findIndex(v=>v===3);s.players[curSeat(s)].pos=k});
-    go('far',s=>{const k=D(s.goal).findIndex(v=>v===6);s.players.forEach(p=>p.pos=k)});
+    go('near',s=>{const k=D(s.goal).findIndex((v,i)=>v===3&&!NODES[i].oki);s.players[curSeat(s)].pos=k});
+    go('far',s=>{const k=D(s.goal).findIndex((v,i)=>v===6&&!NODES[i].oki);s.players.forEach(p=>p.pos=k)});
     go('final',s=>{farAll(s);s.maxTurn=s.maxTurn||120;s.turn=s.maxTurn-5});
     go('troll',s=>{farAll(s);s.troll=curSeat(s)});
     go('air',s=>{const d=farAll(s);s.players[curSeat(s)].pos=NODES.findIndex((n,i)=>n.air&&d[i]>5)});
