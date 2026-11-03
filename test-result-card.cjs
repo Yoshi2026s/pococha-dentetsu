@@ -7,7 +7,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 setTimeout(async()=>{const w=dom.window,d=w.document;try{
   d.querySelector('#bCreate').click();await wait(150);d.querySelector('#bStart').click();await wait(400);
   // 種類ごとにマスへ1歩で止まる手番を作り、結果カードの情報を返す
-  w.eval(`window.land=(ty,buy,hour,weather)=>{const base=curTip().state;const k=NODES.findIndex((n,i)=>n.type===ty&&ADJ[i]&&ADJ[i].length);for(let tr=0;tr<20;tr++){const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*7;st.hour=hour;st.weather=weather;
+  w.eval(`window.land=(ty,buy,hour,weather)=>{const base=curTip().state;const k=NODES.findIndex((n,i)=>n.type===ty&&ADJ[i]&&ADJ[i].length);for(let tr=0;tr<120;tr++)/* 乱数しだいで止まれない回があるので、試す回数を多めに（2026.11.03.7） */{const st=JSON.parse(JSON.stringify(base)),seat=curSeat(st);st.players[seat].pos=ADJ[k][0];st.rng=tr*7;st.hour=hour;st.weather=weather;
     try{const s2=applyTurn(st,{type:'roll',route:[k],buy,reward:'coin',shopDone:true},meta.seed,{noForce:true});if(s2.players[seat].pos!==k)continue;const mv=(s2.ev||[]).find(e=>e.k==='move');const r=resultInfo(s2,st,seat,mv?mv.t:'',NODES[k]);return {r,html:resultHTML(r)}}catch(e){}}return null}`);
   // プラスマス：増減を大きく1つ・倍率の行（ゴールデン×晴れ）・文章に倍率の（）を残さない
   const plus=w.eval("land('plus',false,20,0)");assert(plus,'プラスマスに止まれない');
