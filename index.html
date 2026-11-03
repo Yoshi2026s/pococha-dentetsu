@@ -183,6 +183,7 @@
 /* 配信モードはポコチャレのボタンを隠すので、下のボタンを3列（メニュー・カード・サイコロ）にする。4列のままだと空きの列ができ、「サイコロ」が「サイ…」と切れていた（2026.11.03.4） */html body.stream .bar .btnrow{grid-template-columns:1fr 1fr 1.6fr}
 /* 配信モード（黒い画面・白い文字）で、おまかせルートの結果と選んだ物件のボタンが明るい背景のままで、白い文字が読めなかった。「配信モードを終わる」も押しやすい48pxに（2026.11.03.4） */html body.stream .autoconf{background:#0f2a1b;color:#fff}html body.stream .basebtn.on{background:color-mix(in srgb,var(--pink) 38%,#222);color:#fff}html body.stream #exitStream{min-height:48px;padding-inline:14px}
 /* ボタンを続けて押したとき（ショップの売る・カードの連続購入など）に、iPhoneで画面が拡大しないように。地図の指での拡大・移動はそのまま（2026.11.03.6） */button,select,input,label,[role=button],.optbtn,.basebtn{touch-action:manipulation}
+/* 通信対戦：ほかの人の番の途中経過の吹き出し（地図の下・2026.11.04.2） */.livebub{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:7;max-width:calc(100% - 96px);box-sizing:border-box;padding:5px 12px;border-radius:999px;background:rgba(20,14,30,.86);color:#fff;font-size:12.5px;font-weight:800;line-height:1.35;border:2px solid var(--c,#ff5fa8);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 6px rgba(0,0,0,.25)}
 /* 「この先にも分かれ道」は「この先にも／分かれ道」の位置でだけ折り返す */.optbtn .ob-f{word-break:keep-all;overflow-wrap:anywhere}/* 小さい画面でも「買えるだけ獲得（2件・2,300G）」を1行に収める（2026.11.03.1） */@media (max-width:374px){#bBuyAll{font-size:13.5px;padding-inline:8px;white-space:nowrap;letter-spacing:-.02em}}
 </style></head><body>
 <title>ポコチャ電鉄・全国編</title><meta name="theme-color" content="#fff0f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#17111f" media="(prefers-color-scheme: dark)"><meta name="apple-mobile-web-app-title" content="ポコチャ電鉄・全国編"><meta name="description" content="Pocochaライバーが全国の駅をめぐる、4人対戦のすごろくゲーム">
@@ -1102,7 +1103,7 @@ h2{font-family:var(--f-pop);font-weight:400;letter-spacing:.03em}
  async requests(c){return game(c).collection('actions').where('status','==','pending').get();},
  /* ホスト以外：届いた操作で結果を先読みするための監視。ルールが未反映（読めない）ときは何も表示せず止める */
  /* 手番の途中経過（サイコロの目・進んでいる道）を参加者に送る・受け取る。ルールが未反映（書けない・読めない）ときは何もしない */
- setLive(c,d){return game(c).collection('live').doc(uid()).set({uid:uid(),turn:d.turn,seat:d.seat,d:d.d,ds:d.ds||[],card:d.card||'',path:d.path||[],at:stamp()});},
+ setLive(c,d){return game(c).collection('live').doc(uid()).set({uid:uid(),turn:d.turn,seat:d.seat,d:d.d,ds:d.ds||[],card:d.card||'',path:d.path||[],stage:String(d.stage||'').slice(0,12),info:String(d.info||'').slice(0,60),at:stamp()});},
  watchLive(c,fn){let off=null;try{off=game(c).collection('live').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed'&&!ch.doc.metadata.hasPendingWrites)fn(ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};},
  watchPending(c,fn){let off=null;try{off=game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};}
  };
@@ -2351,7 +2352,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){/* 新しい�
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
 function resetGame(){document.body.classList.remove('ingame');setWx(-1);{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
-  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;liveWalk=null;liveCur=null;liveRolled=-1;lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[];cmtQ=[];clearTimeout(cmtT);cmtT=0;cmtLast=0}}
+  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;liveWalk=null;liveCur=null;liveRolled=-1;liveCard=null;liveLast=null;liveKey='';lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[];cmtQ=[];clearTimeout(cmtT);cmtT=0;cmtLast=0}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
 const seatOnline=i=>grp?peers.some(p=>p.presence&&p.presence.seat===i):!!seats[i];
@@ -2377,17 +2378,35 @@ const KEEP=40;function pruneOld(tipTurn){if(db.online)return;const cut=tipTurn-K
 function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.delete(id);VOK.clear();const t=curTip();if(t&&shownTip===id){shownTip=t.id;dispState=t.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}render()}
 /* 手番の途中経過のリアルタイム表示（通信対戦・2026.11.04.1）：自分の番でサイコロを振った・道を1マス進めたら、目と道を送る（最大で約0.25秒に1回にまとめる）。
    ほかの人の画面では、確定を待たずにサイコロと駒の移動を見せ、確定した記録が同じ道ならもう一度は動かさない */
-let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1;
+let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null;
 function sendLive(o){if(!db||!db.online||liveOff||!code||!db.online.setLive)return;liveQ={...o,c:code};if(liveT)return;
   const go=async()=>{liveT=0;const q=liveQ;liveQ=null;if(!q)return;try{await db.online.setLive(q.c,q)}catch(e){if(e&&/permission/.test(String(e.code||e.message)))liveOff=true}if(liveQ&&!liveT)liveT=setTimeout(go,250)};liveT=setTimeout(go,0)}
-function liveFromPending(){if(!pending||pending.stage!=='route'||!db||!db.online)return;const st=pending.st;sendLive({turn:st.turn,seat:curSeat(st),d:pending.d,ds:pending.ds||[],card:(pending.base&&pending.base.card)||'',path:[pending.start,...pending.route]})}
+/* 自分の番の画面の状態（道選び・カード選び・物件選び・ショップ・報酬・売却・1番乗り）から途中経過を作り、変わったときだけ送る（2026.11.04.2） */
+function liveFromPending(){try{if(!pending||!db||!db.online||!meta||meta.phase!=='playing'||!pending.st)return;const st=pending.st,seat=curSeat(st);if(seat!==mySeat())return;
+  let stage=pending.stage,info='';const cs=document.querySelector('#ov:not([hidden]) .cardsheet');if(stage==='act'){if(!cs)return;stage='card'}
+  const pv=pending.pv,yen=v=>v.toLocaleString()+'G';
+  if(stage==='buy'&&pv){const B=pv.nd.bases,sel=[...(pending.sel||[])];info=`${pv.nd.name}駅で物件を選び中（${sel.length}件・${yen(sel.reduce((a,j)=>a+(B[j]?B[j].price:0),0))}）`}
+  else if(stage==='shop'&&pv){const ops=pending.shopOps||[],nb=ops.filter(o=>o[0]==='b').length,ns=ops.filter(o=>o[0]==='s').length;info=`カードショップで買い物中`+(nb||ns?`（買う${nb}・売る${ns}）`:'')}
+  else if(stage==='goalfx'&&pv)info=`${pv.nd.name}に1番乗り！`;else if(stage==='reward')info='ポコチャレの報酬を選び中';else if(stage==='fsell')info='ゴールドが足りず、物件を売却中';else if(stage==='card')info='カードを選び中';
+  const L={turn:st.turn,seat,stage:String(stage).slice(0,12),info:info.slice(0,60),d:pending.d||0,ds:pending.ds||[],card:(pending.base&&pending.base.card)||'',path:pending.start!=null?[pending.start,...(pending.route||[])].slice(0,80):[]};
+  const key=JSON.stringify(L);if(key===liveKey)return;liveKey=key;sendLive(L)}catch{}}
 function onLive(L){try{if(!L||!meta||L.uid===myId||meta.paused||meta.phase!=='playing')return;const tip=curTip();
   if(!tip||tip.pred||tip.state.finished||tip.turn!==L.turn||curSeat(tip.state)!==L.seat||!seats[L.seat]||seats[L.seat].uid!==L.uid)return;
-  if(animating()||!dispState||dispState.turn!==tip.turn)return;/* 前の手番の演出がまだ終わっていない人は、いつもどおり確定後の演出で見る */
-  liveCur={turn:L.turn,seat:L.seat,d:L.d,n:Math.max(0,(L.path||[]).length-1)};
-  if(liveRolled!==L.turn){liveRolled=L.turn;rollCube(L.d,L.ds&&L.ds.length>1?L.ds:null,L.card||null);sfx('dice')}
-  const p=(L.path||[]).filter(x=>NODES[x]);if(p.length>1){const last=p[p.length-1],was=liveWalk&&liveWalk.turn===L.turn+1?liveWalk.path:'';const joined=p.join(',');if(joined!==was){movePawn(L.seat,last,true);camAt(NODES[last],ZM,SET.fast?140:300);sfx('step',p.length-1)}liveWalk={turn:L.turn+1,path:joined}}
+  liveLast=L;/* 前の手番の演出がまだ終わっていない人は、演出が終わった時点でこの途中経過に追いつく */if(animating()||!dispState||dispState.turn!==tip.turn)return;
+  const prevStage=liveCur&&liveCur.turn===L.turn?liveCur.stage:'';liveCur={turn:L.turn,seat:L.seat,d:L.d||0,n:Math.max(0,(L.path||[]).length-1),stage:L.stage||'route',info:L.info||''};
+  const p=(L.path||[]).filter(x=>NODES[x]);
+  if(L.card&&CARDN[L.card]&&!(liveCard&&liveCard.turn===L.turn+1)){liveCard={turn:L.turn+1,card:L.card};cardBan(L.card,NODES[p[0]]||NODES[tip.state.players[L.seat].pos])}
+  if(L.d&&liveRolled!==L.turn){liveRolled=L.turn;rollCube(L.d,L.ds&&L.ds.length>1?L.ds:null,L.card||null);sfx('dice')}
+  if(p.length>1){const last=p[p.length-1],was=liveWalk&&liveWalk.turn===L.turn+1?liveWalk.path:'';const joined=p.join(',');if(joined!==was){movePawn(L.seat,last,true);camAt(NODES[last],ZM,SET.fast?140:300);sfx('step',p.length-1)}liveWalk={turn:L.turn+1,path:joined}}
+  if(L.stage==='goalfx'&&prevStage!=='goalfx')sfx('rankup');
   render()}catch{}}
+/* 途中経過の文（手番の表示・地図の吹き出し） */
+/* 地図の下に「◯◯：物件を選び中…」の吹き出しを出す（ほかの人の番の途中経過があるときだけ） */
+function liveBubble(){try{const mb=$('#mapbox');if(!mb)return;let e=$('#liveBub');const tip=curTip(),c=liveCur;
+  const on=!!(db&&db.online&&meta&&meta.phase==='playing'&&!meta.paused&&tip&&c&&c.turn===tip.turn&&curSeat(tip.state)===c.seat&&c.seat!==mySeat()&&!animating()&&liveText(c));
+  if(!on){if(e)e.hidden=true;return}if(!e){e=document.createElement('div');e.id='liveBub';e.className='livebub';e.setAttribute('aria-live','polite');mb.appendChild(e)}
+  const t=seatName(c.seat)+'：'+liveText(c);if(e.textContent!==t)e.textContent=t;e.style.setProperty('--c',SEATC[c.seat]||'var(--pink)');e.hidden=false}catch{}}
+function liveText(c){if(!c)return'';if(c.info)return c.info;if(c.d)return`🎲${c.d}・あと${Math.max(0,c.d-c.n)}マス`;return''}
 /* ほかの参加者の操作を受け取ったら、ホストの確定（もう1往復）を待たずに同じ計算で結果を先に表示する。サーバーの記録が届いたら照合し、違えば直す（ホスト以外・2026.11.03.8） */
 function predictAction(a){try{if(!a||a.status!=='pending'||!meta||meta.host===myId||meta.paused||!meta.seed||a.uid===myId)return;const tip=curTip();
   if(!tip||tip.pred||tip.state.finished||tip.id!==a.parent||tip.turn!==a.revision||curSeat(tip.state)!==a.seat)return;
@@ -2654,8 +2673,10 @@ let playing=Promise.resolve();
 // 演出中は次の手番（CPU・自分の操作）を始めない。演出が終わった時点から手番の持ち時間を数える
 let animN=0,animIdleAt=0;const animating=()=>animN>0||Date.now()-animIdleAt<(SET.fast?120:250);
 let animGen=0;
+/* カードを使ったときの帯・光・音（確定した手番の演出と、通信対戦の途中経過の両方で使う）。レア度の段階を返す */
+function cardBan(k,node){const r=LEGACY[k]?'N':(CARDR[k]||'N'),lv=RARLV[r],gi=GENRES.findIndex(g=>g[0]===CARDG[k]),bn=banner((lv>=4?'★ ':'')+(gi>=0?GENRES[gi][1]+' ':'')+CARDN[k]+'！',RARBG[r],(LEGACY[k]?'':r+'・')+CARDD[k]);if(bn){bn.classList.add('rar-'+r);const b0=bn.querySelector('.bn');if(b0)b0.insertAdjacentHTML('afterbegin',`<i class="bncard r-${r}" aria-hidden="true">${gi>=0?GENRES[gi][1]:'🃏'}<em>${LEGACY[k]?'旧':r}</em></i>`)}rarFx(r,node);if(gi>=0)setTimeout(()=>sfx(CG_SE[gi]),SET.fast?260:560+lv*60);return lv}
 function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(gen!==animGen)return;try{const s=r.state,seat=s.lastSeat,prev=dispState;
-  const cardEv=(s.ev||[]).find(e=>e.k==='card');if(cardEv){const r=LEGACY[cardEv.v]?'N':(CARDR[cardEv.v]||'N'),lv=RARLV[r],gi=GENRES.findIndex(g=>g[0]===CARDG[cardEv.v]),bn=banner((lv>=4?'★ ':'')+(gi>=0?GENRES[gi][1]+' ':'')+CARDN[cardEv.v]+'！',RARBG[r],(LEGACY[cardEv.v]?'':r+'・')+CARDD[cardEv.v]);if(bn){bn.classList.add('rar-'+r);const b0=bn.querySelector('.bn');if(b0)b0.insertAdjacentHTML('afterbegin',`<i class="bncard r-${r}" aria-hidden="true">${gi>=0?GENRES[gi][1]:'🃏'}<em>${LEGACY[cardEv.v]?'旧':r}</em></i>`)}rarFx(r,NODES[(s.lastPath||[])[0]]||NODES[s.players[seat].pos]);if(gi>=0)setTimeout(()=>sfx(CG_SE[gi]),SET.fast?260:560+lv*60);await wait(1300+lv*(SET.fast?100:300))}
+  const cardEv=(s.ev||[]).find(e=>e.k==='card');if(cardEv){/* 途中経過で同じカードの帯をもう見せていれば、確定時はくり返さない */if(liveCard&&liveCard.turn===s.turn&&liveCard.card===cardEv.v)liveCard=null;else{const lv=cardBan(cardEv.v,NODES[(s.lastPath||[])[0]]||NODES[s.players[seat].pos]);await wait(1300+lv*(SET.fast?100:300))}}
   if(s.lastDices&&s.lastDices.length>1){floatNum(NODES[(s.lastPath||[])[0]]||NODES[0],'サイコロ '+s.lastDices.join('+'),'var(--pink)')}
   if(cardEv&&MOVEC.includes(cardEv.v)&&s.lastPath&&s.lastPath.length>1){const a=NODES[s.lastPath[0]],b=NODES[s.lastPath[1]];sfx('rankup');shock(a,'var(--card)');burst('star',a);await wait(500);movePawn(seat,s.lastPath[1]);camTo(b,1.6,400);shock(b,'var(--card)');burst('star',b);await wait(900);camHome()}
   {const tr=$('#turnRing');if(tr)tr.innerHTML=''}
@@ -2723,7 +2744,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
    if(!s.lastPath||s.lastPath.length<=1)hold=Math.min(hold,1400);await wait(hold)}
   if(!s.finished){camHome(450);await wait(350)}
   if(s.finished){saveRoom(code,{done:true});music('ending');fireworks(8);cannon();setTimeout(cannon,1500);await showFinal(s)}
-  }finally{if(gen===animGen){animN--;animIdleAt=Date.now();tipSeenAt.set(r.id,Date.now());setTimeout(tick,SET.fast?140:270)}}})}
+  }finally{if(gen===animGen){animN--;animIdleAt=Date.now();tipSeenAt.set(r.id,Date.now());setTimeout(tick,SET.fast?140:270);if(liveLast)setTimeout(()=>{if(liveLast&&!animating())onLive(liveLast)},SET.fast?150:280)}}})}
 // 最終結果のカード。閉じたあとも下の「最終結果」ボタンで見直せる
 let finalSeen=false;
 function showFinal(s){const me=mySeat(),rows=s.final.map((f,i)=>`<tr${f.seat===me?' class="me"':''}><td>${['1位','2位','3位','4位'][i]} ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}G</td></tr>`).join('');
@@ -3566,7 +3587,7 @@ function drawPawnLabels(){if(!built)return;const L=pawnLabels();L.forEach((t,i)=
 const nameize=t=>{t=t==null?'':String(t);if(!meta||meta.phase!=='playing')return t;return t.replace(/(^|[^0-9A-Za-z])([1-4])P(?![A-Za-z])/g,(m,a,d)=>a+seatName(+d-1))};
 let built=false;const lastCoins=[];
 let lastStageSeen='';function stageAttn(){const st=pending?pending.stage:'';if(st===lastStageSeen)return;lastStageSeen=st;if(['buy','reward','shop'].includes(st)){const b=$('#bar');if(b){b.classList.remove('attn');void b.offsetWidth;b.classList.add('attn')}vib(30)}}
-function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing';stageAttn();drawPause(play);$('#resumeBox').hidden=inRoom||!$('#resumeList').children.length;
+function render(){if(pending)liveFromPending();liveBubble();const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing';stageAttn();drawPause(play);$('#resumeBox').hidden=inRoom||!$('#resumeList').children.length;
   $('#vLobby').hidden=inRoom;$('#vRoom').hidden=!inRoom||play;$('#vGame').hidden=!play;$('#bar').hidden=!play;
   if(!inRoom){music('title');return}$('#tCode').textContent=code;
   if(!play){music('wait');/* 部屋で待っている間に、地図を先に組み立てておく（開始を押してからの待ち時間を短く）（2026-11-01） */if(!built&&!render.__pre){render.__pre=1;(window.requestIdleCallback||((f)=>setTimeout(f,400)))(()=>{if(!built){buildMap();built=true;sqStatic()}},{timeout:1500})}const me=mySeat();$('#seats').innerHTML='';
@@ -3609,7 +3630,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   const cs=curSeat(st),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),left=Math.max(0,Math.ceil(((db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)-age)/1000)),isCpu=(meta.cpu||[]).includes(cs);
   // 演出中（表示中の盤面が最新より前）は、上の「いまの番」と同じく動いている人を出す（演出中に次の人の番と出て順番がずれて見えるのを防ぐ）
   {const lag=!st.finished&&ds!==st&&ds.turn<st.turn,vs=lag?ds:st,vc=lag?curSeat(ds):cs,vCpu=(meta.cpu||[]).includes(vc);
-  /* 日時は地図の左上に出ているので、ここは手番と「だれの番か」だけにする */$('#turnText').textContent=st.finished?'ゲーム終了':`第${vs.turn+1}手番${vs.maxTurn?'／全'+vs.maxTurn+'手番':''}・`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':(liveCur&&liveCur.turn===vs.turn&&liveCur.seat===vc?`（🎲${liveCur.d}・${Math.min(liveCur.n,liveCur.d)}/${liveCur.d}マス）`:'（考え中…）')))+(!st.finished&&vs.troll===vc?'・😈ラグ王が取りついています':'')+(lag||isCpu||st.finished||(!db.online&&cs===me)||(cs===me&&animating())?'':`　残\u2060り\u2060${left}\u2060秒`)/* 自分の番でも演出中（まだ操作できない間）は残り時間を出さない（2026.11.03.9） */}
+  /* 日時は地図の左上に出ているので、ここは手番と「だれの番か」だけにする */$('#turnText').textContent=st.finished?'ゲーム終了':`第${vs.turn+1}手番${vs.maxTurn?'／全'+vs.maxTurn+'手番':''}・`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':(liveCur&&liveCur.turn===vs.turn&&liveCur.seat===vc&&liveText(liveCur)?`（${liveText(liveCur)}）`:'（考え中…）')))+(!st.finished&&vs.troll===vc?'・😈ラグ王が取りついています':'')+(lag||isCpu||st.finished||(!db.online&&cs===me)||(cs===me&&animating())?'':`　残\u2060り\u2060${left}\u2060秒`)/* 自分の番でも演出中（まだ操作できない間）は残り時間を出さない（2026.11.03.9） */}
   /* 持ち時間の警告（オンライン対戦の自分の番）：残り15秒で知らせ、10秒からは毎秒の警告音・振動・赤く点滅 */
   {const warn=!!db.online&&!st.finished&&cs===me&&!isCpu&&left<=15&&left>0;document.body.classList.toggle('timewarn',warn);
    if(warn&&left!==render.warnSec){render.warnSec=left;if(left===15)toast('⏰ 持ち時間が残り15秒です');if(left<=10){sfx('roulTick');vib(left<=5?[60,40,60]:40)}}if(!warn)render.warnSec=null}

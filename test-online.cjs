@@ -29,6 +29,8 @@ function client(id){const store=env.authenticatedContext(id).firestore(),auth={c
  await test('再招待：部屋コードの形でない値は拒否',()=>assertFails(h.store.doc('pdGames/ABCD').update({next:'abc'})));
  {const su=(await h.store.doc('pdGames/ABCD').get()).data().seatUids,as=su.indexOf('alice'),ts=fb.firestore.FieldValue.serverTimestamp(),L=(seat,uid)=>({uid,turn:3,seat,d:5,ds:[5],card:'',path:[1,2,3],at:ts});
   await test('途中経過：自分の席の途中経過を書ける',()=>assertSucceeds(a.store.doc('pdGames/ABCD/live/alice').set(L(as,'alice'))));
+  await test('途中経過：場面と説明（物件を選び中など）を書ける',()=>assertSucceeds(a.store.doc('pdGames/ABCD/live/alice').set({...L(as,'alice'),stage:'buy',info:'大牟田駅で物件を選び中（2件・4,800G）'})));
+  await test('途中経過：長すぎる説明は拒否',()=>assertFails(a.store.doc('pdGames/ABCD/live/alice').set({...L(as,'alice'),stage:'buy',info:'あ'.repeat(61)})));
   await test('途中経過：参加者は読める',()=>assertSucceeds(h.store.collection('pdGames/ABCD/live').get()));
   await test('途中経過：ほかの人の席・ほかの人の文書には書けない',async()=>{await assertFails(a.store.doc('pdGames/ABCD/live/alice').set(L((as+1)%4,'alice')));await assertFails(a.store.doc('pdGames/ABCD/live/bob').set(L(as,'alice')))});
   await test('途中経過：部屋の外の人は読めない',()=>assertFails(client('late').store.collection('pdGames/ABCD/live').get()));}
