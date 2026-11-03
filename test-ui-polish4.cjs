@@ -18,7 +18,7 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
   await p.click('#bMenu');await p.waitForTimeout(400);const sb=await p.evaluate(()=>{const b=document.querySelector('#mnSound');return [b.textContent,b.getAttribute('aria-pressed')]});ok(/音：(オン|オフ)/.test(sb[0])&&/true|false/.test(sb[1]),'音ボタンの表示 '+sb);
   const tp=await p.evaluate(()=>{toast('テスト');const t=document.querySelector('#toast').getBoundingClientRect();return t.top>innerHeight*.6});ok(tp,'カードを開いているのにお知らせが上に出る');
   await p.evaluate(()=>{const o=document.querySelector('#ov');o.hidden=true;o.innerHTML='';document.querySelector('#toast').hidden=true});
-  await p.click('#bRoll');await p.waitForFunction(()=>pending&&pending.stage==='route',null,{timeout:8000});await p.waitForTimeout(400);
+  await p.click('#bRoll');await p.waitForFunction(()=>pending&&pending.stage==='route',null,{timeout:8000});/* 分かれ道までコマが進む途中は候補がまだ出ていないので、候補が出るまで待つ（2026.11.03.3） */await p.waitForFunction(()=>document.querySelector('#routeOpts .optbtn'),null,{timeout:15000}).catch(()=>{});await p.waitForTimeout(400);
   const ro=await p.evaluate(()=>[...document.querySelectorAll('#routeOpts .ob-t small')].map(s=>getComputedStyle(s).fontSize+(/止まる：/.test(s.textContent)?'!':'')));ok(ro.length&&ro.every(x=>x==='12px'),'道の候補の文字 '+ro);
   if(errs.length)fail.push('JSエラー '+errs.join(' / '));await c.close()
 }finally{await b.close()}
