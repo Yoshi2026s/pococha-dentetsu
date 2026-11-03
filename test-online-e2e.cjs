@@ -2,6 +2,7 @@
 // 実行：npx firebase emulators:exec --config firebase.e2e.json --only firestore,auth --project demo-pococha-dentetsu "node test-online-e2e.cjs"
 // 環境変数：REMATCH=1（最終結果のあと再招待→参加者が新しい部屋へ入れるか） DELAY=通信1回ごとに足す遅延ms（回線の遅さの再現） IDLE=n（参加者がn回目の手番を放置→ホストのCPU代行を確認、待ち時間60秒）
 //           PAUSE=n（ホストがn回目の手番で中断→タイトル→続きから→再開） DAYS=日数(1)
+// LIVEは「ホストの手番の途中経過（サイコロ・道）が参加者の画面に確定より何ms早く出たか」。
 // 出力のNETは「手番の操作を送ってから参加者の画面にサーバー確定の結果が届くまで」のms、OWNは「参加者が自分の操作の結果を見始めるまで」のms（先読み）。
 // 同じ手番の重複（演出の2回再生・自分の番が2回・同じ手番の2回送信）があれば失敗にする。本番のFirebaseには接続しない。
 const {chromium}=require('playwright');const http=require('http'),fs=require('fs'),path=require('path'),cp=require('child_process');
@@ -44,6 +45,7 @@ function bot(page,name,W,log,seed,idleAt,pauseAt){let rolls=0,idled=false,paused
         const M=myDecide;myDecide=function(st){window.__decided[st.turn]=(window.__decided[st.turn]||0)+1;return M.apply(this,arguments)};clearInterval(w)}catch{}},20);
       // 盤面の記録が届いた時刻：onRecordsの呼び出し時に記録（演出で画面が重くても正確に測る）
       const stampRec=()=>{try{const now=Date.now();for(const r of records.values()){if(r.pred){if(!(r.turn in window.__predAt))window.__predAt[r.turn]=now;continue}if(!(r.turn in window.__arr))window.__arr[r.turn]=now}}catch{}};
+      /* 手番の途中経過：相手のサイコロを確定より先に見せた時刻 */const w4=setInterval(()=>{try{if(typeof onLive!=='function'||window.__wr4)return;window.__wr4=1;window.__live={};const O=onLive;onLive=function(L){const b=liveRolled;O(L);if(liveRolled!==b)window.__live[L.turn]=Date.now()};clearInterval(w4)}catch{}},20);
       const w2=setInterval(()=>{try{if(typeof onRecords!=='function'||window.__wr2)return;window.__wr2=1;const O=onRecords;onRecords=function(){stampRec();return O.apply(this,arguments)};clearInterval(w2)}catch{}},20)});
     await page.addInitScript(()=>{try{localStorage.setItem('poco-set',JSON.stringify({bgm:0,se:0,fast:true,vib:false}))}catch{}});
     await page.goto(`http://127.0.0.1:${port}/`);await page.waitForFunction(()=>!document.querySelector('#bCreate').disabled,null,{timeout:30000});return page};
@@ -65,6 +67,8 @@ function bot(page,name,W,log,seed,idleAt,pauseAt){let rolls=0,idled=false,paused
     console.log('COUNT',name,Object.keys(d.played||{}).length,Object.keys(d.decided||{}).length,Object.keys(d.sent||{}).length);
     for(const [k,o] of Object.entries(d))for(const [id,n] of Object.entries(o||{}))if(n>1&&!(process.env.PAUSE&&name==='host'&&k==='decided'))/* 中断で手番の途中に抜けた分は、再開後にもう一度操作するのが正しい */log(name,'重複',`${k} ${id} が${n}回`)}
   const st={...await host.evaluate(()=>window.__start),...await guest.evaluate(()=>window.__start)},arr=await guest.evaluate(()=>window.__arr);
+  /* LIVEは「ホストの手番の途中経過（サイコロ）が参加者の画面に、確定した記録より何ms早く出たか」。ホストの手番で一度も出なければ失敗 */
+  {const lv=await guest.evaluate(()=>window.__live||{}),ar=await guest.evaluate(()=>window.__arr),d=Object.keys(lv).map(Number).filter(t=>ar[t+1]).map(t=>ar[t+1]-lv[t]).sort((x,y)=>x-y);console.log('LIVE',JSON.stringify({n:d.length,earlierMedian:d[d.length>>1],min:d[0],max:d[d.length-1]}));if(!d.length&&!process.env.IDLE&&!process.env.PAUSE)log('guest','途中経過','ホストのサイコロが確定より先に出ていない')}
   const net=Object.keys(st).map(Number).filter(t=>arr[t+1]).map(t=>arr[t+1]-st[t]).sort((a,b)=>a-b);console.log('NET',JSON.stringify({n:net.length,median:net[net.length>>1],p90:net[Math.floor(net.length*.9)],max:net[net.length-1]}));
   {const pa=await guest.evaluate(()=>window.__predAt),own=Object.keys(pa).map(Number).filter(t=>st[t-1]).map(t=>pa[t]-st[t-1]).sort((a,b)=>a-b);console.log('OWN',JSON.stringify({n:own.length,median:own[own.length>>1],max:own[own.length-1]}))}
     const toasts=[];for(const p of [host,guest])toasts.push(await p.evaluate(()=>document.querySelector('#toast').textContent));

@@ -84,6 +84,9 @@
  if(m.host===uid()){tx.update(r,{phase:'closed'});return;}const a=m.seatUids.slice();a[i]='';tx.update(r,{seatUids:a,members:m.members.filter(u=>u!==uid())});tx.delete(r.collection('seats').doc(String(i)));});},
  async requests(c){return game(c).collection('actions').where('status','==','pending').get();},
  /* ホスト以外：届いた操作で結果を先読みするための監視。ルールが未反映（読めない）ときは何も表示せず止める */
+ /* 手番の途中経過（サイコロの目・進んでいる道）を参加者に送る・受け取る。ルールが未反映（書けない・読めない）ときは何もしない */
+ setLive(c,d){return game(c).collection('live').doc(uid()).set({uid:uid(),turn:d.turn,seat:d.seat,d:d.d,ds:d.ds||[],card:d.card||'',path:d.path||[],at:stamp()});},
+ watchLive(c,fn){let off=null;try{off=game(c).collection('live').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed'&&!ch.doc.metadata.hasPendingWrites)fn(ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};},
  watchPending(c,fn){let off=null;try{off=game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};}
  };
  const db={doc,collection,online};
