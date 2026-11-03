@@ -1,6 +1,6 @@
 // オンライン対戦の通しテスト：本物の画面2つ（ホスト390px・参加者360px）をFirestore/Authエミュレーターにつなぎ、CPU2人入りで最終結果まで自動操作する。※Playwright（Chromium）が必要。
 // 実行：npx firebase emulators:exec --config firebase.e2e.json --only firestore,auth --project demo-pococha-dentetsu "node test-online-e2e.cjs"
-// 環境変数：DELAY=通信1回ごとに足す遅延ms（回線の遅さの再現） IDLE=n（参加者がn回目の手番を放置→ホストのCPU代行を確認、待ち時間60秒）
+// 環境変数：REMATCH=1（最終結果のあと再招待→参加者が新しい部屋へ入れるか） DELAY=通信1回ごとに足す遅延ms（回線の遅さの再現） IDLE=n（参加者がn回目の手番を放置→ホストのCPU代行を確認、待ち時間60秒）
 //           PAUSE=n（ホストがn回目の手番で中断→タイトル→続きから→再開） DAYS=日数(1)
 // 出力のNETは「手番の操作を送ってから参加者の画面にサーバー確定の結果が届くまで」のms、OWNは「参加者が自分の操作の結果を見始めるまで」のms（先読み）。
 // 同じ手番の重複（演出の2回再生・自分の番が2回・同じ手番の2回送信）があれば失敗にする。本番のFirebaseには接続しない。
@@ -58,6 +58,9 @@ function bot(page,name,W,log,seed,idleAt,pauseAt){let rolls=0,idled=false,paused
   let done=false;const w1=watch(host,'host'),w2=watch(guest,'guest');
   const dl=Date.now()+(+process.env.TMAX||900000);const hb=bot(host,'host',390,log,7,0,+process.env.PAUSE||0),gb=bot(guest,'guest',360,log,11,+process.env.IDLE||0);
   const [hr,gr]=await Promise.all([hb.run(dl),gb.run(dl)]);done=true;await Promise.all([w1,w2]);
+  /* REMATCH=1：最終結果のあとホストが再招待→参加者に「次の対戦へ」が出て、同じ新しい部屋に入れる（2026.11.03.9） */
+  if(process.env.REMATCH&&hr&&gr){await host.evaluate(()=>rematch());await host.waitForSelector('#vRoom:not([hidden])',{timeout:20000});const nc=(await host.locator('#tCode').textContent()).trim();
+    const ok2=await guest.waitForSelector('#bNext',{timeout:20000}).then(()=>true).catch(()=>false);if(!ok2)log('guest','再招待','「次の対戦へ」が出ない');else{await guest.click('#bNext');await guest.waitForSelector('#vRoom:not([hidden])',{timeout:20000}).catch(()=>{});const gc=(await guest.locator('#tCode').textContent()).trim();if(gc!==nc)log('guest','再招待',`新しい部屋に入れない（${gc}／${nc}）`);else console.log('再招待OK',nc)}}
   for(const [name,p] of [['host',host],['guest',guest]]){const d=await p.evaluate(()=>({played:window.__played,decided:window.__decided,sent:window.__sent}));
     console.log('COUNT',name,Object.keys(d.played||{}).length,Object.keys(d.decided||{}).length,Object.keys(d.sent||{}).length);
     for(const [k,o] of Object.entries(d))for(const [id,n] of Object.entries(o||{}))if(n>1&&!(process.env.PAUSE&&name==='host'&&k==='decided'))/* 中断で手番の途中に抜けた分は、再開後にもう一度操作するのが正しい */log(name,'重複',`${k} ${id} が${n}回`)}

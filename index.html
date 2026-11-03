@@ -2338,9 +2338,9 @@ async function enter(c){unlock();c=normCode(c);if(!/^[A-Z0-9]{4}$/.test(c)){cons
   if(canWrite&&myId&&s.data().phase==='lobby')autoSeat(c);
   if(room){try{grp=await room.join('g'+c.toLowerCase());grp.on('sync',m=>{if(!m.isMe&&code===c)relay(m.data)});grp.on('stamp',m=>{floatStamp(STAMPS[(m.data&&m.data.i)|0]||'');sfx('stamp')});
     grp.onPeers(ch=>{peers=ch.peers;render()});{const m=mySeat();if(m>=0)grp.presence({seat:m}).catch(()=>{})}
-    grp.onConnection&&grp.onConnection(ok=>{const e=$('#netChip');e.textContent=ok?'接続中':'再接続中';e.className='chip '+(ok?'on':'warn')})}catch{toast('演出の同期につながりませんでした。対戦はそのまま続けられます（スタンプは使えません）')}}
+    {let was=true;grp.onConnection&&grp.onConnection(ok=>{const e=$('#netChip');e.textContent=ok?'接続中':'再接続中';e.className='chip '+(ok?'on':'warn');/* 接続の表示は対戦中は隠れているので、切れた・戻ったをお知らせで伝える（2026.11.03.9） */if(code===c&&ok!==was)toast(ok?'📶 通信が戻りました':'📶 通信が切れました。つながると自動で続きます');was=ok})}}catch{toast('演出の同期につながりませんでした。対戦はそのまま続けられます（スタンプは使えません）')}}
   render()}
-async function rematch(){if(!meta||!canWrite)return;if(db.online){leaveRoom();await createRoom();return;}const old=code,cpu=meta.cpu||[];try{for(let i=0;i<6;i++){const c=randCode();const ref=db.doc('games/'+c);const l=await ref.acquire({holder:myId,ttlMs:5000});if(!l.acquired)continue;const sn=await ref.get();if(sn.exists)continue;
+async function rematch(){if(!meta||!canWrite)return;if(db.online){/* 新しい部屋を作ったら、前の部屋に新しい部屋コードを書き、ほかの参加者に「次の対戦へ」を出す（2026.11.03.9） */const old=code,wasHost=meta.host===myId;leaveRoom();await createRoom();if(wasHost&&code&&code!==old)try{await db.doc('games/'+old).update({next:code})}catch{}return;}const old=code,cpu=meta.cpu||[];try{for(let i=0;i<6;i++){const c=randCode();const ref=db.doc('games/'+c);const l=await ref.acquire({holder:myId,ttlMs:5000});if(!l.acquired)continue;const sn=await ref.get();if(sn.exists)continue;
   await ref.set({phase:'lobby',seed:randCode()+randCode()+randCode(),host:myId,createdAt:Date.now(),rulesVersion:RULES_VERSION,cpu:[],from:old,cpuLv:meta.cpuLv||'normal',days:meta.days??2});
   for(let k=0;k<4;k++)if(seats[k])await db.doc('games/'+c+'/seats/'+k).set({uid:seats[k].uid,ready:seats[k].uid===myId});
   await db.doc('games/'+old).update({next:c});$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();return enter(c)}}catch(e){toast(errText(e))}}
@@ -3540,7 +3540,7 @@ function demoFx(k){const s=dispState;if(!s)return;const me=Math.max(0,mySeat()),
 // ================= 描画 =================
 const HAIR=['#6b3fa0','#d9467a','#2f7fd1','#c9871b'];
 const lastPlace=[];let lastOrder='';
-const seatName=i=>{const pn=meta&&meta.pname&&meta.pname[i];if(!seats[i]){if(meta&&meta.phase==='playing'){if(pn)return pn;const c=cpuChar(i);return c?c.name:'CPU'}return'空席'}const un=meta&&meta.uname&&meta.uname[seats[i].uid];if(un)return un;const n=names[seats[i].uid];return i===mySeat()?'あなた':(n||'参加者')};
+const seatName=i=>{const pn=meta&&meta.pname&&meta.pname[i];if(!seats[i]){if(meta&&meta.phase==='playing'){if(pn)return pn;const c=cpuChar(i);return c?c.name:'CPU'}return'空席'}const un=meta&&meta.uname&&meta.uname[seats[i].uid];if(un)return un;const n=names[seats[i].uid];return i===mySeat()?'あなた':(n||(meta&&seats[i].uid===meta.host?'ホスト':`${i+1}Pさん`))};/* 名前を決めていない人は「ホスト」「2Pさん」のように区別できる名前に（以前は全員「参加者」・2026.11.03.9） */
 // 盤面の記録の文（「2Pに…」「3Pの物件」など）は、表示するときにプレイヤーの名前へ置きかえる。記録そのものは変えない（全手番の検算・保存データとの互換のため）
 // 地図上の電車の札：名前の最初の2文字（空白は除く）。ほかの人と同じになるときは、1文字目＋席の番号
 function pawnLabels(){const n=[0,1,2,3].map(i=>Array.from(String(seatName(i)||'').replace(/\s/g,''))),L=n.map(a=>a.slice(0,2).join('')||'?'),dup=(arr,i)=>arr.some((x,j)=>j!==i&&x===arr[i]);
@@ -3592,7 +3592,7 @@ function render(){const inRoom=!!code&&!!meta,play=inRoom&&meta.phase==='playing
   const cs=curSeat(st),age=Date.now()-(db.online?(meta.turnAt?.toMillis?.()||Date.now()):(tipSeenAt.get(tip.id)||Date.now())),left=Math.max(0,Math.ceil(((db.online?(meta.cpuTimeoutSec||90)*1000:DEADLINE)-age)/1000)),isCpu=(meta.cpu||[]).includes(cs);
   // 演出中（表示中の盤面が最新より前）は、上の「いまの番」と同じく動いている人を出す（演出中に次の人の番と出て順番がずれて見えるのを防ぐ）
   {const lag=!st.finished&&ds!==st&&ds.turn<st.turn,vs=lag?ds:st,vc=lag?curSeat(ds):cs,vCpu=(meta.cpu||[]).includes(vc);
-  /* 日時は地図の左上に出ているので、ここは手番と「だれの番か」だけにする */$('#turnText').textContent=st.finished?'ゲーム終了':`第${vs.turn+1}手番${vs.maxTurn?'／全'+vs.maxTurn+'手番':''}・`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':'（考え中…）'))+(!st.finished&&vs.troll===vc?'・😈ラグ王が取りついています':'')+(lag||isCpu||st.finished||(!db.online&&cs===me)?'':`　残\u2060り\u2060${left}\u2060秒`)}
+  /* 日時は地図の左上に出ているので、ここは手番と「だれの番か」だけにする */$('#turnText').textContent=st.finished?'ゲーム終了':`第${vs.turn+1}手番${vs.maxTurn?'／全'+vs.maxTurn+'手番':''}・`+(vc===me?`${seatName(me)}の番です`:`${seatName(vc)}の番`+(vCpu||lag?'':'（考え中…）'))+(!st.finished&&vs.troll===vc?'・😈ラグ王が取りついています':'')+(lag||isCpu||st.finished||(!db.online&&cs===me)||(cs===me&&animating())?'':`　残\u2060り\u2060${left}\u2060秒`)/* 自分の番でも演出中（まだ操作できない間）は残り時間を出さない（2026.11.03.9） */}
   /* 持ち時間の警告（オンライン対戦の自分の番）：残り15秒で知らせ、10秒からは毎秒の警告音・振動・赤く点滅 */
   {const warn=!!db.online&&!st.finished&&cs===me&&!isCpu&&left<=15&&left>0;document.body.classList.toggle('timewarn',warn);
    if(warn&&left!==render.warnSec){render.warnSec=left;if(left===15)toast('⏰ 持ち時間が残り15秒です');if(left<=10){sfx('roulTick');vib(left<=5?[60,40,60]:40)}}if(!warn)render.warnSec=null}
@@ -3801,7 +3801,8 @@ function drawBaseList(){const pv=pending.pv,B=pv.nd.bases;let tot=0;for(const j 
 $('#bBuy').onclick=()=>{if(!pending||!pending.sel||!pending.sel.size)return;const b=pending.base||{type:'roll'},sel=[...pending.sel];commitAction({...b,buy:sel})};
 $('#bSkip').onclick=()=>{if(!pending)return;const b=pending.base||{type:'roll'};commitAction({...b,buy:false})};
 $('#bRwCoin').onclick=()=>takeReward('coin');$('#bRwCard').onclick=()=>takeReward('card');
-$('#bCopy').onclick=async()=>{const t=`【ポコチャ電鉄・全国編 オンライン対戦のお誘い】\n部屋コード：${code}\nこのゲームのページを開いて、部屋コードを入れてね！\n${location.origin+location.pathname+'?room='+encodeURIComponent(code)}`;try{await navigator.clipboard.writeText(t);toast('招待文をコピーしました')}catch{toast('コピーできませんでした。部屋コード '+code+' を伝えてください')}};
+/* スマホでは共有画面（LINE・メッセージなど）から招待を直接送れる。使えないときや閉じたときはコピー（2026.11.03.9） */const canShareInvite=()=>!!navigator.share&&matchMedia('(pointer:coarse)').matches;if(canShareInvite())$('#bCopy').textContent='招待を送る';
+$('#bCopy').onclick=async()=>{const t=`【ポコチャ電鉄・全国編 オンライン対戦のお誘い】\n部屋コード：${code}\nこのゲームのページを開いて、部屋コードを入れてね！\n${location.origin+location.pathname+'?room='+encodeURIComponent(code)}`;if(canShareInvite()){try{await navigator.share({title:'ポコチャ電鉄・全国編',text:t});return}catch(e){if(e&&e.name==='AbortError')return}}try{await navigator.clipboard.writeText(t);toast('招待文をコピーしました')}catch{toast('コピーできませんでした。部屋コード '+code+' を伝えてください')}};
 STAMPS.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.onclick=()=>{if(Date.now()-lastStamp<3000){toast('スタンプは3秒に1回までです');return}lastStamp=Date.now();unlock();if(grp)grp.emit('stamp',{i}).catch(e=>toast('スタンプを送れませんでした。理由：'+errReason(e)));else{floatStamp(t);sfx('stamp')}};$('#stamps').appendChild(b)});
 $('#soundChip').onclick=()=>{unlock();setTimeout(()=>{sfx('myturn');render()},150)};
 $('#bPause').onclick=()=>{unlock();const o=$('#ov');o.innerHTML=`<div class="card"><div class="pz-icon">⏸</div><h3>ここで中断しますか？</h3><p style="text-align:left">全員の画面が止まり、手番の時間も止まります。盤面は保存されるので、あとで「続きから遊ぶ」から再開できます。</p><button id="pzYes">中断する</button>${dispState&&!dispState.days?'<button class="ghost" id="pzEnd">ゲームを終える（最終決算）</button>':''}<button class="ghost" id="ovClose">やめる</button></div>`;o.hidden=false;
