@@ -107,7 +107,8 @@ service cloud.firestore {
    }
    match /live/{u} {
     allow read: if member(c);
-    allow create,update: if member(c) && me()==u && room(c).phase=='playing' && request.resource.data.keys().hasOnly(['uid','turn','seat','d','ds','card','path','at'])
+    allow create,update: if member(c) && me()==u && room(c).phase=='playing' && request.resource.data.keys().hasOnly(['uid','turn','seat','d','ds','card','path','at','stage','info'])
+     && request.resource.data.get('stage','') is string && request.resource.data.get('stage','').size()<=12 && request.resource.data.get('info','') is string && request.resource.data.get('info','').size()<=60
      && request.resource.data.uid==me() && request.resource.data.turn is int && request.resource.data.seat is int && request.resource.data.seat>=0 && request.resource.data.seat<4
      && room(c).seatUids[request.resource.data.seat]==me() && request.resource.data.d is int && request.resource.data.ds is list && request.resource.data.ds.size()<=8
      && request.resource.data.card is string && request.resource.data.card.size()<=24 && request.resource.data.path is list && request.resource.data.path.size()<=80 && request.resource.data.at==request.time;
