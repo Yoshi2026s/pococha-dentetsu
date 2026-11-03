@@ -1103,7 +1103,7 @@ h2{font-family:var(--f-pop);font-weight:400;letter-spacing:.03em}
  async requests(c){return game(c).collection('actions').where('status','==','pending').get();},
  /* ホスト以外：届いた操作で結果を先読みするための監視。ルールが未反映（読めない）ときは何も表示せず止める */
  /* 手番の途中経過（サイコロの目・進んでいる道）を参加者に送る・受け取る。ルールが未反映（書けない・読めない）ときは何もしない */
- setLive(c,d){return game(c).collection('live').doc(uid()).set({uid:uid(),turn:d.turn,seat:d.seat,d:d.d,ds:d.ds||[],card:d.card||'',path:d.path||[],stage:String(d.stage||'').slice(0,12),info:String(d.info||'').slice(0,60),at:stamp()});},
+ setLive(c,d){return game(c).collection('live').doc(uid()).set({uid:uid(),turn:d.turn,seat:d.seat,d:d.d,ds:d.ds||[],card:d.card||'',path:d.path||[],stage:String(d.stage||'').slice(0,12),info:String(d.info||'').slice(0,60),opts:(d.opts||[]).slice(0,10),at:stamp()});},
  watchLive(c,fn){let off=null;try{off=game(c).collection('live').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed'&&!ch.doc.metadata.hasPendingWrites)fn(ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};},
  watchPending(c,fn){let off=null;try{off=game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};}
  };
@@ -2352,7 +2352,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){/* 新しい�
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
 function resetGame(){document.body.classList.remove('ingame');setWx(-1);{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
-  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;liveWalk=null;liveCur=null;liveRolled=-1;liveCard=null;liveLast=null;liveKey='';lastTurnKey='';const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[];cmtQ=[];clearTimeout(cmtT);cmtT=0;cmtLast=0}}
+  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;liveWalk=null;liveCur=null;liveRolled=-1;liveCard=null;liveLast=null;liveKey='';liveStepGen++;lastTurnKey='';{const g=$('#liveopts');if(g)g.innerHTML=''}const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[];cmtQ=[];clearTimeout(cmtT);cmtT=0;cmtLast=0}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
 const seatOnline=i=>grp?peers.some(p=>p.presence&&p.presence.seat===i):!!seats[i];
@@ -2378,26 +2378,33 @@ const KEEP=40;function pruneOld(tipTurn){if(db.online)return;const cut=tipTurn-K
 function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.delete(id);VOK.clear();const t=curTip();if(t&&shownTip===id){shownTip=t.id;dispState=t.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}render()}
 /* 手番の途中経過のリアルタイム表示（通信対戦・2026.11.03.10）：自分の番でサイコロを振った・道を1マス進めたら、目と道を送る（最大で約0.25秒に1回にまとめる）。
    ほかの人の画面では、確定を待たずにサイコロと駒の移動を見せ、確定した記録が同じ道ならもう一度は動かさない */
-let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null;
+let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null,liveStepGen=0;
+/* ほかの人が分かれ道で迷っている候補（A/B/C…）を、自分の地図にも出す（押せない表示だけ・2026.11.03.12） */
+function liveOptsDraw(L){const g=$('#liveopts');if(!g)return;const o=L&&L.stage==='route'?(L.opts||[]).filter(x=>NODES[x]):[];if(!o.length){g.innerHTML='';return}if(!g.children.length)$('#mapbox').querySelectorAll('.fx.respop').forEach(e=>{if(e.dataset.out)return;e.dataset.out=1;try{e.animate([{opacity:1},{opacity:0}],{duration:220,fill:'forwards'})}catch{}setTimeout(()=>e.remove(),230)});/* 候補に重なる結果カードは消す */
+  g.innerHTML=o.map((x,k)=>{const n=NODES[x],c=OPTC[k%OPTC.length];return`<g transform="translate(${n.x.toFixed(1)} ${n.y.toFixed(1)})"><circle class="optpulse" r="12.5" fill="none" stroke="${c}" stroke-width="2"/><circle r="9.5" fill="${c}" stroke="#fff" stroke-width="2.2" opacity=".92"/><text y="3.6" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="var(--f-display)">${OPTL[k%OPTL.length]}</text></g>`}).join('')}
 function sendLive(o){if(!db||!db.online||liveOff||!code||!db.online.setLive)return;liveQ={...o,c:code};if(liveT)return;
   const go=async()=>{liveT=0;const q=liveQ;liveQ=null;if(!q)return;try{await db.online.setLive(q.c,q)}catch(e){if(e&&/permission/.test(String(e.code||e.message)))liveOff=true}if(liveQ&&!liveT)liveT=setTimeout(go,250)};liveT=setTimeout(go,0)}
 /* 自分の番の画面の状態（道選び・カード選び・物件選び・ショップ・報酬・売却・1番乗り）から途中経過を作り、変わったときだけ送る（2026.11.03.11） */
 function liveFromPending(){try{if(!pending||!db||!db.online||!meta||meta.phase!=='playing'||!pending.st)return;const st=pending.st,seat=curSeat(st);if(seat!==mySeat())return;
   let stage=pending.stage,info='';const cs=document.querySelector('#ov:not([hidden]) .cardsheet');if(stage==='act'){if(!cs)return;stage='card'}
   const pv=pending.pv,yen=v=>v.toLocaleString()+'G';
-  if(stage==='buy'&&pv){const B=pv.nd.bases,sel=[...(pending.sel||[])];info=`${pv.nd.name}駅で物件を選び中（${sel.length}件・${yen(sel.reduce((a,j)=>a+(B[j]?B[j].price:0),0))}）`}
-  else if(stage==='shop'&&pv){const ops=pending.shopOps||[],nb=ops.filter(o=>o[0]==='b').length,ns=ops.filter(o=>o[0]==='s').length;info=`カードショップで買い物中`+(nb||ns?`（買う${nb}・売る${ns}）`:'')}
-  else if(stage==='goalfx'&&pv)info=`${pv.nd.name}に1番乗り！`;else if(stage==='reward')info='ポコチャレの報酬を選び中';else if(stage==='fsell')info='ゴールドが足りず、物件を売却中';else if(stage==='card')info='カードを選び中';
-  const L={turn:st.turn,seat,stage:String(stage).slice(0,12),info:info.slice(0,60),d:pending.d||0,ds:pending.ds||[],card:(pending.base&&pending.base.card)||'',path:pending.start!=null?[pending.start,...(pending.route||[])].slice(0,80):[]};
+  if(stage==='buy'&&pv){const B=pv.nd.bases,sel=[...(pending.sel||[])].sort((a,b)=>a-b),k=NODES.indexOf(pv.nd),nm=sel.map(j=>{try{return fanName(st,k,j)}catch{return''}}).filter(Boolean);info=`${pv.nd.name}駅で物件を選び中（${sel.length}件・${yen(sel.reduce((a,j)=>a+(B[j]?B[j].price:0),0))}）`+(nm.length?'：'+nm.join('・'):'')}
+  else if(stage==='shop'&&pv){const ops=pending.shopOps||[],nb=ops.filter(o=>o[0]==='b').length,ns=ops.filter(o=>o[0]==='s').length;const lo=ops[ops.length-1];info=lo&&CARDN[lo[1]]?`カードショップで「${CARDN[lo[1]]}」を${lo[0]==='b'?'購入':'売却'}（買う${nb}・売る${ns}）`:'カードショップで買い物中'}
+  else if(stage==='goalfx'&&pv)info=`${pv.nd.name}に1番乗り！`;else if(stage==='reward')info='ポコチャレの報酬を選び中';else if(stage==='fsell')info='ゴールドが足りず、物件を売却中';else if(stage==='card')info=`カードを選び中（手札${(st.players[seat].hand||[]).length}枚）`;
+  const L={turn:st.turn,seat,stage:String(stage).slice(0,12),info:info.slice(0,60),d:pending.d||0,ds:pending.ds||[],card:(pending.base&&pending.base.card)||'',path:pending.start!=null?[pending.start,...(pending.route||[])].slice(0,80):[],opts:stage==='route'&&pending.waiting?routeOpts().slice(0,10):[]};
   const key=JSON.stringify(L);if(key===liveKey)return;liveKey=key;sendLive(L)}catch{}}
 function onLive(L){try{if(!L||!meta||L.uid===myId||meta.paused||meta.phase!=='playing')return;const tip=curTip();
   if(!tip||tip.pred||tip.state.finished||tip.turn!==L.turn||curSeat(tip.state)!==L.seat||!seats[L.seat]||seats[L.seat].uid!==L.uid)return;
   liveLast=L;/* 前の手番の演出がまだ終わっていない人は、演出が終わった時点でこの途中経過に追いつく */if(animating()||!dispState||dispState.turn!==tip.turn)return;
-  const prevStage=liveCur&&liveCur.turn===L.turn?liveCur.stage:'';liveCur={turn:L.turn,seat:L.seat,d:L.d||0,n:Math.max(0,(L.path||[]).length-1),stage:L.stage||'route',info:L.info||''};
+  const prevStage=liveCur&&liveCur.turn===L.turn?liveCur.stage:'';liveCur={turn:L.turn,seat:L.seat,d:L.d||0,n:Math.max(0,(L.path||[]).length-1),stage:L.stage||'route',info:L.info||'',fork:(L.opts||[]).length>0};
   const p=(L.path||[]).filter(x=>NODES[x]);
   if(L.card&&CARDN[L.card]&&!(liveCard&&liveCard.turn===L.turn+1)){liveCard={turn:L.turn+1,card:L.card};cardBan(L.card,NODES[p[0]]||NODES[tip.state.players[L.seat].pos])}
-  if(L.d&&liveRolled!==L.turn){liveRolled=L.turn;rollCube(L.d,L.ds&&L.ds.length>1?L.ds:null,L.card||null);sfx('dice')}
-  if(p.length>1){const last=p[p.length-1],was=liveWalk&&liveWalk.turn===L.turn+1?liveWalk.path:'';const joined=p.join(',');if(joined!==was){movePawn(L.seat,last,true);camAt(NODES[last],ZM,SET.fast?140:300);sfx('step',p.length-1)}liveWalk={turn:L.turn+1,path:joined}}
+  if(L.d&&liveRolled!==L.turn){liveRolled=L.turn;rollCube(L.d,L.ds&&L.ds.length>1?L.ds:null,L.card||null);sfx('dice');if(L.ds&&L.ds.length>1)floatNum(NODES[p[0]]||NODES[tip.state.players[L.seat].pos],'サイコロ '+L.ds.join('+'),'var(--pink)')}
+  if(p.length>1){const joined=p.join(','),was=liveWalk&&liveWalk.turn===L.turn+1?liveWalk.path:'';if(joined!==was){const prev=was?was.split(',').map(Number):[],same=prev.length<=p.length&&prev.every((x,i)=>x===p[i]);
+    /* 前に見せた道の続きなら、増えたマスだけ1マスずつ進める（戻したときは、その位置へ直接） */const add=same?p.slice(Math.max(1,prev.length)):[p[p.length-1]],gap=SET.fast?70:140,left=Math.max(0,(L.d||0)-(p.length-1)),gen=++liveStepGen;
+    add.forEach((x,i)=>setTimeout(()=>{if(gen!==liveStepGen)return;movePawn(L.seat,x,true);if(same)addTrail(L.seat,x);sfx('step',p.indexOf(x));if(i===add.length-1){stepLeft(L.seat,x,left);camAt(NODES[x],ZM,SET.fast?140:300)}},i*gap))}
+    liveWalk={turn:L.turn+1,path:joined}}
+  liveOptsDraw(L);
   if(L.stage==='goalfx'&&prevStage!=='goalfx')sfx('rankup');
   render()}catch{}}
 /* 途中経過の文（手番の表示・地図の吹き出し） */
@@ -2406,7 +2413,7 @@ function liveBubble(){try{const mb=$('#mapbox');if(!mb)return;let e=$('#liveBub'
   const on=!!(db&&db.online&&meta&&meta.phase==='playing'&&!meta.paused&&tip&&c&&c.turn===tip.turn&&curSeat(tip.state)===c.seat&&c.seat!==mySeat()&&!animating()&&liveText(c));
   if(!on){if(e)e.hidden=true;return}if(!e){e=document.createElement('div');e.id='liveBub';e.className='livebub';e.setAttribute('aria-live','polite');mb.appendChild(e)}
   const t=seatName(c.seat)+'：'+liveText(c);if(e.textContent!==t)e.textContent=t;e.style.setProperty('--c',SEATC[c.seat]||'var(--pink)');e.hidden=false}catch{}}
-function liveText(c){if(!c)return'';if(c.info)return c.info;if(c.d)return`🎲${c.d}・あと${Math.max(0,c.d-c.n)}マス`;return''}
+function liveText(c){if(!c)return'';if(c.info)return c.info;if(c.d)return`🎲${c.d}・`+(c.fork?`分かれ道で選び中（あと${Math.max(0,c.d-c.n)}マス）`:`あと${Math.max(0,c.d-c.n)}マス`);return''}
 /* ほかの参加者の操作を受け取ったら、ホストの確定（もう1往復）を待たずに同じ計算で結果を先に表示する。サーバーの記録が届いたら照合し、違えば直す（ホスト以外・2026.11.03.8） */
 function predictAction(a){try{if(!a||a.status!=='pending'||!meta||meta.host===myId||meta.paused||!meta.seed||a.uid===myId)return;const tip=curTip();
   if(!tip||tip.pred||tip.state.finished||tip.id!==a.parent||tip.turn!==a.revision||curSeat(tip.state)!==a.seat)return;
@@ -2677,10 +2684,10 @@ let animGen=0;
 function cardBan(k,node){const r=LEGACY[k]?'N':(CARDR[k]||'N'),lv=RARLV[r],gi=GENRES.findIndex(g=>g[0]===CARDG[k]),bn=banner((lv>=4?'★ ':'')+(gi>=0?GENRES[gi][1]+' ':'')+CARDN[k]+'！',RARBG[r],(LEGACY[k]?'':r+'・')+CARDD[k]);if(bn){bn.classList.add('rar-'+r);const b0=bn.querySelector('.bn');if(b0)b0.insertAdjacentHTML('afterbegin',`<i class="bncard r-${r}" aria-hidden="true">${gi>=0?GENRES[gi][1]:'🃏'}<em>${LEGACY[k]?'旧':r}</em></i>`)}rarFx(r,node);if(gi>=0)setTimeout(()=>sfx(CG_SE[gi]),SET.fast?260:560+lv*60);return lv}
 function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(gen!==animGen)return;try{const s=r.state,seat=s.lastSeat,prev=dispState;
   const cardEv=(s.ev||[]).find(e=>e.k==='card');if(cardEv){/* 途中経過で同じカードの帯をもう見せていれば、確定時はくり返さない */if(liveCard&&liveCard.turn===s.turn&&liveCard.card===cardEv.v)liveCard=null;else{const lv=cardBan(cardEv.v,NODES[(s.lastPath||[])[0]]||NODES[s.players[seat].pos]);await wait(1300+lv*(SET.fast?100:300))}}
-  if(s.lastDices&&s.lastDices.length>1){floatNum(NODES[(s.lastPath||[])[0]]||NODES[0],'サイコロ '+s.lastDices.join('+'),'var(--pink)')}
+  if(s.lastDices&&s.lastDices.length>1&&liveRolled!==s.turn-1){floatNum(NODES[(s.lastPath||[])[0]]||NODES[0],'サイコロ '+s.lastDices.join('+'),'var(--pink)')}
   if(cardEv&&MOVEC.includes(cardEv.v)&&s.lastPath&&s.lastPath.length>1){const a=NODES[s.lastPath[0]],b=NODES[s.lastPath[1]];sfx('rankup');shock(a,'var(--card)');burst('star',a);await wait(500);movePawn(seat,s.lastPath[1]);camTo(b,1.6,400);shock(b,'var(--card)');burst('star',b);await wait(900);camHome()}
   {const tr=$('#turnRing');if(tr)tr.innerHTML=''}
-  const lw=liveWalk&&liveWalk.turn===s.turn,walked=(localWalk&&localWalk.turn===s.turn&&localWalk.path===(s.lastPath||[]).join(','))||(lw&&liveWalk.path===(s.lastPath||[]).join(','));if(localWalk&&localWalk.turn===s.turn)localWalk=null;if(lw){if(!walked)drawPawns(prev);liveWalk=null}if(liveCur&&liveCur.turn<s.turn)liveCur=null;
+  const lw=liveWalk&&liveWalk.turn===s.turn,walked=(localWalk&&localWalk.turn===s.turn&&localWalk.path===(s.lastPath||[]).join(','))||(lw&&liveWalk.path===(s.lastPath||[]).join(','));if(localWalk&&localWalk.turn===s.turn)localWalk=null;if(lw){liveStepGen++;if(!walked)drawPawns(prev);liveWalk=null;stepLeft(seat,null,0);liveOptsDraw(null)}if(liveCur&&liveCur.turn<s.turn)liveCur=null;
   if(s.lastDice&&walked){const path=s.lastPath;movePawn(seat,path[path.length-1]);await wait(250)}
   else if(s.lastDice){rollCube(s.lastDice,s.lastDices,cardEv?cardEv.v:null);sfx('dice');await wait((meta.cpu||[]).includes(seat)?650:900);const path=s.lastPath||[];
     if(path.length>1){camAt(NODES[path[0]],ZM,400);stepLeft(seat,path[0],path.length-1)}await wait(SET.fast?200:450);
@@ -2997,7 +3004,7 @@ function buildMap(){const L=[],F=[];setTimeout(()=>{const m=$('#mapfx');if(m&&!$
     let best=C[0],bs=1e9;C.forEach((r,ci)=>{let sc=ci*0.1;if(r.x<2||r.x+w>WW-2||r.y<2||r.y+h>WH-2)sc+=50;NODES.forEach((m,j)=>{if(m!==n&&hit(r,m.x,m.y,m.type==='station'?9:6))sc+=m.type==='station'?20:6});plates.forEach(q=>{if(over(r,q))sc+=30});if(sc<bs){bs=sc;best=r}});
     plates.push(best);L.push(`<use href="#sq-station" x="${n.x-12}" y="${n.y-12}" width="24" height="24"/>`);n.plate=best});
   NODES.forEach(n=>{if(!n.plate)return;const r=n.plate;L.push(`<g class="lbl" data-x="${n.x}" data-y="${n.y}"><rect x="${r.x+1.5}" y="${r.y+1.8}" width="${r.w}" height="${r.h}" rx="7.5" fill="var(--outline)"/><rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="7.5" fill="var(--panel)" stroke="var(--outline)" stroke-width="1.4"/><text x="${r.x+r.w/2}" y="${r.y+11.5}" text-anchor="middle" font-size="10" font-weight="800" font-family="var(--f-display)" fill="var(--ink)">${n.name}</text></g>`)});
-  F.push('<g id="ghost"></g><g id="stepfx"></g><g id="choices"></g>');
+  F.push('<g id="ghost"></g><g id="stepfx"></g><g id="choices"></g><g id="liveopts" style="pointer-events:none"></g>');
   F.push('<g id="turnRing"></g>');
   F.push('<g id="pawns">'+[0,1,2,3].map(i=>`<g id="pw${i}" style="transition:transform .26s ease-out"><g class="psc"><g class="poff" style="transition:transform .25s ease-out;transform:translate(0px,-10px)"><g class="bus"><ellipse cy="7.2" rx="8.6" ry="1.7" fill="#000" opacity=".25"/><path d="M-8.4 5V-2.2Q-8.4-6-4.6-6H4.6Q8.4-6 8.4-2.2V5Z" fill="${SEATC[i]}" stroke="var(--ink)" stroke-width="1" stroke-linejoin="round"/><path d="M-8.4 5V-2.2Q-8.4-6-4.6-6H4.6Q8.4-6 8.4-2.2V5Z" fill="url(#pawnShade)"/><g fill="#d6f2ff" stroke="var(--ink)" stroke-width=".5"><rect x="-6.6" y="-4.3" width="3.6" height="2.8" rx=".8"/><rect x="-1.8" y="-4.3" width="3.6" height="2.8" rx=".8"/><rect x="3" y="-4.3" width="3.6" height="2.8" rx=".8"/></g><path d="M-6.2-4l1.4 0-1.6 2.2z M-1.4-4l1.4 0-1.6 2.2z M3.4-4l1.4 0-1.6 2.2z" fill="#fff" opacity=".8"/><rect x="-8.4" y="-.6" width="16.8" height=".9" fill="#fff" opacity=".7"/><g fill="var(--ink)"><circle cx="-4.4" cy="5.2" r="1.9"/><circle cx="4.4" cy="5.2" r="1.9"/></g><g fill="#c9c3d6"><circle cx="-4.4" cy="5.2" r=".7"/><circle cx="4.4" cy="5.2" r=".7"/></g><text class="pwl" y="3.6" font-size="4.3" text-anchor="middle" fill="#fff" font-weight="900" stroke="#2b2236" stroke-width=".6" paint-order="stroke">${i+1}P</text></g></g></g></g>`).join('')+'</g><g id="trollMark"></g>');
   $('#map').innerHTML=L.join('');$('#mapfx').innerHTML=F.join('')}
