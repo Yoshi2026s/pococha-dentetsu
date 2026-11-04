@@ -31,6 +31,7 @@ function client(id){const store=env.authenticatedContext(id).firestore(),auth={c
   await test('途中経過：自分の席の途中経過を書ける',()=>assertSucceeds(a.store.doc('pdGames/ABCD/live/alice').set(L(as,'alice'))));
   await test('途中経過：場面と説明（物件を選び中など）を書ける',()=>assertSucceeds(a.store.doc('pdGames/ABCD/live/alice').set({...L(as,'alice'),stage:'buy',info:'大牟田駅で物件を選び中（2件・4,800G）'})));
   await test('途中経過：分かれ道の候補（10か所まで）を書ける',()=>assertSucceeds(a.store.doc('pdGames/ABCD/live/alice').set({...L(as,'alice'),stage:'route',info:'',opts:[4,5,6]})));
+  await test('途中経過：ショップの売り買い・売却中の物件（文字の一覧）を書ける',()=>assertSucceeds(a.store.doc('pdGames/ABCD/live/alice').set({...L(as,'alice'),stage:'shop',info:'',opts:['b:linear','s:warp','?12:3']})));
   await test('途中経過：候補が多すぎると拒否',()=>assertFails(a.store.doc('pdGames/ABCD/live/alice').set({...L(as,'alice'),stage:'route',info:'',opts:[1,2,3,4,5,6,7,8,9,10,11]})));
   await test('途中経過：長すぎる説明は拒否',()=>assertFails(a.store.doc('pdGames/ABCD/live/alice').set({...L(as,'alice'),stage:'buy',info:'あ'.repeat(61)})));
   await test('途中経過：参加者は読める',()=>assertSucceeds(h.store.collection('pdGames/ABCD/live').get()));

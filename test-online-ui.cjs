@@ -1,5 +1,6 @@
 // 通信対戦の画面まわりの改善（2026-11-03）のテスト（Playwright・Chromium・iPhone幅375px・通信なし）
 // 1) 名前を決めていない人は「ホスト」「2Pさん」のように区別できる（以前は全員「参加者」）
+// 4) 途中経過の絵札（ショップの売り買い・売却中の物件）
 // 3) 音と設定の「途中経過を見る」「カメラで追いかける」が保存される
 // 2) スマホで共有画面が使えるときは「招待を送る」で共有画面を開く（閉じたらそれで終わり）。使えないときは今までどおりコピー
 const {chromium}=require('playwright');const path=require('path');
@@ -18,6 +19,10 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
     await p.evaluate(()=>{const o=document.querySelector('#ov');o.hidden=true;o.innerHTML=''});await p.click('#bStart');await p.waitForTimeout(1500);await p.click('#bMenu');await p.waitForTimeout(300);await p.click('#mnSet');await p.waitForTimeout(300);
     const sv=await p.evaluate(()=>{const a=document.querySelector('#sLive'),b=document.querySelector('#sLiveCam');if(!a||!b)return null;const r=[a.checked,b.checked,a.getBoundingClientRect().height>0];a.click();b.click();const s=JSON.parse(localStorage.getItem('poco-set')||'{}');return r.concat([s.live,s.liveCam,a.closest('label').getBoundingClientRect().height])});
     ok(sv&&sv[0]&&sv[1]&&sv[3]===false&&sv[4]===false&&sv[5]>=48,'途中経過の設定 '+JSON.stringify(sv));
+    /* 4) 途中経過の絵札：ショップの売り買い（売ったものは✕）・売却中の物件（選んでいる売却先は光る輪） */
+    const ic=await p.evaluate(()=>{const tip=curTip(),k=NODES.findIndex(n=>n.type==='station'&&n.bases&&n.bases.length>2);liveOptsDraw({turn:tip.turn,seat:1,stage:'shop',path:[],opts:['b:linear','s:warp']});const g=document.querySelector('#liveopts'),sh=g.querySelector('.lo-shop'),a=[sh?sh.children.length:0,sh?sh.querySelectorAll('path').length:0];
+      liveOptsDraw({turn:tip.turn,seat:1,stage:'fsell',path:[],opts:[k+':0','?'+k+':1']});const se=g.querySelectorAll('.lo-sell');a.push(se.length,g.querySelectorAll('.lo-sell .optpulse').length);liveOptsDraw(null);a.push(g.children.length);return a});
+    ok(JSON.stringify(ic)==='[2,1,2,1,0]','途中経過の絵札（ショップ2枚・売った1枚に✕・売却2件・選んでいる1件・片づけ） '+JSON.stringify(ic));
     if(errs.length)fail.push('JSエラー '+errs.join(' / '));await c.close()}
   {const c=await b.newContext({viewport:{width:1000,height:700}});const p=await c.newPage();await p.route(/firebase|gstatic|googleapis/,r=>r.abort());
     await p.goto('file://'+path.resolve(__dirname,'index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);await p.click('#bCreate');await p.waitForTimeout(400);
