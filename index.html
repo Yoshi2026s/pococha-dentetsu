@@ -475,6 +475,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .tb-who{display:flex;flex-direction:column;min-width:0;line-height:1.15}.tb-who small{font-size:10px;font-weight:800;opacity:.9}.tb-who b{font-family:var(--f-display);font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:1px 1px 0 rgba(0,0,0,.25)}
 .tb-goal{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0;padding:4px 10px;border-radius:16px;background:var(--panel);border:2.5px solid var(--outline,#2b2236);box-shadow:3px 3px 0 var(--pop,#2b2236);line-height:1.2}
 .tb-goal small{font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tb-goal small b{color:var(--station);font-size:14px}
+.tb-ls{font-style:normal;font-size:11px;font-weight:800;white-space:nowrap;color:#fff;background:#e8402a;border-radius:8px;padding:0 5px;margin:0 4px}
 .tb-left{font-size:12px;font-weight:800;white-space:nowrap}.tb-left b{font-family:var(--f-display);font-size:24px;margin:0 2px;vertical-align:-2px}
 .tb-mine{font-size:10px!important}
 .ingame .mapbox{border-color:var(--turnc,var(--outline));transition:border-color .4s}
@@ -1587,7 +1588,7 @@ function chooseGoal(s,R){const c=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!(s.goal
 function genesisState(seed,days){days=DAYS_OPT.includes(days)?days:1;const rounds=roundsFor(days);
   const s={turn:0,month:1,hour:START_H,since:0,days,maxTurn:rounds*4,oi:0,order:[0,1,2,3],rng:0,goal:null,goalDist:0,okiUsed:false,troll:null,boost:null,owner:{},closed:0,finished:false,hist:[[10000,10000,10000,10000]],
   players:[0,1,2,3].map(()=>({pos:START,coin:10000,rank:'E1',pt:0,cards:0,hand:[],face:'ふつう',earned:0,mc:newMc(),md:[],mtot:0,minusTot:0,ye:0,yb:0,dmis:0,dye:0,dbuy:0,e0:0})),ev:[],lastSeat:null,lastDice:null,lastPath:[]};
-  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;
+  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;/* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
   chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.fy=1;/* コアファンの新ルール（0:00で0人に戻る・コアファンイベント） */s.rng=n;return s}
 
 // ===== ゴールドがマイナスのときの物件売却（第32版）=====
@@ -1681,10 +1682,11 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
       // 目的地は「ぴったり止まった」ときだけゴール（通り過ぎてもゴールにならない）
       txt=fixed&&!slowed?`ラッキー7で${d}マス`:(used==='just'?'ジャスト':'サイコロ')+ds.join('+')+(!slowed&&mul>1?'×'+mul:'')+(boost?'(+1)':'')+(!slowed&&add?'(+'+add+')':'')+(ds.length>1||boost||(!slowed&&(add||mul>1))?'='+d:'')}
     s.lastDice=d;s.lastPath=path;const nd=NODES[p.pos];
-    if(reached){const prize=fl100((5000+s.goalDist*300)*(BASEPT[p.rank]/1000)*(nd.oki?1.2:1));// 賞金：距離×ランク帯（長いゲームでも日数で膨らまない）
+    if(reached){let prize=fl100((5000+s.goalDist*300)*(BASEPT[p.rank]/1000)*(nd.oki?1.2:1));const gx=[];
+      /* ラストスパート（最後の8手番）は賞金2倍・逆転ボーナス（資産が単独最下位の人）は1.5倍（s.ls=1の盤面のみ） */if(s.ls){if(lsOn(st)){prize=fl100(prize*2);gx.push('🔥 ラストスパート×2')}const a0=assets(s,seat);if([0,1,2,3].every(i=>i===seat||assets(s,i)>a0)){prize=fl100(prize*1.5);gx.push('⤴️ 逆転ボーナス×1.5')}if(gx.length)ev('goalx',gx.join('・'),gx);p.gl=(p.gl||0)+1/* 1番乗りの回数（最終結果の「1番乗り王」） */}// 賞金：距離×ランク帯（長いゲームでも日数で膨らまない）
       if(s.gp){p.coin+=prize;p.earned+=prize;p.face='うれしい'}// 賞金の加算（gp=1の盤面のみ。以前の盤面は検算が合うよう従来どおり）
       const old=D(s.goal);let far=-1,fd=-1;s.players.forEach((q,i)=>{if(i===seat)return;const v=old[q.pos]+R()*.5;if(v>fd){fd=v;far=i}});s.troll=far;
-      ev('goal',`${nd.name}に1番乗り！ ＋${prize.toLocaleString()}G・コアファン＋5人・＋50pt`,prize);ptAdd(p,seat,50);if(!s.fy){s.players.forEach(q=>{q.ye=0;q.yb=0;q.mc.ye0=0});ev('yellreset','目的地が変わったので、全員のコアファンは0人から集め直し')}yellAdd(p,seat,5);ev('troll',`荒らしラグ王が${far+1}Pに取りついた`);chooseGoal(s,R);ev('newgoal','次の目的地は'+NODES[s.goal].name)}
+      ev('goal',`${nd.name}に1番乗り！ ＋${prize.toLocaleString()}G${gx.length?'（'+gx.map(x=>x.replace(/^\S+ /,'')).join('・')+'）':''}・コアファン＋5人・＋50pt`,prize);ptAdd(p,seat,50);if(!s.fy){s.players.forEach(q=>{q.ye=0;q.yb=0;q.mc.ye0=0});ev('yellreset','目的地が変わったので、全員のコアファンは0人から集め直し')}yellAdd(p,seat,5);ev('troll',`荒らしラグ王が${far+1}Pに取りついた`);chooseGoal(s,R);ev('newgoal','次の目的地は'+NODES[s.goal].name)}
     else if(nd.type==='yell'){const tz=TZ(s.hour),wx=s.weather||0,nb=baseCount(s,seat);let y=(1+Math.floor(R()*3))*YELLM.tz[tz]*YELLM.wx[wx]*(boost?1.5:1)+(nb>=12?2:nb>=5?1:0)+Math.floor(RI(p.rank)/6);y=Math.max(1,Math.round(y));p.face='うれしい';
       if(s.fy){/* コアファンイベント：人数の増え方が変わったり、ゴールド・ランクptがついたりする */const k=pickW(YELLW,R()),e=YEV[k];y=Math.max(1,Math.round(y*(e.mul||1)+(e.add||0)));const ex=[];if(e.c){const g=G(p,B*e.c);p.coin+=g;p.earned+=g;ex.push('＋'+g.toLocaleString()+'G')}
         txt+=`・コアファンマス「${EVN[k]}」 コアファン＋${kp(y)}（${TZN[tz]}・${WEATHER[wx][1]}）${ex.length?'・'+ex.join('・'):''}${e.pt?'・＋'+e.pt+'pt':''}`;yellAdd(p,seat,y);if(e.pt)ptAdd(p,seat,e.pt,EVN[k]);if(['SR','SSR','UR'].includes(EVR[k]))p.face='びっくり';ev('event','',k)}
@@ -1806,7 +1808,10 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     if(!s.finished&&s.hour%6===0)blockEnd(s,R)}
   // 無制限モード：誰かが「ゲームを終える」を押したら、その手番のあとで最終決算をして終わる
   if(action.end&&!s.days&&!s.finished)dayEnd(s,R,true);
+  if(s.ls&&!s.lsA&&lsOn(s)){s.lsA=1;ev('laststretch',`🔥 ラストスパート！ 残り${s.maxTurn-s.turn}手番は目的地の賞金が2倍`)}
   s.rng=n;return s}
+// ラストスパート：日数を決めた対戦の最後の8手番（2周）。目的地の賞金が2倍（s.ls=1の盤面のみ）
+const LS_TURNS=8,lsOn=st=>!!(st&&st.ls)&&!st.finished&&st.maxTurn>0&&st.maxTurn-st.turn<=LS_TURNS;
 // 6時間ごと：ポコチャレの締め（マイナス0回の判定）→新しいポコチャレ→天気が変わる
 function blockEnd(s,R){s.players.forEach((p,i)=>{if(s.mis.includes('nominus')&&!p.md.includes('nominus')&&!p.mc.minus)misReward(s,p,i,'nominus','coin',R,(k,t,v)=>s.ev.push({k,t,v,seat:i}));p.mc=newMc(p);p.md=[]});pickMis(s,R);s.ev.push({k:'newmis',t:`${s.hour}:00 新しいポコチャレ`});
   const w0=s.weather||0;s.weather=pickWeather(R);s.ev.push({k:'weather',t:`${s.hour}:00 天気${w0===s.weather?'は':'が'}${WEATHER[s.weather][0]}${WEATHER[s.weather][1]}${w0===s.weather?'のまま':'に変わった'}`,v:s.weather})}
@@ -2508,7 +2513,7 @@ function myDecide(st){return new Promise(res=>{pending={st,res,stage:'act'};sfx(
   const me=curSeat(st);if(st.players[me].coin<0&&ownedFans(st,me).length)setTimeout(()=>{if(pending&&pending.stage==='act'&&pending.st===st)startFsell(st,me,'pre',list=>{pending.preSell=list;pending.stage='act';render()})},SET.fast?500:1200)})}
 function preview(st,base={type:'roll'}){const snap={},s=applyTurn(st,{...base,buy:false},meta.seed,{noForce:true,snap});const seat=curSeat(st),pos=s.players[seat].pos,nd=NODES[pos];
   const bc=s.buyCtx||{coin:s.players[seat].coin,own:[]},ow=nd.type==='station'?bc.own:[],coin=bc.coin;
-  return{pos,nd,own:ow,coin,seat,canShop:nd.type==='shop'&&!!s.buyCtx&&(((bc.hand||[]).length<HANDMAX&&coin>=Math.min(...Object.values(SHOPP)))||(bc.hand||[]).length>0),hand:(nd.type==='shop'&&bc.hand?bc.hand:s.players[seat].hand).slice(),canBuy:ow.some((x,j)=>x==null&&coin>=nd.bases[j].price),dice:s.lastDice||1,dices:s.lastDices||null,path:s.lastPath,coupon:s.players[seat].coupon||0,goal:(()=>{const g=(s.ev||[]).find(e=>e.k==='goal');return g?{v:g.v,next:s.goal}:null})(),view:snap.mid||null}}
+  return{pos,nd,own:ow,coin,seat,canShop:nd.type==='shop'&&!!s.buyCtx&&(((bc.hand||[]).length<HANDMAX&&coin>=Math.min(...Object.values(SHOPP)))||(bc.hand||[]).length>0),hand:(nd.type==='shop'&&bc.hand?bc.hand:s.players[seat].hand).slice(),canBuy:ow.some((x,j)=>x==null&&coin>=nd.bases[j].price),dice:s.lastDice||1,dices:s.lastDices||null,path:s.lastPath,coupon:s.players[seat].coupon||0,goal:(()=>{const g=(s.ev||[]).find(e=>e.k==='goal');return g?{v:g.v,next:s.goal,gx:((s.ev||[]).find(e=>e.k==='goalx')||{}).v||null}:null})(),view:snap.mid||null}}
 // CPUの強さ：弱い＝分岐ランダム・たまに安い拠点／普通＝最短・所持コインの半分まで／強い＝止まるマスを見て道を選ぶ・独占を狙う
 // ===== CPUキャラクター（第28版）：強さごとに10人。プロフィール・プレイの特徴・話し方・セリフ（10場面） =====
 // t（プレイの特徴）：card＝カードを使う頻度 high/mid/low、buy＝物件の買い方 all（買いまくり）/strong/normal/thrifty（節約）/weak、
@@ -2771,6 +2776,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
+  {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍');fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
   if(evs.some(e=>e.k==='newmis'))setTimeout(()=>{toast(`${s.hour}:00 新しいポコチャレが出ました（ポコチャレボタンで確認）`);const b=$('#bMis');if(b){b.classList.remove('ping');void b.offsetWidth;b.classList.add('ping')}},SET.fast?500:1200);
   const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('celebrate');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`物件${ft.v}件！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントのゴールドが＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
@@ -2779,7 +2785,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   /* 対戦が終わった0:00は「また今日から集め直し」の案内を出さない（2026-11-01） */{const yr=evs.find(e=>e.k==='yellreset');if(yr&&!s.finished)setTimeout(()=>toast(evs.some(e=>e.k==='monthend')?'💖 0:00の決算で、全員のコアファンが0人に戻りました（また今日から集め直し）':'💖 目的地が変わったので、全員のコアファンが0人に戻りました'),SET.fast?700:1700)}/* 記録の文（検算に使う）はそのまま、表示だけ読みやすく */
   {const we=evs.find(e=>e.k==='weather');if(we)setTimeout(()=>toast(we.t),SET.fast?600:1500)}
   const yb=evs.filter(e=>e.k==='yellbonus');yb.forEach((e,i)=>setTimeout(()=>{sfx('celebrate');if(e.v!==seat)toast('🎉 '+e.t);/* 止まった人のボーナスは結果カードに出るので、お知らせは重ねない */chipDelta(e.v,0)},(SET.fast?400:900)+i*500));
-  {const g=evs.find(e=>e.k==='goal');if(g){if(localGoal===s.turn){localGoal=null;await wait(300)}else await goalShow(seat,pNode,g.v,s.goal)}}
+  {const g=evs.find(e=>e.k==='goal');if(g){if(localGoal===s.turn){localGoal=null;await wait(300)}else await goalShow(seat,pNode,g.v,s.goal,(evs.find(e=>e.k==='goalx')||{}).v)}}
   if(evs.some(e=>e.k==='mono'))setTimeout(()=>{comments('mono',6);sfx('rankup');pillar(pNode,'#ffcf3a');banner('独占！','#ffcf3a',(pNode.name||'')+' 決算'+(pNode.mono||2)+'倍');fireworks(2)},SET.fast?500:1100);
   if(evs.some(e=>e.k==='buy')){comments('buy',3);sfx('buy');houseRise(pNode,SEATC[seat]);burst('coin',pNode);banner('物件獲得！','var(--station)',pNode.name||'');coinsFly(pNode,seat,6,true)}
   const tr=evs.find(e=>e.k==='troll');if(tr){sfx('troll');vib([40,30,40,30,40]);glitch();staticNoise(1100);comments('troll',6);const big=lateGame(s);
@@ -2833,7 +2839,7 @@ function drawTurnBar(ds,ts){const b=$('#turnBar');if(!b)return;const me=mySeat()
   const left=dg[pos(ts)],mine=me>=0?dg[pos(me)]:null,key=ds.turn+':'+ts,flash=key!==lastTurnKey;lastTurnKey=key;
   $('#mapbox').style.setProperty('--turnc',SEATC[ts]);
   b.innerHTML=`<span class="tb-turn${flash?' flash':''}${ts===me?' mine':''}" style="--c:${SEATC[ts]}"><span class="tb-face">${faceSvg(ds.players[ts].face,HAIR[ts])}</span><span class="tb-who"><small>いまの番</small><b>${ts===me?`${esc(seatName(ts))}の番！`:esc(seatName(ts))}</b></span></span>
-    <span class="tb-goal"><small>🏁 目的地 <b>${g?esc(g.name):'–'}</b></small><span class="tb-left">${esc(seatName(ts))} あと<b style="color:${SEATC[ts]}">${left}</b>マス</span>${me>=0&&ts!==me?`<small class="tb-mine">${esc(seatName(me))} あと${mine}</small>`:''}</span>`;
+    <span class="tb-goal"><small>${lsOn(ds)?'<i class="tb-ls">🔥賞金×2</i>':''}🏁 目的地 <b>${g?esc(g.name):'–'}</b></small><span class="tb-left">${esc(seatName(ts))} あと<b style="color:${SEATC[ts]}">${left}</b>マス</span>${me>=0&&ts!==me?`<small class="tb-mine">${esc(seatName(me))} あと${mine}</small>`:''}</span>`;
   drawTurnRing(ds,ts)}
 function drawTurnRing(ds,ts){const g=$('#turnRing');if(!g)return;if(ts<0||!ds){g.innerHTML='';return}const n=NODES[ds.players[ts].pos];
   g.innerHTML=`<circle class="turnring" cx="${n.x}" cy="${n.y}" r="13" fill="none" stroke="${SEATC[ts]}" stroke-width="3"/><circle cx="${n.x}" cy="${n.y}" r="13" fill="${SEATC[ts]}" opacity=".18"/>`}
@@ -2888,7 +2894,7 @@ function showMis(){const st=misSt;if(!st||!st.mis)return;const o=$('#ov'),I=misI
   o.hidden=false;const c=$('#msClose');c.onclick=()=>{o.hidden=true;o.innerHTML=''}}
 function awards(s){const best=(f,lo)=>{const v=[0,1,2,3].map(i=>f(i)),m=lo?Math.min(...v):Math.max(...v);return m>0||lo?[0,1,2,3].filter(i=>v[i]===m):[]};
   const A=[['稼ぎ王',best(i=>s.players[i].earned),i=>s.players[i].earned.toLocaleString()+'G'],['ランク王',best(i=>RANKS.indexOf(s.players[i].rank)),i=>s.players[i].rank],
-    ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>'達成'+s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>'マイナスマス'+(s.players[i].minusTot||0)+'回']].concat(s.fy?[['コアファン王',best(i=>s.players[i].yt||0),i=>'合計'+(s.players[i].yt||0)+'人']]:[]);
+    ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>'達成'+s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>'マイナスマス'+(s.players[i].minusTot||0)+'回']].concat(s.fy?[['コアファン王',best(i=>s.players[i].yt||0),i=>'合計'+(s.players[i].yt||0)+'人']]:[]).concat(s.ls?[['1番乗り王',best(i=>s.players[i].gl||0),i=>(s.players[i].gl||0)+'回']]:[]);
   return`<div class="awards">${A.filter(a=>a[1].length&&a[1].length<4).map(([t,w,f])=>`<span class="award"><small>${t}</small><span>${w.map(i=>`<b style="color:${SEATC[i]}">${esc(seatName(i))}</b>`).join('・')}</span><i>${f(w[0])}</i></span>`).join('')}</div>`}
 function assetChart(hist,dark){if(!hist||hist.length<2)return'';/* 線の名札は地図の電車と同じ名前の2文字 */const PL=typeof pawnLabels==='function'&&meta&&meta.phase==='playing'?pawnLabels():null;const W=290,H=120,P=26,mx=Math.max(...hist.flat())*1.08,X=i=>P+i*(W-P-28)/(hist.length-1),Y=v=>H-18-(v/mx)*(H-30);
   const mon=hist.map((_,i)=>i?`${i}日目`:'開始');let g=`<svg class="achart" viewBox="0 0 ${W} ${H}" role="img" aria-label="総Gの推移"><line x1="${P}" y1="${H-18}" x2="${W-24}" y2="${H-18}" stroke="currentColor" opacity=".3"/>`;
@@ -3436,10 +3442,10 @@ function goalScreen(seat,n){return new Promise(res=>{const F=SET.fast?.5:1,old=d
   o.addEventListener('click',()=>{if(performance.now()-t0>400)end()});setTimeout(end,(reduce?1600:3800)*F)})}
 // ===== 目的地1番乗りの演出（第29版）：お祝い→特典→次の目的地ルーレット =====
 let localGoal=null;
-async function goalShow(seat,n,prize,next){duckBgm(SET.fast?4:9.5);sfx('goalBig');vib([80,40,80,40,220]);const F=SET.fast?.5:1;
+async function goalShow(seat,n,prize,next,gx){duckBgm(SET.fast?4:9.5);sfx('goalBig');vib([80,40,80,40,220]);const F=SET.fast?.5:1;
   shock(n,'#ffd23f');pillar(n,'#ffd23f');fxEl('rarfx l4','',null,null,2600);cannon();fireworks(6);burst('confetti',n);burst('star',n);comments('goal',12);
   await goalScreen(seat,n);coinsFly(n,seat,12);setTimeout(()=>{fireworks(4);shock(n,'#ff4fb8')},300);
-  await showOverlayFx('rgba(255,207,58,.45)',`<p class="eyebrow">🏆 目的地 1番乗り特典</p><div class="prizefx"><svg viewBox="0 0 100 110"><g class="spark"><path d="M12 20l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#ffd23f"/></g><g class="spark s2"><path d="M88 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#ff5fa8"/></g><g class="beat gl"><path d="M24 14h52v22c0 18-12 30-26 30S24 54 24 36z" fill="#ffd23f" stroke="#5a1e00" stroke-width="4"/><path d="M24 22H10c0 16 8 24 18 24M76 22h14c0 16-8 24-18 24" fill="none" stroke="#5a1e00" stroke-width="5"/><rect x="44" y="64" width="12" height="16" fill="#ffb21c" stroke="#5a1e00" stroke-width="4"/><rect x="28" y="80" width="44" height="14" rx="3" fill="#ff7a1c" stroke="#5a1e00" stroke-width="4"/></g></svg></div><h3>${esc(n.name||'')}駅に1番乗り！</h3><div class="big" data-count="${prize}">＋0</div><div class="prz-chips"><span style="--c:#e0a400">💰 賞金</span><span style="--c:#1a8fe8">💖 コアファン＋5人</span><span style="--c:#7b3fe4">⭐ ランク＋50pt</span></div>`,SET.fast?1800:3200);
+  await showOverlayFx('rgba(255,207,58,.45)',`<p class="eyebrow">🏆 目的地 1番乗り特典</p><div class="prizefx"><svg viewBox="0 0 100 110"><g class="spark"><path d="M12 20l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#ffd23f"/></g><g class="spark s2"><path d="M88 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#ff5fa8"/></g><g class="beat gl"><path d="M24 14h52v22c0 18-12 30-26 30S24 54 24 36z" fill="#ffd23f" stroke="#5a1e00" stroke-width="4"/><path d="M24 22H10c0 16 8 24 18 24M76 22h14c0 16-8 24-18 24" fill="none" stroke="#5a1e00" stroke-width="5"/><rect x="44" y="64" width="12" height="16" fill="#ffb21c" stroke="#5a1e00" stroke-width="4"/><rect x="28" y="80" width="44" height="14" rx="3" fill="#ff7a1c" stroke="#5a1e00" stroke-width="4"/></g></svg></div><h3>${esc(n.name||'')}駅に1番乗り！</h3><div class="big" data-count="${prize}">＋0</div><div class="prz-chips"><span style="--c:#e0a400">💰 賞金</span><span style="--c:#1a8fe8">💖 コアファン＋5人</span><span style="--c:#7b3fe4">⭐ ランク＋50pt</span>${(gx||[]).map(x=>`<span style="--c:#e8402a">${esc(x)}</span>`).join('')}</div>`,SET.fast?1800:3200);
   if(next!=null)await goalRoulette(next)}
 async function goalRoulette(next){const names=NODES.filter((x,i)=>x.type==='station'&&i!==next).map(x=>x.name),e=fxEl('roul','<div class="rl-in"><small>🎯 次の目的地は…</small><b>？？？</b></div>',null,null,SET.fast?2600:4600);
   const b=e&&e.querySelector('b');let delay=50,tot=0,end=SET.fast?900:1900;while(tot<end){if(b)b.textContent=names[Math.floor(Math.random()*names.length)];sfx('roulTick');await wait(delay);tot+=delay;delay=Math.min(260,delay*1.12)}
@@ -3676,7 +3682,7 @@ function render(){if(pending)liveFromPending();liveBubble();const inRoom=!!code&
     /* 並びかえのアニメ用の位置は、作り直すときだけ測る（毎回測ると、そのたびに画面全体の再計算が起きる）（2026-11-01） */vis=!!box.querySelector('.pl[data-seat]')&&box.offsetParent!==null;if(vis)box.querySelectorAll('.pl[data-seat]').forEach(e=>oldR[e.dataset.seat]=e.offsetTop);
     box.innerHTML='';drawMis(vs);
     {const me=mySeat(),ng=pending&&pending.pv&&pending.pv.goal&&ts===me?pending.pv.goal.next:vs.goal,gn=NODES[ng],h=document.createElement('div');h.className='st-head';
-      h.innerHTML=`<span class="sh-goal">🏁 目的地 <b>${gn?esc(gn.name):'—'}</b></span><span class="sh-turn">${ts<0?'<b>ゲーム終了</b>':`いまの番：<b style="color:${SEATC[ts]}">${esc(seatName(ts))}</b>`}</span>`;box.appendChild(h);box.__ng=ng}
+      h.innerHTML=`<span class="sh-goal">🏁 目的地 <b>${gn?esc(gn.name):'—'}</b>${lsOn(vs)?'<i class="tb-ls" title="ラストスパート：目的地の賞金2倍">🔥×2</i>':''}</span><span class="sh-turn">${ts<0?'<b>ゲーム終了</b>':`いまの番：<b style="color:${SEATC[ts]}">${esc(seatName(ts))}</b>`}</span>`;box.appendChild(h);box.__ng=ng}
     order.forEach(i=>{const p=vs.players[i],d=document.createElement('div');d.className='pl'+(i===ts?' turn':'');d.dataset.seat=i;d.style.setProperty('--c',SEATC[i]);
     const nb=baseCount(vs,i),mo=monoList(vs,i).length;d.title=`物件${nb}件${mo?'・独占'+mo:''}・カード${(p.hand||[]).length}`;d.onclick=()=>showPlayer(vs,i);
     const ng=box.__ng,gl=NODES[ng]?D(ng)[i===ts&&pending&&pending.pv&&pending.pv.goal&&ts===mySeat()?pending.pv.pos:p.pos]:null,rk=place[i],prevRk=lastPlace[i];
@@ -3749,7 +3755,7 @@ const HOW=[['目的地を目指そう',['目的地は全国の駅からランダ
  ['マスと物件',['🟢プラス（ゴールド増）・🔴マイナス（減）・🔵コアファン・🟡カード・🎪イベント・🛍️カードショップ。','プラス・マイナス・コアファンの量は、時間帯（朝・昼・ゴールデン・深夜）と天気（6時間ごとに変わる）で変わります。','✈空港どうしは紫の点線（空路）、白い点線はフェリー航路。少ないマスで遠くまで行けます。','駅に止まると、ゴールドで物件（各地の名物）を獲得。毎日0:00の決算でゴールドがもらえます。','1つの駅の物件を全部1人で持つと「独占」で決算1.4〜2倍。物件が増えるほど、マスやイベントのゴールドも＋5〜160%。']],
  ['コアファン',['コアファンは人数で数えます。コアファンマス・イベント・ポコチャレ・1番乗りで増え、炎上などで減ります。','コアファンマスでは「常連さんがお友達を連れてきた」などのコアファンイベントが起き、人数が増えたりゴールド・ランクptがついたりします。','10人たまるごとにボーナスのゴールド（基本ゴールド×2）。いまの人数と次のボーナスまでは、プレイヤー欄をタップすると見られます。','毎日0:00の決算のあと、全員のコアファンは0人に戻ります（1日ごとに集め直し）。']],
  ['ランク帯',['E・D・C・B・A・Sの6帯×1〜6段階（E1〜S6）。全員E1スタート。','ランクが高いほど基本ゴールドが増え、マス・イベント・0:00決算の金額が上がります。','ランクptは1番乗り・イベント・ポコチャレ・0:00の締めの条件（物件獲得・ポコチャレ2回・コアファン10人・ゴールド目標）でたまり、必要数に届くとすぐランクアップ。','炎上・案件キャンセル・荒らしコメントでptが減り、0を下回るか、締めの条件を1つもクリアできないとランクダウン（ptは0から）。']],
- ['時間・お邪魔キャラ',['4人が1回ずつ動くと1時間進む24時間制で、18:00スタート。','ポコチャレは6時間ごとに3つ出ます。','だれかが目的地に1番乗りすると、目的地からいちばん遠い人に「荒らしラグ王」が取りつきます。','最後の0:00決算のあと、ゴールド＋物件＋ランクボーナスの合計が一番多い人が優勝。','途中でやめるときはメニューの「⏸ ゲームを中断する」。タイトルの「続きから遊ぶ」で再開できます。']]];
+ ['時間・お邪魔キャラ',['4人が1回ずつ動くと1時間進む24時間制で、18:00スタート。','ポコチャレは6時間ごとに3つ出ます。','だれかが目的地に1番乗りすると、目的地からいちばん遠い人に「荒らしラグ王」が取りつきます。','最後の0:00決算のあと、ゴールド＋物件＋ランクボーナスの合計が一番多い人が優勝。','日数を決めた対戦の最後の8手番は🔥ラストスパート：目的地の賞金が2倍。ゴールド＋物件の合計が単独で最下位の人が1番乗りすると、⤴️逆転ボーナスで賞金1.5倍。','途中でやめるときはメニューの「⏸ ゲームを中断する」。タイトルの「続きから遊ぶ」で再開できます。']]];
 let howI=0;function showHow(){const o=$('#ov');const [h,t]=HOW[howI];o.innerHTML=`<div class="card"><button type="button" class="ghost xclose" id="hClose" aria-label="閉じる">×</button><p class="eyebrow">遊び方 ${howI+1}／${HOW.length}</p><h3>${h}</h3><ul class="howlist">${t.map(x=>`<li>${x}</li>`).join('')}</ul><div class="row" style="justify-content:center">${howI>0?'<button class="ghost" id="hPrev">もどる</button>':''}<button id="hNext">${howI<HOW.length-1?'つぎへ':'とじる'}</button></div></div>`;o.hidden=false;
   const p=$('#hPrev');if(p)p.onclick=()=>{howI--;showHow()};$('#hClose').onclick=()=>{o.hidden=true;o.innerHTML='';howI=0};$('#hNext').onclick=()=>{if(howI<HOW.length-1){howI++;showHow()}else{o.hidden=true;o.innerHTML='';howI=0}}}
 /* ホーム画面に追加（2026-11-02）：Android などは確認画面を出し、iPhone などはやり方を案内する。ホーム画面から開いているときはボタンを出さない */
@@ -3828,7 +3834,7 @@ function clearChoices(){const g=$('#choices');if(g)g.innerHTML='';const o=$('#ro
 function drawGhost(){const g=$('#ghost');if(!g||!pending)return;const seat=curSeat(pending.st),pts=[pending.st.players[seat].pos,...pending.route].map(i=>NODES[i]);
   g.innerHTML=`<polyline points="${pts.map(n=>n.x.toFixed(1)+','+n.y.toFixed(1)).join(' ')}" fill="none" stroke="${SEATC[seat]}" stroke-width="4" stroke-dasharray="2 5" stroke-linecap="round" opacity=".9"/><circle cx="${pts[pts.length-1].x}" cy="${pts[pts.length-1].y}" r="7" fill="${SEATC[seat]}" stroke="var(--ink)" stroke-width="1.5"/><text x="${pts[pts.length-1].x}" y="${pts[pts.length-1].y+3}" text-anchor="middle" font-size="7" font-weight="800" fill="#fff">${pending.d-pending.route.length}</text>`}
 function finishChoice(base){if(!pending)return;const g=$('#ghost');if(g)g.innerHTML='';clearChoices();const pv=preview(pending.st,base);if(pv.view)pending.view=pv.view;
-  if(pv.goal&&!base.goalShown){const st=pending.st,seat=curSeat(st);pending.stage='goalfx';render();localGoal=st.turn+1;goalShow(seat,NODES[pv.pos],pv.goal.v,pv.goal.next).then(()=>{if(pending&&pending.stage==='goalfx')finishChoice({...base,goalShown:true})});return}if(pv.canShop&&!base.shopDone){pending.stage='shop';pending.pv=pv;pending.base=base;drawShop();sfx('station');render();return}
+  if(pv.goal&&!base.goalShown){const st=pending.st,seat=curSeat(st);pending.stage='goalfx';render();localGoal=st.turn+1;goalShow(seat,NODES[pv.pos],pv.goal.v,pv.goal.next,pv.goal.gx).then(()=>{if(pending&&pending.stage==='goalfx')finishChoice({...base,goalShown:true})});return}if(pv.canShop&&!base.shopDone){pending.stage='shop';pending.pv=pv;pending.base=base;drawShop();sfx('station');render();return}
   if(pv.canBuy){pending.stage='buy';pending.pv=pv;pending.base=base;{const B=pv.nd.bases,j=pv.own.map((x,j)=>x==null?j:-1).filter(j=>j>=0&&pv.coin>=B[j].price).sort((a,b)=>B[a].price-B[b].price)[0];pending.sel=new Set(j==null?[]:[j])}sfx('station');render()}else commitAction({...base,buy:false})}
 // ポコチャレを達成する手番なら、報酬（コイン／カード）を選んでから確定
 function commitAction(b){const{auto,shopDone,goalShown,...clean}=b;const snap={},pv=applyTurn(pending.st,{...clean,reward:'coin'},meta.seed,{noForce:true,snap}),m=pv.ev.filter(e=>e.k==='mission');
