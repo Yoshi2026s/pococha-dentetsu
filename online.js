@@ -49,9 +49,11 @@
  const a=clean(action);delete a.end;const body=()=>({uid:uid(),revision:tip.turn,parent:tip.id,seat,proxy:!!proxy,actionJson:JSON.stringify(a),status:'pending',createdAt:stamp()});
  /* 速い経路：読み取りなしの書き込み1回（手番・席・ホスト在席はルールが検査）。拒否されたら従来の確認つき処理で再送・手番ずれを判定 */
  try{await ref.set(body());return;}catch(e){if(e.code!=='permission-denied')throw e;}
- await fs.runTransaction(async tx=>{const [d,old]=await Promise.all([tx.get(r),tx.get(ref)]),m=d.data();if(old.exists)return;
+ /* 部屋を先に読み、手番が進んでいたら要求は読まずに終える（古い手番の要求の読み取りはルールで断られ、通信エラーに見えていた・2026.11.04.19） */
+ try{await fs.runTransaction(async tx=>{const d=await tx.get(r),m=d.data();
  if(!m||m.phase!=='playing'||m.paused||m.revision!==tip.turn||m.tipId!==tip.id)err('手番が更新されました。最新の画面で操作してください');
- tx.set(ref,body());});},
+ const old=await tx.get(ref);if(old.exists)return;
+ tx.set(ref,body());});}catch(e){/* 手番が進んでいても、自分の要求がすでに届いていれば成功として扱う */if(String(e&&e.message).includes('手番が更新')&&await online.actionStatus(c,tip.turn))return;throw e;}},
  /* ホスト自身・CPUの手番：行動要求を経由せず、盤面と部屋を1回のまとめ書きで確定する（手番ずれ・二重確定はルールと手番IDで防ぐ）。確定できなければfalse */
  async commit(c,tip,action,seat,proxy,m,apply){if(!m||!tip||m.host!==uid()||m.phase!=='playing'||m.paused||m.revision!==tip.turn||m.tipId!==tip.id||tip.state.finished)return false;
  if(proxy?!(m.cpu||[]).includes(seat):m.seatUids[seat]!==uid())return false;
@@ -60,21 +62,22 @@
  b.set(r.collection('turns').doc(id),encodeRec(rec));b.update(r,{tipId:id,revision:state.turn,turnAt:stamp()});
  try{await b.commit();return true;}catch(e){if(e.code==='permission-denied')return false;throw e;}},
  /* 参加者の行動要求の確定（速い経路）：届いた要求と手元の最新盤面で検算し、読み取りなしのまとめ書き1回で確定。条件が合わなければfalse（従来のprocessで処理） */
- async processFast(c,requestId,a,tipRec,m,apply,seatOf){if(!a||a.status!=='pending'||!tipRec||!m||m.host!==uid()||m.phase!=='playing'||m.paused)return false;
+ async processFast(c,requestId,a,tipRec,m,apply,seatOf,gone){if(!a||a.status!=='pending'||!tipRec||!m||m.host!==uid()||m.phase!=='playing'||m.paused)return false;
  if(a.revision!==m.revision||a.parent!==m.tipId||tipRec.id!==m.tipId||tipRec.turn!==m.revision)return false;
  const prev=tipRec.state,seat=seatOf(prev);if(prev.finished||seat!==a.seat)return false;
  const actor=m.seatUids[seat],elapsed=Date.now()-(m.turnAt?.toMillis?.()||Date.now());
- if(a.proxy){if(a.uid!==m.host||(!m.cpu.includes(seat)&&elapsed<(m.cpuTimeoutSec||90)*1000))return false;}else if(actor!==a.uid||m.cpu.includes(seat))return false;
+ if(a.proxy){if(a.uid!==m.host||(!m.cpu.includes(seat)&&elapsed<(m.cpuTimeoutSec||90)*1000&&!(gone&&gone(actor)&&elapsed>=5000)))return false;}else if(actor!==a.uid||m.cpu.includes(seat))return false;
  let action,state;try{action=JSON.parse(a.actionJson);if(m.endReq&&!prev.days)action.end=true;state=apply(prev,action,m.seed);}catch(e){return false;}
  const r=game(c),id=state.turn+'-1',rec={id,turn:state.turn,grant:1,parent:m.tipId,by:(a.proxy?'cpu':'s')+seat+':'+a.uid,action,state,rulesVersion:m.rulesVersion},b=fs.batch();
  b.set(r.collection('turns').doc(id),encodeRec(rec));b.update(r,{tipId:id,revision:state.turn,turnAt:stamp()});b.update(r.collection('actions').doc(requestId),{status:'processed'});
  try{await b.commit();return true;}catch(e){if(e.code==='permission-denied')return false;throw e;}},
- async process(c,requestId,apply,seatOf){const r=game(c),ar=r.collection('actions').doc(requestId);
- await fs.runTransaction(async tx=>{const [md,ad]=await Promise.all([tx.get(r),tx.get(ar)]);if(!md.exists||!ad.exists)return;const m=md.data(),a=ad.data();
- if(m.host!==uid()||a.status!=='pending')return;if(a.revision!==m.revision||a.parent!==m.tipId){tx.update(ar,{status:'rejected'});return;}if(m.phase!=='playing'||m.paused)return;
+ async process(c,requestId,apply,seatOf,gone){const r=game(c),ar=r.collection('actions').doc(requestId);
+ /* 部屋を先に読み、ホストでなくなっていたら要求は読まない（引き継ぎのあとで元のホストの処理が通信エラーにならないように・2026.11.04.19） */
+ await fs.runTransaction(async tx=>{const md=await tx.get(r);if(!md.exists||md.data().host!==uid())return;const ad=await tx.get(ar);if(!ad.exists)return;const m=md.data(),a=ad.data();
+ if(a.status!=='pending')return;if(a.revision!==m.revision||a.parent!==m.tipId){tx.update(ar,{status:'rejected'});return;}if(m.phase!=='playing'||m.paused)return;
  const pd=await tx.get(r.collection('turns').doc(m.tipId));if(!pd.exists)return;const prev=decodeRec(pd.data()),seat=seatOf(prev.state);if(prev.state.finished||seat!==a.seat)return;
  const actor=m.seatUids[seat],elapsed=Date.now()-(m.turnAt?.toMillis()||Date.now());
- if(a.proxy){if(a.uid!==m.host||(!m.cpu.includes(seat)&&elapsed<(m.cpuTimeoutSec||90)*1000))return;}else if(actor!==a.uid||m.cpu.includes(seat))return;
+ if(a.proxy){if(a.uid!==m.host||(!m.cpu.includes(seat)&&elapsed<(m.cpuTimeoutSec||90)*1000&&!(gone&&gone(actor)&&elapsed>=5000)))return;}else if(actor!==a.uid||m.cpu.includes(seat))return;
  let state;try {const action=JSON.parse(a.actionJson);if(m.endReq&&!prev.state.days)action.end=true;state=apply(prev.state,action,m.seed);}catch(e){tx.update(ar,{status:'rejected'});return;}
  const id=state.turn+'-1',rec={id,turn:state.turn,grant:1,parent:m.tipId,by:(a.proxy?'cpu':'s')+seat+':'+a.uid,action:{...JSON.parse(a.actionJson),...(m.endReq&&!prev.state.days?{end:true}:{})},state,rulesVersion:m.rulesVersion};
  tx.set(r.collection('turns').doc(id),encodeRec(rec));tx.update(r,{tipId:id,revision:state.turn,turnAt:stamp()});tx.update(ar,{status:'processed'});});},
@@ -90,7 +93,7 @@
  /* ホストの引き継ぎ：ホストの通信が切れたまま戻らないとき、席についている参加者が自分をホストにする（切れたときのホストのままのときだけ・2026.11.04.18） */
  async takeHost(c,old){const r=game(c);return fs.runTransaction(async tx=>{const d=await tx.get(r);const m=d.data();if(!m||m.phase!=='playing'||m.host!==old||m.host===uid()||!(m.seatUids||[]).includes(uid()))return false;tx.update(r,{host:uid()});return true;});},
  /* 自分の行動要求の状態（pending／processed／rejected、なければnull）。先読みを取り消すかどうかの確認に使う */
- async actionStatus(c,turn){try{const d=await game(c).collection('actions').doc(turn+'-'+uid()).get({source:'server'});return d.exists?d.data().status:null;}catch(e){return undefined;}},
+ async actionStatus(c,turn){try{/* 1件の読み取りだと、要求がない（送れなかった）ときにルールで断られるため、一覧の絞りこみで読む（2026.11.04.19） */const q=await game(c).collection('actions').where('uid','==',uid()).where('revision','==',turn).get({source:'server'});return q.empty?null:q.docs[0].data().status;}catch(e){return undefined;}},
  watchPending(c,fn){let off=null;try{off=game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};}
  };
  const db={doc,collection,online};
