@@ -1121,6 +1121,7 @@ h2{font-family:var(--f-pop);font-weight:400;letter-spacing:.03em}
  listeners.push(base.onSnapshot(d=>{disconnectSec=d.data()?.disconnectSec||45;},snapshotError));
  const beat=()=>pref.set({uid:me,presence:pres,at:stamp()}).catch(snapshotError);
  const hb=setInterval(beat,15000);await beat();
+ /* アプリ・タブに戻った・通信が戻ったら、15秒ごとの在席の知らせを待たずにすぐ知らせる（戻った直後に自分の番が「通信切れ」として代行されないように・2026.11.04.20） */let backAt=0;const back=()=>{if(document.visibilityState==='hidden'||Date.now()-backAt<2000)return;backAt=Date.now();beat();};const backEv=[[document,'visibilitychange'],[window,'online'],[window,'pageshow'],[window,'focus'],[document,'resume']];backEv.forEach(([t,e])=>t.addEventListener(e,back));
  listeners.push(base.collection('peers').onSnapshot(q=>{last=q.docs.map(d=>{const data=d.data({serverTimestamps:'estimate'});return {id:d.id,isMe:d.id===me,presence:data.presence,at:data.at?.toMillis()||0}});peerFns.forEach(f=>f({peers:last.filter(p=>Date.now()-p.at<disconnectSec*1000)}));},snapshotError));
  const iv=setInterval(()=>peerFns.forEach(f=>f({peers:last.filter(p=>Date.now()-p.at<disconnectSec*1000)})),1000);
  let stampHandler=null,start=Date.now();const seenStamps=new Map();
@@ -1130,7 +1131,7 @@ h2{font-family:var(--f-pop);font-weight:400;letter-spacing:.03em}
  seenStamps.set(ch.doc.id,at);if(stampHandler)stampHandler({isMe:d.uid===me,data:{i:d.i}});
  });},snapshotError));
  const connectivity=()=>connFns.forEach(f=>f(navigator.onLine));addEventListener('online',connectivity);addEventListener('offline',connectivity);
- return {on(t,f){if(t==='stamp')stampHandler=f;},emit(t,data){if(t!=='stamp')return Promise.resolve();return base.collection('stamps').doc(me).set({uid:me,i:data.i,at:stamp()});},presence(p){pres=p;return beat();},onPeers(f){peerFns.push(f);f({peers:last});},onConnection(f){connFns.push(f);f(navigator.onLine);},leave(){clearInterval(hb);clearInterval(iv);listeners.forEach(f=>f());pref.delete().catch(()=>{});removeEventListener('online',connectivity);removeEventListener('offline',connectivity);}};}};
+ return {on(t,f){if(t==='stamp')stampHandler=f;},emit(t,data){if(t!=='stamp')return Promise.resolve();return base.collection('stamps').doc(me).set({uid:me,i:data.i,at:stamp()});},presence(p){pres=p;return beat();},onPeers(f){peerFns.push(f);f({peers:last});},onConnection(f){connFns.push(f);f(navigator.onLine);},leave(){clearInterval(hb);clearInterval(iv);backEv.forEach(([t,e])=>t.removeEventListener(e,back));listeners.forEach(f=>f());pref.delete().catch(()=>{});removeEventListener('online',connectivity);removeEventListener('offline',connectivity);}};}};
  window.claude={firebase:true,use:async n=>{try{await ready;}catch(e){fail(e);window.__PD_NO_FB=true;window.__PD_AUTH_FAIL=true;/* 匿名ログイン失敗時は端末内モード（CPU対戦のみ）に切り替える */return window.__PD_LOCAL?window.__PD_LOCAL.use(n):null;}return n==='db'?db:n==='room'?room:n==='user'?{id:async()=>uid(),can:async()=>true,profiles:async()=>({})}:null;}};
 })();
 
