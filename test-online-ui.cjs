@@ -1,5 +1,6 @@
 // 通信対戦の画面まわりの改善（2026-11-03）のテスト（Playwright・Chromium・iPhone幅375px・通信なし）
 // 1) 名前を決めていない人は「ホスト」「2Pさん」のように区別できる（以前は全員「参加者」）
+// 3) 音と設定の「途中経過を見る」「カメラで追いかける」が保存される
 // 2) スマホで共有画面が使えるときは「招待を送る」で共有画面を開く（閉じたらそれで終わり）。使えないときは今までどおりコピー
 const {chromium}=require('playwright');const path=require('path');
 const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
@@ -13,6 +14,10 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
     ok(sh[0]===1&&sh[1].includes(sh[2])&&sh[1].includes('?room='),'共有画面に招待文（部屋コード・URL）が渡っていない '+JSON.stringify(sh));
     const nm=await p.evaluate(()=>{const keep=[seats,meta];meta={...meta,host:'H',phase:'lobby',uname:{},pname:{}};seats=[{uid:'H'},{uid:'B'},{uid:'C'},null];const me=mySeat();const r=[0,1,2].map(i=>seatName(i));[seats,meta]=keep;return [me,r]});
     ok(nm[1][0]==='ホスト'&&nm[1][1]==='2Pさん'&&nm[1][2]==='3Pさん','名前を決めていない人の表示 '+JSON.stringify(nm));
+    /* 3) 音と設定：途中経過を見る・カメラで追いかける の切り替えが保存される */
+    await p.evaluate(()=>{const o=document.querySelector('#ov');o.hidden=true;o.innerHTML=''});await p.click('#bStart');await p.waitForTimeout(1500);await p.click('#bMenu');await p.waitForTimeout(300);await p.click('#mnSet');await p.waitForTimeout(300);
+    const sv=await p.evaluate(()=>{const a=document.querySelector('#sLive'),b=document.querySelector('#sLiveCam');if(!a||!b)return null;const r=[a.checked,b.checked,a.getBoundingClientRect().height>0];a.click();b.click();const s=JSON.parse(localStorage.getItem('poco-set')||'{}');return r.concat([s.live,s.liveCam,a.closest('label').getBoundingClientRect().height])});
+    ok(sv&&sv[0]&&sv[1]&&sv[3]===false&&sv[4]===false&&sv[5]>=48,'途中経過の設定 '+JSON.stringify(sv));
     if(errs.length)fail.push('JSエラー '+errs.join(' / '));await c.close()}
   {const c=await b.newContext({viewport:{width:1000,height:700}});const p=await c.newPage();await p.route(/firebase|gstatic|googleapis/,r=>r.abort());
     await p.goto('file://'+path.resolve(__dirname,'index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);await p.click('#bCreate');await p.waitForTimeout(400);
