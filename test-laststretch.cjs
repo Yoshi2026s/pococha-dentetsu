@@ -30,7 +30,7 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
   assert.equal(both.gx.length,2,'両方の倍率が付いていない');assert(both.prize>=N0.prize*3-200,'両方で3倍になっていない');
   // 知らせ：残り8手番になった手番で1回だけ。以前の盤面では出ない
   const ann=JSON.parse(w.eval(`JSON.stringify((()=>{const st=JSON.parse(JSON.stringify(curTip().state));st.turn=st.maxTurn-9;const run=x=>{for(let r=0;r<30;r++){try{const y=JSON.parse(JSON.stringify(x));y.rng=r*7;return applyTurn(y,{type:'roll',buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true})}catch(e){}}};
-    const a=run(st),b=run(a),o=JSON.parse(JSON.stringify(st));delete o.ls;const c=run(o);const f=x=>(x.ev||[]).filter(e=>e.k==='laststretch').map(e=>e.t);return{a:f(a),b:f(b),c:f(c),lsA:a.lsA,on:lsOn(a),on0:lsOn(st)}})())`));
+    const a=run(st),b=run(a),o=JSON.parse(JSON.stringify(st));delete o.ls;const c=run(o);const f=x=>(x.ev||[]).filter(e=>e.k==='laststretch').map(e=>e.t);return{a:f(a),b:f(b),c:f(c),lsA:a.lsA,lsP:a.lsP,on:lsOn(a),on0:lsOn(st)}})())`));
   assert.deepEqual(ann.a,['🔥 ラストスパート！ 残り8手番は目的地の賞金が2倍'],'残り8手番の知らせが無い');assert.deepEqual(ann.b,[],'知らせが2回出た');assert.deepEqual(ann.c,[],'以前の盤面で知らせが出た');
   assert.equal(ann.lsA,1);assert.equal(ann.on,true);assert.equal(ann.on0,false);
   assert.equal(w.eval('lsOn({ls:1,maxTurn:0,turn:5,finished:false})'),false,'無制限モードでラストスパートになった');
@@ -42,6 +42,20 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
   const gl=JSON.parse(w.eval(`JSON.stringify((()=>{for(let tr=0;tr<40;tr++){const st=JSON.parse(JSON.stringify(curTip().state)),seat=curSeat(st),g=st.goal;st.players[seat].pos=ADJ[g][tr%ADJ[g].length];st.rng=tr*5;try{const s1=applyTurn(st,{type:'roll',route:[g],buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true});if((s1.ev||[]).some(e=>e.k==='goal'))return{seat,gl:s1.players[seat].gl,aw:awards(s1)}}catch(e){}}return null})())`));
   assert.equal(gl.gl,1,'1番乗りの回数が数えられていない');assert(gl.aw.includes('1番乗り王')&&gl.aw.includes('1回'),'1番乗り王が出ない');
   assert(!w.eval('(()=>{const st=JSON.parse(JSON.stringify(curTip().state));delete st.ls;return awards(st)})()').includes('1番乗り王'),'以前の盤面に1番乗り王が出た');
+  // 追い上げ王：ラストスパートに入った時点の順位から上げた人。ラストスパートの記録が無い盤面では出ない
+  const up=w.eval(`(()=>{const st=JSON.parse(JSON.stringify(curTip().state));st.lsP=[4,1,2,3];st.final=[{seat:0},{seat:1},{seat:2},{seat:3}];return awards(st)})()`);
+  assert(up.includes('追い上げ王')&&up.includes('4位→1位'),'追い上げ王が出ない');
+  assert(!w.eval(`(()=>{const st=JSON.parse(JSON.stringify(curTip().state));st.final=[{seat:0},{seat:1},{seat:2},{seat:3}];return awards(st)})()`).includes('追い上げ王'),'記録の無い盤面に追い上げ王が出た');
+  assert.deepEqual(JSON.parse(w.eval('JSON.stringify(placesOf(curTip().state))')),[1,1,1,1],'同点の順位が同じにならない');
+  assert.equal(ann.lsP&&ann.lsP.length,4,'ラストスパートに入った時点の順位が記録されていない');
+  // 手番の表示：各自の最後の手番（残り4手番）だけ「🏁最後の手番」
+  w.eval('const T2=curTip().state;T2.turn=T2.maxTurn-5;dispState=T2;render()');assert(!d.querySelector('#turnText').textContent.includes('最後の手番'),'残り5手番で最後の手番と出た');
+  w.eval('const T3=curTip().state;T3.turn=T3.maxTurn-4;dispState=T3;render()');assert(d.querySelector('#turnText').textContent.includes('🏁最後の手番'),'最後の手番の表示が無い');
+  // 1日の対戦の目的地は6〜16マス（2日以上は従来どおり全国から）
+  const gd=JSON.parse(w.eval(`JSON.stringify((()=>{const one=[],two=[];for(let i=0;i<60;i++){const a=genesisState('SEED'+i,1),b=genesisState('SEED'+i,2);one.push(D(a.goal)[START]);two.push(D(b.goal)[START]);
+    const x=JSON.parse(JSON.stringify(a));let k=0;chooseGoal(x,()=>rand('S'+i,k++));one.push(D(x.goal)[a.goal])}return{one,two}})())`));
+  assert(gd.one.every(v=>v>=6&&v<=16),'1日の対戦の目的地が6〜16マスでない：'+gd.one.join(','));assert(gd.two.some(v=>v>16),'2日の対戦の目的地まで近くなった');
+  assert(!w.eval('(()=>{const a=genesisState("SEEDX",1);delete a.ls;let r=0;const out=[];for(let i=0;i<80;i++){const x=JSON.parse(JSON.stringify(a));let k=0;chooseGoal(x,()=>rand("T"+i,k++));out.push(D(x.goal)[a.goal])}return out.every(v=>v<=16)})()'),'以前の盤面の目的地まで近くなった');
   // 遊び方に説明がある
   assert(w.eval('HOW.some(h=>h[1].some(t=>t.includes("ラストスパート")&&t.includes("逆転ボーナス")))'),'遊び方に説明が無い');
   assert.deepEqual(errors,[],'エラー：'+errors.join(' / '));
