@@ -36,6 +36,9 @@ service cloud.firestore {
    && leftSlot(c,a,b,i);}
   function readySeat(c,m,i){return m.seatUids[i]=='' || get(/databases/$(database)/documents/pdGames/$(c)/seats/$(i)).data.ready==true;}
   function cpus(m){return (m.seatUids[0]==''?[0]:[]).concat(m.seatUids[1]==''?[1]:[]).concat(m.seatUids[2]==''?[2]:[]).concat(m.seatUids[3]==''?[3]:[]);}
+  /* ホストの引き継ぎ：ホストの在席記録がない、または接続切れの秒数より古い（2026.11.04.18） */
+  function peerAt(c,u){return /databases/$(database)/documents/pdGames/$(c)/peers/$(u);}
+  function peerFresh(c,m,u){return exists(peerAt(c,u)) && get(peerAt(c,u)).data.at > request.time-duration.value(m.get('disconnectSec',45),'s');}
   function hostAlive(c){return get(/databases/$(database)/documents/pdGames/$(c)/peers/$(room(c).host)).data.at > request.time-duration.value(room(c).get('disconnectSec',45),'s');}
   match /pdGames/{c} {
    allow get: if signed() && (!exists(/databases/$(database)/documents/pdGames/$(c)) || resource.data.phase=='lobby' || me() in resource.data.members);
@@ -54,6 +57,8 @@ service cloud.firestore {
       || (resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['paused','resumedAt'])
         && (request.resource.data.paused==null || (request.resource.data.paused is map && request.resource.data.paused.by==me() && request.resource.data.paused.keys().hasOnly(['by','seat','at','turn']))))
       || (resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['endReq']) && request.resource.data.endReq.by==me())
+      || (resource.data.phase=='playing' && me()!=resource.data.host && me() in resource.data.seatUids && request.resource.data.host==me()
+       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['host']) && !peerFresh(c,resource.data,resource.data.host) && peerFresh(c,resource.data,me()))
       || (me()==resource.data.host && resource.data.phase=='playing' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['next']) && request.resource.data.next is string && request.resource.data.next.matches('^[A-HJ-NP-Z2-9]{4}$'))
       || (me()==resource.data.host && resource.data.phase=='lobby' && request.resource.data.phase=='playing'
        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phase','cpu','cpuChar','seed','tipId','revision','turnAt','paused'])
