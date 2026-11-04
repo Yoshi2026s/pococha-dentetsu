@@ -1,4 +1,4 @@
-<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ポコチャ電鉄・全国編"><meta name="apple-mobile-web-app-status-bar-style" content="default"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<!doctype html><html lang="ja"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="preconnect" href="https://firestore.googleapis.com" crossorigin><link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin><link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin><link rel="preconnect" href="https://www.gstatic.com" crossorigin><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="ポコチャ電鉄・全国編"><meta name="apple-mobile-web-app-status-bar-style" content="default"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <style id="rarity">
 .fs-head{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}.fs-head b{color:#ff5a6e;font-size:15px}.fs-head small{font-size:12px;opacity:.9}
 .fs-card{border:2.5px solid #ff8a3d;border-radius:14px;padding:8px 10px;background:color-mix(in srgb,#ff8a3d 10%,var(--panel));margin-bottom:6px}
@@ -2378,7 +2378,7 @@ const KEEP=40;function pruneOld(tipTurn){if(db.online)return;const cut=tipTurn-K
   if(canWrite)for(let t=Math.max(0,cut-3);t<cut;t++){try{db.doc('games/'+code+'/locks/'+t).delete().catch(()=>{})}catch{}}}
 // 先読みした手番を取り消す：演出をやり直さずに、サーバーの最新盤面へ表示を合わせる
 function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.delete(id);VOK.clear();const t=curTip();if(t&&shownTip===id){shownTip=t.id;dispState=t.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}render()}
-/* 手番の途中経過のリアルタイム表示（通信対戦・2026.11.03.10）：自分の番でサイコロを振った・道を1マス進めたら、目と道を送る（最大で約0.25秒に1回にまとめる）。
+/* 手番の途中経過のリアルタイム表示（通信対戦・2026.11.03.10）：自分の番でサイコロを振った・道を1マス進めたら、目と道を送る（1回目はすぐ、続きは約0.12秒ごとにまとめる）。
    ほかの人の画面では、確定を待たずにサイコロと駒の移動を見せ、確定した記録が同じ道ならもう一度は動かさない */
 let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null,liveStepGen=0,livePv={key:'',text:''},livePvNext=null,liveSoon=-1;
 /* 進み終えたマスで起きること（ゴールド・コアファン・イベントなど）を、確定を待たずに同じ計算で予告する（サイコロの目と道が同じなら結果も同じ・2026.11.04.2） */
@@ -2405,8 +2405,9 @@ function liveOptsDraw(L){const g=$('#liveopts');if(!g)return;if(L){liveFadeGen++
   g.innerHTML=out.join('')}
 /* 分かれ道の候補 x から、次の駅（または次の分かれ道）までたどって、その駅の名前を返す */
 function towardName(from,x){try{let prev=from,cur=x;for(let i=0;i<40;i++){const n=NODES[cur];if(n&&n.type==='station')return n.name;const nx=(ADJ[cur]||[]).filter(y=>y!==prev);if(nx.length!==1)return'';prev=cur;cur=nx[0]}}catch{}return''}
-function sendLive(o){if(!db||!db.online||liveOff||!code||!db.online.setLive)return;liveQ={...o,c:code};if(liveT)return;
-  const go=async()=>{liveT=0;const q=liveQ;liveQ=null;if(!q)return;try{await db.online.setLive(q.c,q)}catch(e){if(e&&/permission/.test(String(e.code||e.message)))liveOff=true}if(liveQ&&!liveT)liveT=setTimeout(go,200)};liveT=setTimeout(go,0)}
+/* 1回目はすぐ送り、続きは約0.12秒ごとにまとめる。書き込みの確認（1往復）は待たない（Firestoreは同じ文書への書き込みを順番どおりに届ける。以前は確認を待ってから0.2秒あけていた・2026.11.04.16） */
+function sendLive(o){if(!db||!db.online||liveOff||!code||!db.online.setLive)return;liveQ={...o,c:code};if(!liveT)liveFlush()}
+function liveFlush(){const q=liveQ;liveQ=null;liveT=0;if(!q)return;db.online.setLive(q.c,q).catch(e=>{if(e&&/permission/.test(String(e.code||e.message)))liveOff=true});liveT=setTimeout(()=>{liveT=0;if(liveQ)liveFlush()},120)}
 /* 自分の番の画面の状態（道選び・カード選び・物件選び・ショップ・報酬・売却・1番乗り）から途中経過を作り、変わったときだけ送る（2026.11.03.11） */
 /* 売却：売った物件「k:j」と、いま選んでいる売却先「?k:j」（10件まで） */
 function liveSellOpts(F){try{const C=sellCands(F.s,F.seat),c=C[F.pick]||C[0];return F.list.map(([k,j])=>k+':'+j).slice(-9).concat(c?['?'+c.k+':'+c.j]:[])}catch{return[]}}
