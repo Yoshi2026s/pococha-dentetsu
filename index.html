@@ -2382,7 +2382,7 @@ let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,li
 /* 進み終えたマスで起きること（ゴールド・コアファン・イベントなど）を、確定を待たずに同じ計算で予告する（サイコロの目と道が同じなら結果も同じ・2026.11.04.2） */
 function livePreview(st,L,p){try{const act={type:'roll',route:p.slice(1),buy:false,reward:'coin',shopDone:true};if(L.card)act.card=L.card;const s=applyTurn(st,act,meta.seed,{noForce:true}),m=(s.ev||[]).find(e=>e.k==='move');
   if((s.ev||[]).some(e=>e.k==='goal'))return'';{const n=NODES[s.players[L.seat].pos];if(n&&(n.type==='station'||n.type==='shop'))return''}/* 駅・ショップはこのあと本人が選ぶので予告しない */const r=resultInfo(s,st,L.seat,m?m.t:'',NODES[s.players[L.seat].pos]);if(!r||!r.title)return'';
-  const it=(r.main?[r.main]:[]).concat(r.pills||[]).map(x=>`${x[0]}${x[1]}`).slice(0,3).join('・');return(r.title+(it?'：'+it:r.msg?'：'+r.msg:'')).slice(0,48)}catch{return''}}
+  const it=(r.main?[r.main]:[]).concat(r.pills||[]).map(x=>`${x[0]}${x[1]}`).slice(0,3).join('・'),ev=s.ev||[],tag=(ev.some(e=>e.k==='mission')?'・🏅ポコチャレ達成':'')+(ev.some(e=>e.k==='monthend')?'・💰0:00決算':'');/* ポコチャレ達成・決算もいっしょに予告（2026.11.04.10） */return(r.title+(it?'：'+it:r.msg?'：'+r.msg:'')+tag).slice(0,60)}catch{return''}}
 /* ほかの人が分かれ道で迷っている候補（A/B/C…）を、自分の地図にも出す（押せない表示だけ・2026.11.03.12） */
 /* 確定したら、途中経過の道の線・絵札を0.6秒かけて消す（その間に次の途中経過が来たらそちらを優先・2026.11.04.8） */
 let liveFadeGen=0;function liveFade(){const g=$('#liveopts');if(!g||!g.children.length)return;const gen=++liveFadeGen;try{g.animate([{opacity:1},{opacity:0}],{duration:600,fill:'forwards'})}catch{}setTimeout(()=>{if(gen!==liveFadeGen)return;g.innerHTML='';try{g.getAnimations().forEach(a=>a.cancel())}catch{}},620)}
