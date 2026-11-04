@@ -22,6 +22,8 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
     /* 4) 途中経過の絵札：ショップの売り買い（売ったものは✕）・売却中の物件（選んでいる売却先は光る輪） */
     const ic=await p.evaluate(()=>{const tip=curTip(),k=NODES.findIndex(n=>n.type==='station'&&n.bases&&n.bases.length>2);liveOptsDraw({turn:tip.turn,seat:1,stage:'shop',path:[],opts:['b:linear','s:warp']});const g=document.querySelector('#liveopts'),sh=g.querySelector('.lo-shop'),a=[sh?sh.children.length:0,sh?sh.querySelectorAll('path').length:0];
       liveOptsDraw({turn:tip.turn,seat:1,stage:'fsell',path:[],opts:[k+':0','?'+k+':1']});const se=g.querySelectorAll('.lo-sell');a.push(se.length,g.querySelectorAll('.lo-sell .optpulse').length);liveOptsDraw(null);a.push(g.children.length);return a});
+    const fd=await p.evaluate(async()=>{const tip=curTip();liveOptsDraw({turn:tip.turn,seat:1,stage:'shop',path:[],opts:['b:linear']});const g=document.querySelector('#liveopts');liveFade();const a=g.children.length;await new Promise(r=>setTimeout(r,800));return[a,g.children.length]});
+    ok(fd[0]>0&&fd[1]===0,'確定後は途中経過の表示をゆっくり消す '+JSON.stringify(fd));
     ok(JSON.stringify(ic)==='[2,1,2,1,0]','途中経過の絵札（ショップ2枚・売った1枚に✕・売却2件・選んでいる1件・片づけ） '+JSON.stringify(ic));
     if(errs.length)fail.push('JSエラー '+errs.join(' / '));await c.close()}
   {const c=await b.newContext({viewport:{width:1000,height:700}});const p=await c.newPage();await p.route(/firebase|gstatic|googleapis/,r=>r.abort());
