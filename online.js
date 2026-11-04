@@ -87,6 +87,8 @@
  /* 手番の途中経過（サイコロの目・進んでいる道）を参加者に送る・受け取る。ルールが未反映（書けない・読めない）ときは何もしない */
  setLive(c,d){return game(c).collection('live').doc(uid()).set({uid:uid(),turn:d.turn,seat:d.seat,d:d.d,ds:d.ds||[],card:d.card||'',path:d.path||[],stage:String(d.stage||'').slice(0,12),info:String(d.info||'').slice(0,60),opts:(d.opts||[]).slice(0,10),at:stamp()});},
  watchLive(c,fn){let off=null;try{off=game(c).collection('live').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed'&&!ch.doc.metadata.hasPendingWrites)fn(ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};},
+ /* ホストの引き継ぎ：ホストの通信が切れたまま戻らないとき、席についている参加者が自分をホストにする（切れたときのホストのままのときだけ・2026.11.04.18） */
+ async takeHost(c,old){const r=game(c);return fs.runTransaction(async tx=>{const d=await tx.get(r);const m=d.data();if(!m||m.phase!=='playing'||m.host!==old||m.host===uid()||!(m.seatUids||[]).includes(uid()))return false;tx.update(r,{host:uid()});return true;});},
  /* 自分の行動要求の状態（pending／processed／rejected、なければnull）。先読みを取り消すかどうかの確認に使う */
  async actionStatus(c,turn){try{const d=await game(c).collection('actions').doc(turn+'-'+uid()).get({source:'server'});return d.exists?d.data().status:null;}catch(e){return undefined;}},
  watchPending(c,fn){let off=null;try{off=game(c).collection('actions').where('status','==','pending').onSnapshot(q=>q.docChanges().forEach(ch=>{if(ch.type!=='removed')fn(ch.doc.id,ch.doc.data());}),()=>{});}catch(e){}return ()=>{if(off)off();};}
