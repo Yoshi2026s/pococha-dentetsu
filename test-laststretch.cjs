@@ -56,6 +56,14 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
     const x=JSON.parse(JSON.stringify(a));let k=0;chooseGoal(x,()=>rand('S'+i,k++));one.push(D(x.goal)[a.goal])}return{one,two}})())`));
   assert(gd.one.every(v=>v>=6&&v<=16),'1日の対戦の目的地が6〜16マスでない：'+gd.one.join(','));assert(gd.two.some(v=>v>16),'2日の対戦の目的地まで近くなった');
   assert(!w.eval('(()=>{const a=genesisState("SEEDX",1);delete a.ls;let r=0;const out=[];for(let i=0;i<80;i++){const x=JSON.parse(JSON.stringify(a));let k=0;chooseGoal(x,()=>rand("T"+i,k++));out.push(D(x.goal)[a.goal])}return out.every(v=>v<=16)})()'),'以前の盤面の目的地まで近くなった');
+  // ラストスパートに入ったら、資産が単独最下位の人に応援ブースト（同率最下位なら付けない・以前の盤面では付けない）
+  const bo=JSON.parse(w.eval(`JSON.stringify((()=>{const base=JSON.parse(JSON.stringify(curTip().state));base.turn=base.maxTurn-9;const run=x=>{for(let r=0;r<30;r++){try{const y=JSON.parse(JSON.stringify(x));y.rng=r*7;return applyTurn(y,{type:'roll',buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true})}catch(e){}}};
+    const lo=(curSeat(base)+2)%4,one=JSON.parse(JSON.stringify(base));one.boost=null;one.players[lo].coin=100;const a=run(one);
+    const tie=JSON.parse(JSON.stringify(one));tie.players[(lo+1)%4].coin=100;if((lo+1)%4===curSeat(base))tie.players[(lo+3)%4].coin=100;const b=run(tie);const old=JSON.parse(JSON.stringify(one));delete old.cb;const c=run(old);
+    const ls=x=>(x.ev||[]).find(e=>e.k==='laststretch');return{lo,a:a.boost,at:ls(a).t,av:ls(a).v,b:b.boost,bv:ls(b).v,c:c.boost}})())`));
+  assert.equal(bo.a,bo.lo,'単独最下位に応援ブーストが付かない');assert.equal(bo.av,bo.lo);assert(bo.at.includes(`${bo.lo+1}Pに応援ブースト`),'知らせに応援ブーストが無い：'+bo.at);
+  assert.equal(bo.b,null,'同率最下位に応援ブーストが付いた');assert.equal(bo.bv,null);assert.equal(bo.c,null,'以前の盤面に応援ブーストが付いた');
+  assert.equal(w.eval('genesisState("ABCDEFGHIJKL",1).cb'),1,'新しい盤面に応援ブーストの印(cb=1)が無い');
   // 遊び方に説明がある
   assert(w.eval('HOW.some(h=>h[1].some(t=>t.includes("ラストスパート")&&t.includes("逆転ボーナス")))'),'遊び方に説明が無い');
   assert.deepEqual(errors,[],'エラー：'+errors.join(' / '));

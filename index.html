@@ -1590,7 +1590,7 @@ function chooseGoal(s,R){let c=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!(s.goal==
 function genesisState(seed,days){days=DAYS_OPT.includes(days)?days:1;const rounds=roundsFor(days);
   const s={turn:0,month:1,hour:START_H,since:0,days,maxTurn:rounds*4,oi:0,order:[0,1,2,3],rng:0,goal:null,goalDist:0,okiUsed:false,troll:null,boost:null,owner:{},closed:0,finished:false,hist:[[10000,10000,10000,10000]],
   players:[0,1,2,3].map(()=>({pos:START,coin:10000,rank:'E1',pt:0,cards:0,hand:[],face:'ふつう',earned:0,mc:newMc(),md:[],mtot:0,minusTot:0,ye:0,yb:0,dmis:0,dye:0,dbuy:0,e0:0})),ev:[],lastSeat:null,lastDice:null,lastPath:[]};
-  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;/* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
+  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;s.cb=1;/* ラストスパートで最下位に応援ブースト（2026.11.05.3） *//* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
   chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.fy=1;/* コアファンの新ルール（0:00で0人に戻る・コアファンイベント） */s.rng=n;return s}
 
 // ===== ゴールドがマイナスのときの物件売却（第32版）=====
@@ -1810,7 +1810,9 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     if(!s.finished&&s.hour%6===0)blockEnd(s,R)}
   // 無制限モード：誰かが「ゲームを終える」を押したら、その手番のあとで最終決算をして終わる
   if(action.end&&!s.days&&!s.finished)dayEnd(s,R,true);
-  if(s.ls&&!s.lsA&&lsOn(s)){s.lsA=1;s.lsP=placesOf(s);ev('laststretch',`🔥 ラストスパート！ 残り${s.maxTurn-s.turn}手番は目的地の賞金が2倍`)}
+  if(s.ls&&!s.lsA&&lsOn(s)){s.lsA=1;s.lsP=placesOf(s);let bt='';
+    /* 資産が単独最下位の人に、最後まで新人応援ブースト（サイコロ＋1・コアファン1.5倍）。s.cb=1の盤面のみ */if(s.cb){const as=[0,1,2,3].map(i=>assets(s,i)),lo=Math.min(...as);if(as.filter(x=>x===lo).length===1){s.boost=as.indexOf(lo);bt=`・${s.boost+1}Pに応援ブースト（サイコロ＋1・コアファン1.5倍）`}}
+    ev('laststretch',`🔥 ラストスパート！ 残り${s.maxTurn-s.turn}手番は目的地の賞金が2倍${bt}`,bt?s.boost:null)}
   s.rng=n;return s}
 // ラストスパート：日数を決めた対戦の最後の8手番（2周）。目的地の賞金が2倍（s.ls=1の盤面のみ）
 // その時点の順位（同点は同じ順位）：ゴールド＋物件＋ランクボーナス。最終結果と同じ数え方
@@ -2780,7 +2782,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
-  {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍');fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
+  {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍'+(ls.v!=null?`・${seatName(ls.v)}に応援ブースト`:''));fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
   if(evs.some(e=>e.k==='newmis'))setTimeout(()=>{toast(`${s.hour}:00 新しいポコチャレが出ました（ポコチャレボタンで確認）`);const b=$('#bMis');if(b){b.classList.remove('ping');void b.offsetWidth;b.classList.add('ping')}},SET.fast?500:1200);
   const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('celebrate');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`物件${ft.v}件！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントのゴールドが＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
@@ -3760,7 +3762,7 @@ const HOW=[['目的地を目指そう',['目的地は全国の駅からランダ
  ['マスと物件',['🟢プラス（ゴールド増）・🔴マイナス（減）・🔵コアファン・🟡カード・🎪イベント・🛍️カードショップ。','プラス・マイナス・コアファンの量は、時間帯（朝・昼・ゴールデン・深夜）と天気（6時間ごとに変わる）で変わります。','✈空港どうしは紫の点線（空路）、白い点線はフェリー航路。少ないマスで遠くまで行けます。','駅に止まると、ゴールドで物件（各地の名物）を獲得。毎日0:00の決算でゴールドがもらえます。','1つの駅の物件を全部1人で持つと「独占」で決算1.4〜2倍。物件が増えるほど、マスやイベントのゴールドも＋5〜160%。']],
  ['コアファン',['コアファンは人数で数えます。コアファンマス・イベント・ポコチャレ・1番乗りで増え、炎上などで減ります。','コアファンマスでは「常連さんがお友達を連れてきた」などのコアファンイベントが起き、人数が増えたりゴールド・ランクptがついたりします。','10人たまるごとにボーナスのゴールド（基本ゴールド×2）。いまの人数と次のボーナスまでは、プレイヤー欄をタップすると見られます。','毎日0:00の決算のあと、全員のコアファンは0人に戻ります（1日ごとに集め直し）。']],
  ['ランク帯',['E・D・C・B・A・Sの6帯×1〜6段階（E1〜S6）。全員E1スタート。','ランクが高いほど基本ゴールドが増え、マス・イベント・0:00決算の金額が上がります。','ランクptは1番乗り・イベント・ポコチャレ・0:00の締めの条件（物件獲得・ポコチャレ2回・コアファン10人・ゴールド目標）でたまり、必要数に届くとすぐランクアップ。','炎上・案件キャンセル・荒らしコメントでptが減り、0を下回るか、締めの条件を1つもクリアできないとランクダウン（ptは0から）。']],
- ['時間・お邪魔キャラ',['4人が1回ずつ動くと1時間進む24時間制で、18:00スタート。','ポコチャレは6時間ごとに3つ出ます。','だれかが目的地に1番乗りすると、目的地からいちばん遠い人に「荒らしラグ王」が取りつきます。','最後の0:00決算のあと、ゴールド＋物件＋ランクボーナスの合計が一番多い人が優勝。','日数を決めた対戦の最後の8手番は🔥ラストスパート：目的地の賞金が2倍。ゴールド＋物件の合計が単独で最下位の人が1番乗りすると、⤴️逆転ボーナスで賞金1.5倍。','途中でやめるときはメニューの「⏸ ゲームを中断する」。タイトルの「続きから遊ぶ」で再開できます。']]];
+ ['時間・お邪魔キャラ',['4人が1回ずつ動くと1時間進む24時間制で、18:00スタート。','ポコチャレは6時間ごとに3つ出ます。','だれかが目的地に1番乗りすると、目的地からいちばん遠い人に「荒らしラグ王」が取りつきます。','最後の0:00決算のあと、ゴールド＋物件＋ランクボーナスの合計が一番多い人が優勝。','日数を決めた対戦の最後の8手番は🔥ラストスパート：目的地の賞金が2倍。ゴールド＋物件の合計が単独で最下位の人は、最後までサイコロ＋1・コアファン1.5倍の応援ブースト。その人が1番乗りすると、⤴️逆転ボーナスで賞金1.5倍。','途中でやめるときはメニューの「⏸ ゲームを中断する」。タイトルの「続きから遊ぶ」で再開できます。']]];
 let howI=0;function showHow(){const o=$('#ov');const [h,t]=HOW[howI];o.innerHTML=`<div class="card"><button type="button" class="ghost xclose" id="hClose" aria-label="閉じる">×</button><p class="eyebrow">遊び方 ${howI+1}／${HOW.length}</p><h3>${h}</h3><ul class="howlist">${t.map(x=>`<li>${x}</li>`).join('')}</ul><div class="row" style="justify-content:center">${howI>0?'<button class="ghost" id="hPrev">もどる</button>':''}<button id="hNext">${howI<HOW.length-1?'つぎへ':'とじる'}</button></div></div>`;o.hidden=false;
   const p=$('#hPrev');if(p)p.onclick=()=>{howI--;showHow()};$('#hClose').onclick=()=>{o.hidden=true;o.innerHTML='';howI=0};$('#hNext').onclick=()=>{if(howI<HOW.length-1){howI++;showHow()}else{o.hidden=true;o.innerHTML='';howI=0}}}
 /* ホーム画面に追加（2026-11-02）：Android などは確認画面を出し、iPhone などはやり方を案内する。ホーム画面から開いているときはボタンを出さない */
