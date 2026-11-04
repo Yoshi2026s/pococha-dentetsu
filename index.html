@@ -2354,7 +2354,7 @@ async function rematch(){if(!meta||!canWrite)return;if(db.online){/* 新しい�
 function showNext(nc){if($('#nextBox'))return;const d=document.createElement('div');d.id='nextBox';d.className='nextbox';d.innerHTML=`<p>同じメンバーで次の対戦が始まります</p><button id="bNext">次の対戦へ（${nc}）</button>`;document.body.appendChild(d);
   $('#bNext').onclick=()=>{d.remove();$('#ov').hidden=true;$('#ov').innerHTML='';resetGame();enter(nc)}}
 function resetGame(){document.body.classList.remove('ingame');setWx(-1);{const nb=$('#nextBox');if(nb)nb.remove()}/* 再招待後の部屋画面に前のゲームの表示・「次の対戦へ」を残さない */records=new Map();tipSeenAt=new Map();shownTip=null;dispState=null;built=false;pending=null;sentTip=null;metaWait=[];lastCoins.length=0;
-  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;liveWalk=null;liveCur=null;liveRolled=-1;liveCard=null;liveLast=null;liveKey='';liveStepGen++;livePv={key:'',text:''};lastTurnKey='';{const g=$('#liveopts');if(g)g.innerHTML=''}const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[];cmtQ=[];clearTimeout(cmtT);cmtT=0;cmtLast=0}}
+  animGen++;animN=0;finalSeen=false;animIdleAt=0;playing=Promise.resolve();busy=false;proxyBusy=false;localWalk=null;liveWalk=null;liveCur=null;liveRolled=-1;liveCard=null;liveLast=null;liveKey='';liveStepGen++;livePv={key:'',text:''};liveSoon=-1;lastTurnKey='';{const g=$('#liveopts');if(g)g.innerHTML=''}const m=$('#myRes');if(m)m.remove();$('#ov').hidden=true;$('#ov').innerHTML='';document.querySelectorAll('#mapbox .fx').forEach(e=>e.remove());{const cb=$('#cmts');if(cb)cb.innerHTML='';cmtWait=[];cmtQ=[];clearTimeout(cmtT);cmtT=0;cmtLast=0}}
 async function resolveNames(){if(!user)return;const ids=seats.filter(Boolean).map(s=>s.uid).filter(x=>x&&!(x in names));if(!ids.length)return;const ps=await user.profiles(ids);for(const id of ids)names[id]=(ps[id]&&ps[id].name)||'';render()}
 const mySeat=()=>seats.findIndex(s=>s&&s.uid===myId);
 const seatOnline=i=>grp?peers.some(p=>p.presence&&p.presence.seat===i):!!seats[i];
@@ -2380,9 +2380,9 @@ const KEEP=40;function pruneOld(tipTurn){if(db.online)return;const cut=tipTurn-K
 function dropPred(id){const r=records.get(id);if(!r||!r.pred)return;records.delete(id);VOK.clear();const t=curTip();if(t&&shownTip===id){shownTip=t.id;dispState=t.state;drawPawns(dispState);toast('通信の遅れで盤面を直しました')}render()}
 /* 手番の途中経過のリアルタイム表示（通信対戦・2026.11.03.10）：自分の番でサイコロを振った・道を1マス進めたら、目と道を送る（最大で約0.25秒に1回にまとめる）。
    ほかの人の画面では、確定を待たずにサイコロと駒の移動を見せ、確定した記録が同じ道ならもう一度は動かさない */
-let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null,liveStepGen=0,livePv={key:'',text:''};
+let liveQ=null,liveT=0,liveOff=false,liveWalk=null,liveCur=null,liveRolled=-1,liveKey='',liveCard=null,liveLast=null,liveStepGen=0,livePv={key:'',text:''},livePvNext=null,liveSoon=-1;
 /* 進み終えたマスで起きること（ゴールド・コアファン・イベントなど）を、確定を待たずに同じ計算で予告する（サイコロの目と道が同じなら結果も同じ・2026.11.04.2） */
-function livePreview(st,L,p){try{const act={type:'roll',route:p.slice(1),buy:false,reward:'coin',shopDone:true};if(L.card)act.card=L.card;const s=applyTurn(st,act,meta.seed,{noForce:true}),m=(s.ev||[]).find(e=>e.k==='move');
+function livePreview(st,L,p){livePvNext=null;try{const act={type:'roll',route:p.slice(1),buy:false,reward:'coin',shopDone:true};if(L.card)act.card=L.card;const s=applyTurn(st,act,meta.seed,{noForce:true}),m=(s.ev||[]).find(e=>e.k==='move');if(!s.finished)livePvNext=curSeat(s);/* 次の番の人（日をまたいだ並びかえも同じ計算で分かる・2026.11.04.13） */
   if((s.ev||[]).some(e=>e.k==='goal'))return'';{const n=NODES[s.players[L.seat].pos];if(n&&(n.type==='station'||n.type==='shop'))return''}/* 駅・ショップはこのあと本人が選ぶので予告しない */const r=resultInfo(s,st,L.seat,m?m.t:'',NODES[s.players[L.seat].pos]);if(!r||!r.title)return'';
   const it=(r.main?[r.main]:[]).concat(r.pills||[]).map(x=>`${x[0]}${x[1]}`).slice(0,3).join('・'),ev=s.ev||[],tag=(ev.some(e=>e.k==='mission')?'・🏅ポコチャレ達成':'')+(ev.some(e=>e.k==='monthend')?'・💰0:00決算':'');/* ポコチャレ達成・決算もいっしょに予告（2026.11.04.10） */return(r.title+(it?'：'+it:r.msg?'：'+r.msg:'')+tag).slice(0,60)}catch{return''}}
 /* ほかの人が分かれ道で迷っている候補（A/B/C…）を、自分の地図にも出す（押せない表示だけ・2026.11.03.12） */
@@ -2428,7 +2428,8 @@ function onLive(L){try{if(!L||!meta||L.uid===myId||meta.paused||meta.phase!=='pl
     /* 前に見せた道の続きなら、増えたマスだけ1マスずつ進める（戻したときは、その位置へ直接） */const add=same?p.slice(Math.max(1,prev.length)):[p[p.length-1]],gap=SET.fast?70:140,left=Math.max(0,(L.d||0)-(p.length-1)),gen=++liveStepGen;
     add.forEach((x,i)=>setTimeout(()=>{if(gen!==liveStepGen)return;movePawn(L.seat,x,true);if(same)addTrail(L.seat,x);sfx('step',p.indexOf(x));if(i===add.length-1){stepLeft(L.seat,x,left);if(SET.liveCam!==false)camAt(NODES[x],ZM,SET.fast?140:300)}},i*gap))}
     liveWalk={turn:L.turn+1,path:joined}}
-  if(L.d&&p.length-1>=L.d){const key=L.turn+':'+p.join(',')+':'+(L.card||'');if(livePv.key!==key)livePv={key,text:livePreview(tip.state,L,p)};liveCur.pv=livePv.text}
+  if(L.d&&p.length-1>=L.d){const key=L.turn+':'+p.join(',')+':'+(L.card||'');if(livePv.key!==key)livePv={key,text:livePreview(tip.state,L,p),next:livePvNext};liveCur.pv=livePv.text;liveCur.next=livePv.next;
+    /* 次が自分の番なら、1回だけ知らせる */if(livePv.next===mySeat()&&liveSoon!==L.turn){liveSoon=L.turn;toast('▶ まもなくあなたの番です');sfx('ui');vib(20)}}
   liveOptsDraw(L);
   if(L.stage==='goalfx'&&prevStage!=='goalfx'){sfx('rankup');const gn=NODES[p.length?p[p.length-1]:tip.state.players[L.seat].pos];if(gn){burst('star',gn);floatNum(gn,'🏁 1番乗り！','#ff8a00')}}
   render()}catch{}}
@@ -2441,7 +2442,7 @@ function liveBubble(){try{const mb=$('#mapbox');if(!mb)return;let e=$('#liveBub'
     e.querySelector('.lb-t').onclick=()=>{const c2=liveCur,t2=curTip();if(!c2||!t2)return;unlock();const pos=c2.last!=null&&NODES[c2.last]?c2.last:t2.state.players[c2.seat].pos;camAt(NODES[pos],ZM,400)};
     e.querySelector('.lb-cheer').onclick=()=>{unlock();if(Date.now()-lastStamp<3000){toast('スタンプは3秒に1回までです');return}lastStamp=Date.now();if(grp)grp.emit('stamp',{i:3}).catch(er=>toast('スタンプを送れませんでした。理由：'+errReason(er)));else{floatStamp(STAMPS[3]);sfx('stamp')}}}
   /* 相手の状態：通信が切れている・途中経過が20秒止まっている・持ち時間が残り30秒以下（2026.11.04.9） */let st2='';{const age=Date.now()-(meta.turnAt?.toMillis?.()||Date.now()),left=Math.max(0,Math.ceil(((meta.cpuTimeoutSec||90)*1000-age)/1000));if(!seatOnline(c.seat))st2='📶 通信が切れています・';else if(c.stage!=='act'&&Date.now()-(c.at||Date.now())>20000)st2='⏳ 応答待ち…・';if(left<=30)st2+=`⏱ 残り${left}秒・`}
-  const t=seatName(c.seat)+'：'+st2+liveText(c),tt=e.querySelector('.lb-t');e.classList.toggle('lb-warn',/📶|⏳|⏱/.test(st2));if(tt.textContent!==t)tt.textContent=t;e.style.setProperty('--c',SEATC[c.seat]||'var(--pink)');e.hidden=false}catch{}}
+  const t=seatName(c.seat)+'：'+st2+liveText(c)+(c.next!=null&&c.next===mySeat()?'・▶ 次はあなたの番':''),tt=e.querySelector('.lb-t');e.classList.toggle('lb-warn',/📶|⏳|⏱/.test(st2));if(tt.textContent!==t)tt.textContent=t;e.style.setProperty('--c',SEATC[c.seat]||'var(--pink)');e.hidden=false}catch{}}
 /* ほかの人の駒が画面の外にいるとき、画面の端にその向きの矢印を出す。押すとその駒へカメラを移す（2026.11.04.11） */
 function liveArrow(c){const mb=$('#mapbox');if(!mb)return;let a=$('#liveArrow');const t=curTip();if(!c||!t||!mb.clientWidth){if(a)a.hidden=true;return}
   const pos=c.last!=null&&NODES[c.last]?c.last:t.state.players[c.seat].pos,n=NODES[pos];if(!n){if(a)a.hidden=true;return}
