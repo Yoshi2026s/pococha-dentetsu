@@ -97,7 +97,8 @@ service cloud.firestore {
       && a.seat==p.currentSeat && !p.finished && a.proxy is bool && a.status=='pending' && a.createdAt==request.time
       && a.actionJson is string && a.actionJson.size()<16384 && m.phase=='playing' && m.paused==null && hostAlive(c)
       && ((!a.proxy && m.seatUids[a.seat]==me() && !(a.seat in m.cpu))
-       || (a.proxy && m.host==me() && (a.seat in m.cpu || request.time >= m.turnAt+duration.value(m.get('cpuTimeoutSec',90),'s'))));}
+       || (a.proxy && m.host==me() && (a.seat in m.cpu || request.time >= m.turnAt+duration.value(m.get('cpuTimeoutSec',90),'s')
+        || (request.time >= m.turnAt+duration.value(5,'s') && !peerFresh(c,m,m.seatUids[a.seat])))));}
     allow get: if member(c) && (room(c).host==me() || id==string(room(c).revision)+'-'+me() || resource.data.uid==me());
     allow list: if member(c);
     allow create: if member(c) && id==string(request.resource.data.revision)+'-'+me() && validAction();
