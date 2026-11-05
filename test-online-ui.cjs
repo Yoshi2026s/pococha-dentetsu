@@ -11,7 +11,7 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
     await p.goto('file://'+path.resolve(__dirname,'index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);
     await p.click('#bCreate');await p.waitForTimeout(400);
     ok(/招待を送る/.test(await p.locator('#bCopy').textContent()),'共有画面が使えるのに「招待を送る」になっていない');
-    await p.click('#bCopy');await p.waitForTimeout(200);const sh=await p.evaluate(()=>[window.__shared.length,(window.__shared[0]||{}).text||'',code]);
+    await p.evaluate(()=>document.querySelector('#bCopy').click())/* 端末内モードでは招待ボタンを隠すので（2026.11.05.19）、処理を直接呼ぶ */;await p.waitForTimeout(200);const sh=await p.evaluate(()=>[window.__shared.length,(window.__shared[0]||{}).text||'',code]);
     ok(sh[0]===1&&sh[1].includes(sh[2])&&sh[1].includes('?room='),'共有画面に招待文（部屋コード・URL）が渡っていない '+JSON.stringify(sh));
     const nm=await p.evaluate(()=>{const keep=[seats,meta];meta={...meta,host:'H',phase:'lobby',uname:{},pname:{}};seats=[{uid:'H'},{uid:'B'},{uid:'C'},null];const me=mySeat();const r=[0,1,2].map(i=>seatName(i));[seats,meta]=keep;return [me,r]});
     ok(nm[1][0]==='ホスト'&&nm[1][1]==='2Pさん'&&nm[1][2]==='3Pさん','名前を決めていない人の表示 '+JSON.stringify(nm));
