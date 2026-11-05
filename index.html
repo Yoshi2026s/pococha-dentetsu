@@ -1823,6 +1823,8 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
 // ラストスパート：日数を決めた対戦の最後の8手番（2周）。目的地の賞金が2倍（s.ls=1の盤面のみ）
 // その時点の順位（同点は同じ順位）：ゴールド＋物件＋ランクボーナス。最終結果と同じ数え方
 function placesOf(s){const t=[0,1,2,3].map(i=>assets(s,i)+(BONUS[s.players[i].rank]||0));return t.map(v=>1+t.filter(x=>x>v).length)}
+// 単独1位の席（ゴールド＋物件。同点なら-1）
+const leaderOf=s=>{if(!s||!Array.isArray(s.players)||s.players.length<4)return-1;const as=[0,1,2,3].map(i=>assets(s,i)),m=Math.max(...as);return as.filter(v=>v===m).length===1?as.indexOf(m):-1};
 // デッドヒート：目的地まであとHEAT_STEPSマス以内の人（席の番号）。終わった盤面では空
 const HEAT_STEPS=4,heatOf=s=>{if(!s||s.finished||s.goal==null)return[];const dg=D(s.goal);return[0,1,2,3].filter(i=>{const v=dg[s.players[i].pos];return v>0&&v<=HEAT_STEPS})};let heatGoal=null;
 const LS_TURNS=8,lsOn=st=>!!(st&&st.ls)&&!st.finished&&st.maxTurn>0&&st.maxTurn-st.turn<=LS_TURNS;
@@ -2661,6 +2663,9 @@ async function cpuDecide(st){const seat=curSeat(st);let pre=null,st2=st;
   const a=await cpuDecideCore(st2);if(pre&&pre.length)a.preSell=pre;
   try{const s1=applyTurn(st,a,meta.seed,{noForce:true});if(s1.needPost&&s1.needPost.length)a.postSell=s1.needPost}catch(e){}
   return a}
+// 手札こうかんの得：入れかえる相手（カードの多い人・効果と同じ選び方）の手札が、自分の残りの手札より枚数で2枚以上多いか、値打ち（ショップの値段の合計）が1.5倍以上で3000G以上多い（2026.11.05.6）
+function swapGain(st,seat){const p=st.players[seat];let v=-1,mx=-1;st.players.forEach((q,i)=>{if(i!==seat&&q.hand.length>mx){mx=q.hand.length;v=i}});if(v<0)return false;const q=st.players[v],mine=p.hand.slice();mine.splice(mine.indexOf('swaphand'),1);
+  const val=h=>h.reduce((a,k)=>a+(SHOPP[k]||0),0);return q.hand.length>=mine.length+2||(q.hand.length>=mine.length&&val(q.hand)>=val(mine)*1.5&&val(q.hand)-val(mine)>=3000)}
 function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goal)[p.pos],ch=cpuChar(seat),T=(ch&&ch.t)||{},lv=ch?ch.lv:((meta&&meta.cpuLv)||'normal');let a={type:'roll'};
   const has=k=>p.hand.includes(k),bo=st.boost===seat?1:0,wnear=(L,n)=>{const dG=D(st.goal),c=L.filter(i=>i!==p.pos&&i!==st.goal).map(i=>dG[i]).sort((a,b)=>a-b).slice(0,n);return c.length?c[c.length-1]:1e9};
   const as=[0,1,2,3].map(i=>assets(st,i)),lead=as.some((v,i)=>i!==seat&&v>as[seat]*1.15),dgs=st.players.map(q=>D(st.goal)[q.pos]),closer=st.players.some((q,i)=>i!==seat&&dgs[i]<dg-8);
@@ -2676,8 +2681,8 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
   else if(has('airwarp')&&dg>=14&&wnear([...AIRPORTS].map(id=>SIDX[id]),2)<=dg-10)a={type:'airwarp'};
   else if(has('ownwarp')&&dg>=12&&wnear(ST.map((_,i)=>i).filter(i=>own(st,i).some(x=>x===seat)),1)<=dg-8)a={type:'ownwarp'};
   else if(has('luckywarp')&&dg>=12&&wnear(NODES.map((n,i)=>n.type==='plus'?i:-1).filter(i=>i>=0),8)<=dg-6)a={type:'luckywarp'};
-  else if(has('goalchange')&&dg>=22&&!closer)a={type:'roll',card:'goalchange'};
-  else if(has('goalchange')&&dg>=30&&!closer)a={type:'roll',card:'goalchange'};
+  else if(has('goalchange')&&((dg>=22&&!closer)||(dg>=10&&dgs.some((v,i)=>i!==seat&&v>0&&v<=4&&v<dg-5))))a={type:'roll',card:'goalchange'};/* ライバルが目的地まで4マス以内で自分は遠いときも、目的地を変えて1番乗りを防ぐ（2026.11.05.6。以前は自分が遠くライバルも遠いときだけで、ほとんど使われなかった） */
+  else if(has('swaphand')&&swapGain(st,seat))a={type:'roll',card:'swaphand'};/* 手札こうかん：ふつうの移動カードより先に判定する（以前は後ろにあり、ほぼ使われなかった） */
   else if(has('allanti')&&lead)a={type:'roll',card:'allanti'};
   else if(has('flameattack')&&lead)a={type:'roll',card:'flameattack'};
   else if(has('stop')&&closer)a={type:'roll',card:'stop'};
@@ -2716,7 +2721,6 @@ function cpuDecideCore(st){const seat=curSeat(st),p=st.players[seat],dg=D(st.goa
   else if(has('sunny')&&st.weather>=2)a={type:'roll',card:'sunny'};
   else if(has('trollcall')&&lead&&st.troll!==seat&&!cardBlocked(st,seat,'trollcall'))a={type:'roll',card:'trollcall'};
   else if(has('snatch2')&&st.players.some((q,i)=>i!==seat&&q.hand.length>=3))a={type:'roll',card:'snatch2'};
-  else if(has('swaphand')&&st.players.some((q,i)=>i!==seat&&q.hand.length>=p.hand.length+2))a={type:'roll',card:'swaphand'};
   else if(has('coupon')&&!(p.coupon>0))a={type:'roll',card:'coupon'};
   else if(has('shopwarp')&&p.hand.length<=4&&p.coin>=8000&&dg>=8)a={type:'shopwarp'};
   else if(!lead&&!(p.shield>0)&&!has('block')&&['castle','barrier','guard'].some(has))a={type:'roll',card:['castle','barrier','guard'].find(has)};
@@ -2790,6 +2794,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
+  /* 1位の入れかわり：上のプレイヤー欄と同じ数え方（ゴールド＋物件）で、単独1位の人が変わったら知らせる（表示だけ・2026.11.05.6） */{const a=leaderOf(prev),b=leaderOf(s);if(a>=0&&b>=0&&a!==b&&s.turn>=4&&!s.finished)setTimeout(()=>{sfx('celebrate');vib(30);toast(`👑 ${seatName(b)}が1位に浮上！（${seatName(a)}を逆転）`)},SET.fast?1200:2800)}
   /* デッドヒート：2人以上が目的地まで4マス以内に迫ったら、その目的地で1回だけ知らせる（表示だけ・2026.11.05.5） */{const nr=heatOf(s);if(nr.length>=2&&!evs.some(e=>e.k==='goal')&&heatGoal!==s.goal){heatGoal=s.goal;setTimeout(()=>{sfx('roulStop');vib([40,30,40]);banner('デッドヒート！','linear-gradient(90deg,#ff3f8f,#9d7bff)',`${nr.map(i=>seatName(i)).join("・")} 目的地まで${HEAT_STEPS}マス以内`)},SET.fast?1000:2400)}}
   {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍'+(ls.v!=null?`・${seatName(ls.v)}に応援ブースト`:''));fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
   if(evs.some(e=>e.k==='newmis'))setTimeout(()=>{toast(`${s.hour}:00 新しいポコチャレが出ました（ポコチャレボタンで確認）`);const b=$('#bMis');if(b){b.classList.remove('ping');void b.offsetWidth;b.classList.add('ping')}},SET.fast?500:1200);

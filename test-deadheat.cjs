@@ -16,5 +16,13 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
   await play(w.eval('mk(1)'));assert.equal(seen,0,'1人だけでデッドヒートが出た');
   await play(w.eval('mk(2)'));assert.equal(seen,1,'2人が近いのにデッドヒートが出ない');assert(w.eval('heatGoal')===w.eval('curTip().state.goal'));
   w.__st=w.eval('mk(3)');w.eval('playOne({state:__st,id:"y",turn:__st.turn})');await watch(8000);assert.equal(seen,0,'同じ目的地で2回出た');
-  assert.deepEqual(errors,[],'エラー：'+errors.join(' / '));console.log('OK デッドヒート');process.exit(0)}
+  // 1位の入れかわり：単独1位が変わったら「👑 ○○が1位に浮上！」（4手番目から・同点からは出さない）
+  let tseen=[];const twatch=async ms=>{tseen=[];for(let t=0;t<ms;t+=100){const e=d.querySelector('#toast');if(e&&!e.hidden&&e.textContent.includes('1位に浮上')&&!tseen.includes(e.textContent))tseen.push(e.textContent);await wait(100)}};
+  const lead=async(pre,post,turn)=>{w.__a=w.eval('mk(0)');w.__b=w.eval('mk(0)');w.__a.turn=w.__b.turn=turn;pre(w.__a);post(w.__b);w.eval('heatGoal=curTip().state.goal;dispState=__a;playOne({state:__b,id:"z"+Math.random(),turn:__b.turn})');await twatch(6000);return tseen};
+  let t1=await lead(a=>a.players[0].coin=50000,b=>b.players[1].coin=50000,10);assert(t1.some(t=>t.includes('1位に浮上')&&t.includes('を逆転')),'1位が変わったのに知らせが無い：'+t1.join('/'));
+  t1=await lead(a=>a.players[0].coin=50000,b=>b.players[0].coin=50000,10);assert.equal(t1.length,0,'1位が同じなのに知らせが出た');
+  t1=await lead(a=>{},b=>b.players[1].coin=50000,10);assert.equal(t1.length,0,'同点からの変化で知らせが出た');
+  t1=await lead(a=>a.players[0].coin=50000,b=>b.players[1].coin=50000,2);assert.equal(t1.length,0,'序盤（4手番未満）で知らせが出た');
+  assert.equal(w.eval('leaderOf(null)'),-1);
+  assert.deepEqual(errors,[],'エラー：'+errors.join(' / '));console.log('OK デッドヒート・1位の入れかわり');process.exit(0)}
 catch(e){console.error('NG',e.message);process.exit(1)}},300);
