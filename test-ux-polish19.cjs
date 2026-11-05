@@ -5,7 +5,10 @@
 const {chromium,devices}=require('playwright');const path=require('path'),assert=require('assert');
 (async()=>{const b=await chromium.launch();let code=0;try{const c=await b.newContext({...devices['iPhone SE']});const p=await c.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
   await p.route(/firebase|gstatic|googleapis/,r=>r.abort());await p.addInitScript(()=>{try{localStorage.setItem('poco-set',JSON.stringify({bgm:0,se:0,fast:true}))}catch{}});
-  await p.goto('file://'+path.resolve('index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);await p.click('#bCreate');await p.waitForTimeout(500);
+  await p.goto('file://'+path.resolve('index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);await p.waitForTimeout(300);
+  /* 8) 端末内モードのタイトル：見出しは「CPU対戦で遊ぶ」、コードの説明に「届いた」と書かない（2026.11.05.21） */const tt=await p.evaluate(()=>({h:document.querySelector('#lobbyH').textContent,c:document.querySelector('#codeHelp').textContent}));
+  assert(tt.h==='CPU対戦で遊ぶ'&&!/届いた/.test(tt.c)&&/この端末で遊んだ/.test(tt.c),'端末内モードのタイトルの表示 '+JSON.stringify(tt));
+  await p.click('#bCreate');await p.waitForTimeout(500);
   const lob=await p.evaluate(()=>({copy:document.querySelector('#bCopy').hidden,seats:[...document.querySelectorAll('#seats > *')].map(e=>e.textContent)}));
   assert(lob.copy,'端末内モードで「招待文をコピー」が出た');assert(lob.seats.slice(1).every(t=>t.includes('開始時にCPU')&&!t.includes('タップで座る')),'空席の表示：'+lob.seats.join(' / '));
   await p.click('#bStart');await p.waitForTimeout(1500);
@@ -19,4 +22,9 @@ const {chromium,devices}=require('playwright');const path=require('path'),assert
   assert(parseFloat(ni)===0,'夜の決算の見出しにふちどり：'+ni);
   const wx=await p.evaluate(()=>{showWx();const th=[...document.querySelectorAll('#ov .xtab tr>th:first-child')].find(e=>e.textContent.includes('ゴールデン'));const r=th&&th.firstChild&&(()=>{const rg=document.createRange();rg.selectNodeContents(th.firstChild);return rg.getClientRects().length})();document.querySelector('#ov').hidden=true;document.querySelector('#ov').innerHTML='';return r});
   assert.equal(wx,1,'「ゴールデン」が折れた');
+  /* 7) 振動が使えない端末（iPhoneなど）では「振動（Androidのみ）」を出さない（2026.11.05.21） */
+  const vb=await p.evaluate(()=>{document.querySelector('#bSet').click();const l=document.querySelector('label[for="sV"]');const r=!!l&&l.offsetParent!==null;document.querySelector('#ov').hidden=true;document.querySelector('#ov').innerHTML='';return r});assert(vb,'振動が使える端末で振動の項目が出ない');
+  {const c2=await b.newContext({...devices['iPhone SE']});const q=await c2.newPage();await q.route(/firebase|gstatic|googleapis/,r=>r.abort());await q.addInitScript(()=>{try{Object.defineProperty(Navigator.prototype,'vibrate',{value:undefined,configurable:true})}catch{}});
+    await q.goto('file://'+path.resolve('index.html'));await q.waitForFunction(()=>!document.querySelector('#bCreate').disabled);await q.click('#bCreate');await q.waitForTimeout(300);await q.click('#bStart');await q.waitForTimeout(1200);
+    const nv=await q.evaluate(()=>{document.querySelector('#bSet').click();const l=document.querySelector('label[for="sV"]');return{has:!!l,vis:!!l&&l.offsetParent!==null}});assert(nv.has&&!nv.vis,'振動が使えない端末に振動の項目が出た '+JSON.stringify(nv));await c2.close()}
   assert.deepEqual(errs,[],'エラー：'+errs.join(' / '));console.log('PASS 見えにくい・分かりにくい表示の手直し')}catch(e){console.error('NG',e.message);code=1}finally{await b.close();process.exit(code)}})();
