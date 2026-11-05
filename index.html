@@ -2821,11 +2821,11 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
-  /* ご当地フィーバー（2026.11.05.10） */{const fe=evs.find(e=>e.k==='fever');if(fe)setTimeout(()=>{const n=NODES[fe.v];sfx('celebrate');vib([40,30,80]);pillar(n,'#ff7a1a');burst('star',n);coinsFly(n,seat,8);banner('フィーバー！','linear-gradient(90deg,#ff5a1a,#ffb000)',`${seatName(seat)}：${NODES[fe.v].name}で${(fe.t.match(/＋[\d,]+G/)||[''])[0]}`)},SET.fast?600:1300);
+  /* ご当地フィーバー（2026.11.05.10） */{const fe=evs.find(e=>e.k==='fever');if(fe)setTimeout(()=>{const n=NODES[fe.v];sfx('celebrate');vib([40,30,80]);comments('fever',6);pillar(n,'#ff7a1a');burst('star',n);coinsFly(n,seat,8);banner('フィーバー！','linear-gradient(90deg,#ff5a1a,#ffb000)',`${seatName(seat)}：${NODES[fe.v].name}で${(fe.t.match(/＋[\d,]+G/)||[''])[0]}`)},SET.fast?600:1300);
     const fm=evs.filter(e=>e.k==='fevermove').pop();if(fm&&!s.finished)setTimeout(()=>toast('🔥 '+fm.t.replace(/^\d+:00 /,'')),SET.fast?1600:3400)}
-  /* 1位の入れかわり：上のプレイヤー欄と同じ数え方（ゴールド＋物件）で、単独1位の人が変わったら知らせる（表示だけ・2026.11.05.6） */{const a=leaderOf(prev),b=leaderOf(s);if(a>=0&&b>=0&&a!==b&&s.turn>=4&&!s.finished)setTimeout(()=>{sfx('celebrate');vib(30);toast(`👑 ${seatName(b)}が1位に浮上！（${seatName(a)}を逆転）`)},SET.fast?1200:2800)}
-  /* デッドヒート：2人以上が目的地まで4マス以内に迫ったら、その目的地で1回だけ知らせる（表示だけ・2026.11.05.5） */{const nr=heatOf(s);if(nr.length>=2&&!evs.some(e=>e.k==='goal')&&heatGoal!==s.goal){heatGoal=s.goal;setTimeout(()=>{sfx('roulStop');vib([40,30,40]);banner('デッドヒート！','linear-gradient(90deg,#ff3f8f,#9d7bff)',`${nr.map(i=>seatName(i)).join("・")} 目的地まで${HEAT_STEPS}マス以内`)},SET.fast?1000:2400)}}
-  {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍'+(ls.v!=null?`・${seatName(ls.v)}に応援ブースト`:''));fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
+  /* 1位の入れかわり：上のプレイヤー欄と同じ数え方（ゴールド＋物件）で、単独1位の人が変わったら知らせる（表示だけ・2026.11.05.6） */{const a=leaderOf(prev),b=leaderOf(s);if(a>=0&&b>=0&&a!==b&&s.turn>=4&&!s.finished)setTimeout(()=>{sfx('celebrate');vib(30);comments('lead',4);toast(`👑 ${seatName(b)}が1位に浮上！（${seatName(a)}を逆転）`)},SET.fast?1200:2800)}
+  /* デッドヒート：2人以上が目的地まで4マス以内に迫ったら、その目的地で1回だけ知らせる（表示だけ・2026.11.05.5） */{const nr=heatOf(s);if(nr.length>=2&&!evs.some(e=>e.k==='goal')&&heatGoal!==s.goal){heatGoal=s.goal;setTimeout(()=>{sfx('roulStop');vib([40,30,40]);comments('heat',6);banner('デッドヒート！','linear-gradient(90deg,#ff3f8f,#9d7bff)',`${nr.map(i=>seatName(i)).join("・")} 目的地まで${HEAT_STEPS}マス以内`)},SET.fast?1000:2400)}}
+  {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);comments('laststretch',8);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍'+(ls.v!=null?`・${seatName(ls.v)}に応援ブースト`:''));fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
   if(evs.some(e=>e.k==='newmis'))setTimeout(()=>{toast(`${s.hour}:00 新しいポコチャレが出ました（ポコチャレボタンで確認）`);const b=$('#bMis');if(b){b.classList.remove('ping');void b.offsetWidth;b.classList.add('ping')}},SET.fast?500:1200);
   const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('celebrate');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
   const ft=evs.filter(e=>e.k==='fantier').pop();if(ft)setTimeout(()=>{sfx('rankup');banner(`物件${ft.v}件！`,'linear-gradient(90deg,#ff5fa8,#ffb000)',`マス・イベントのゴールドが＋${Math.round(fanBonus(ft.v)*100)}%`);burst('heart',pNode);fireworks(1)},SET.fast?600:1300);
@@ -2839,7 +2839,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const mc=monoChange(prev,s);if(!mc.gain.length&&evs.some(e=>e.k==='mono'))mc.gain.push([seat,s.players[seat].pos]);const fT=SET.fast?500:1100;
     if(mc.gain.length)setTimeout(()=>{const [i,k]=mc.gain[0],n=NODES[k];comments('mono',6);sfx('monoGet');vib([50,30,50,30,120]);pillar(n,'#ffcf3a');shock(n,'#ffcf3a');burst('star',n);fireworks(3);banner('独占！','linear-gradient(90deg,#ffb000,#ffd23f,#ff8a3d)',`${seatName(i)}：${mc.gain.map(([,k])=>NODES[k].name).join('・')} 決算${n.mono||2}倍`)},fT);
     /* 独占リーチ：この手番で「あと1件で独占」になった駅を知らせる（表示だけ・2026.11.05.7） */{const r0=reachList(prev,seat),nr=prev?reachList(s,seat).filter(k=>!r0.includes(k)):[];if(nr.length&&!mc.gain.length)setTimeout(()=>{sfx('station');toast(`🎯 ${seatName(seat)}：${nr.map(k=>NODES[k].name).join('・')}の独占まであと1件！`)},fT+(SET.fast?300:700))}
-    if(mc.lost.length)setTimeout(()=>{const [i,k]=mc.lost[0],n=NODES[k];sfx('monoLost');vib([120,60,200]);shock(n,'#7a8aa0');dust(n);brokenHearts(n);banner('独占くずれ…','linear-gradient(90deg,#4a5263,#7a8aa0)',`${seatName(i)}：${mc.lost.map(([,k])=>NODES[k].name).join('・')}の独占が終わった`)},fT+(mc.gain.length?(SET.fast?1400:2600):0))}
+    if(mc.lost.length)setTimeout(()=>{const [i,k]=mc.lost[0],n=NODES[k];sfx('monoLost');vib([120,60,200]);comments('monolost',5);shock(n,'#7a8aa0');dust(n);brokenHearts(n);banner('独占くずれ…','linear-gradient(90deg,#4a5263,#7a8aa0)',`${seatName(i)}：${mc.lost.map(([,k])=>NODES[k].name).join('・')}の独占が終わった`)},fT+(mc.gain.length?(SET.fast?1400:2600):0))}
   if(evs.some(e=>e.k==='buy')){comments('buy',3);sfx('buy');houseRise(pNode,SEATC[seat]);burst('coin',pNode);banner('物件獲得！','var(--station)',pNode.name||'');coinsFly(pNode,seat,6,true)}
   const tr=evs.find(e=>e.k==='troll');if(tr){sfx('troll');vib([40,30,40,30,40]);glitch();staticNoise(1100);comments('troll',6);const big=lateGame(s);
     await showOverlay(`<div class="trollbig glitchy">${trollSvg(big)}</div><h3>${big?'超・':''}荒らしラグ王 参上</h3><p class="tr-who">${esc(nameize(tr.t))}</p><p class="tr-help">取りつかれた人は、自分の番のたびに<b>いたずら</b>されます（ゴールド浪費・ランクダウン・カードを捨てる・物件が離れる など）。<br>おきよめカードで追い払えます。同じマスに来た人には乗り移ります。</p>`,SET.fast?1600:3000,'troll')}
@@ -3405,6 +3405,12 @@ const CMT={
  bad:['うわぁ…','それはつらい','災難だ…','負けないで','運営さん…','今日は厄日？','やめてあげて','どんまい！','かわいそう','次は良いことある','耐えて','がまんがまん','笑うしかない','まだまだこれから','切り替え大事'],
  buy:['物件獲得おめでとう！','🏠ふえた','名物ゲット','そこ推せる','いい買い物','その駅いいよね','地元民です！','私もファンです','ファン仲間〜','物件ゲット！','集めていこ','コンプ目指そ','いいセンス','決算が楽しみ','ファンが増えると強い'],
  mono:['独占！！','独占きた！','駅ごと推し','さすがの財力','決算ウハウハ','この駅はもらった','独占おめでとう！','全員ファン！？','コンプリート','強すぎる','もう誰も買えない','王者の風格'],
+ /* 2026.11.05.15：今日足した場面のコメント */
+ fever:['フィーバーきた！','🔥🔥🔥','寄り道大成功','ご当地最高！','燃えてる〜','ナイス寄り道','ボーナスうま','その駅アツい','いいとこ止まった！','神ルート'],
+ monolost:['独占が…','あ〜くずれた','取り返そう！','まだいける','ドンマイ','くやしい…','奪われた…','次で取り返そ','切りかえていこ','泣かないで'],
+ heat:['デッドヒート！','激アツ！','どっちが先？','ドキドキ','手に汗にぎる','勝負どころ','目が離せない','ここ大事！','いけーっ！','見守ってる'],
+ lead:['トップ交代！','逆転きた！','👑','まさかの展開','ここから！','追い抜いた！','順位うごいた','おもしろくなってきた','首位おめでとう','ひっくり返った！'],
+ laststretch:['ラスト2周！','ラストスパート！','最後まで分からない','ここから逆転も','がんばれ〜！','最後の追い込み','賞金2倍アツい','あと少し！','全員ファイト','最後に笑うのは？'],
  goal:['1番乗りおめでとう！','GOAL!!','やったー！','すごい！！','ぴったり止まった！','計算通り？','さすがすぎる','おめでとうーー','🎉🎉🎉','神ルート','優勝あるで','見事！','拍手喝采','記念スクショ','次の目的地も狙お','旅の達人','かっこよすぎ','泣ける','感動した','最高の瞬間'],
  troll:['ｗｗｗｗ','ラグい…','荒らし来た','つまらん','ｗｗ','重くない？','はよ','まだ？','おそっ','草','ふーん','知らんけど','それ悪手','へたくそｗ','回線よわ'],
  trollgone:['荒らし帰った？','平和がもどった','ナイス撃退！','もう来ないで〜','ブロック最強','ふぅ…よかった'],
