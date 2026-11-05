@@ -486,7 +486,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .sl-h{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px}.sl-h b{font-family:var(--f-display);font-size:14px;color:var(--station)}.sl-h small{font-size:11px;font-weight:800;color:var(--muted)}.sl-h em{font-style:normal;color:#fff;padding:1px 7px;border-radius:999px}
 .sl-r{display:flex;align-items:center;gap:6px;padding:3px 0;border-top:1px dashed var(--line);font-size:12.5px}.sl-n{flex:1;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sl-p{font-variant-numeric:tabular-nums;color:var(--muted);font-size:11.5px}
 .sl-o{min-width:46px;text-align:center;font-size:11px;font-weight:800;padding:1px 6px;border-radius:999px;border:1.5px solid var(--outline,#2b2236);background:var(--panel)}
-.mr-sl{width:100%;margin-top:6px;text-align:left}
+.mr-nosl .mr-sl{display:none}.bigplay{display:flex;flex-direction:column;align-items:center;gap:2px;margin:10px 0 0;padding:8px 12px;border-radius:16px;border:2.5px solid var(--outline,#2b2236);background:color-mix(in srgb,#ffd23f 22%,var(--panel));text-align:center}.bigplay small{font-size:12px;font-weight:800;color:var(--muted)}.bigplay span{font-weight:800;font-size:14px}.bigplay .bp-g{font-family:var(--f-display);font-size:22px;color:#c98a00}.mr-sl{width:100%;margin-top:6px;text-align:left;max-height:140px;overflow-y:auto;overscroll-behavior:contain}/* 物件の多い駅でカードが縦に長くなり、自分のコマを隠していた（2026.11.05.5） */
 .fanbtn{gap:0}.fb-i{font-style:normal;font-size:18px;line-height:1}.fb-t{font-size:10.5px!important;opacity:.8}.fanbtn .fb-d{font-size:11.5px!important;font-weight:700}.fanbtn .fb-s{font-size:11px!important;font-weight:800}.fanbtn.on .fb-s{color:var(--pink)}.fanbtn.short{opacity:.55}.fanbtn b{font-size:12.5px;line-height:1.2}
 .sl-i{font-size:16px;flex-shrink:0}.sl-p em,.sl-n em{font-style:normal;font-size:10px;color:var(--pink);font-weight:800}.sl-p{text-align:right;line-height:1.2}
 .fan-sum{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.fan-sum span{display:flex;flex-direction:column;align-items:center;padding:6px 2px;border-radius:12px;border:2px solid var(--outline,#2b2236);font-size:11px;font-weight:800}
@@ -1590,7 +1590,7 @@ function chooseGoal(s,R){let c=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!(s.goal==
 function genesisState(seed,days){days=DAYS_OPT.includes(days)?days:1;const rounds=roundsFor(days);
   const s={turn:0,month:1,hour:START_H,since:0,days,maxTurn:rounds*4,oi:0,order:[0,1,2,3],rng:0,goal:null,goalDist:0,okiUsed:false,troll:null,boost:null,owner:{},closed:0,finished:false,hist:[[10000,10000,10000,10000]],
   players:[0,1,2,3].map(()=>({pos:START,coin:10000,rank:'E1',pt:0,cards:0,hand:[],face:'ふつう',earned:0,mc:newMc(),md:[],mtot:0,minusTot:0,ye:0,yb:0,dmis:0,dye:0,dbuy:0,e0:0})),ev:[],lastSeat:null,lastDice:null,lastPath:[]};
-  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;s.cb=1;if(days>=1&&days<=3)s.hh=[[10000,10000,10000,10000]];/* 3日までの対戦は総Gを1時間ごとに記録（結果のグラフ用・2026.11.05.4） *//* ラストスパートで最下位に応援ブースト（2026.11.05.3） *//* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
+  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;s.cb=1;s.hl=1;/* 名場面（1手番でいちばん稼いだ場面）を記録（2026.11.05.5） */if(days>=1&&days<=3)s.hh=[[10000,10000,10000,10000]];/* 3日までの対戦は総Gを1時間ごとに記録（結果のグラフ用・2026.11.05.4） *//* ラストスパートで最下位に応援ブースト（2026.11.05.3） *//* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
   chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.fy=1;/* コアファンの新ルール（0:00で0人に戻る・コアファンイベント） */s.rng=n;return s}
 
 // ===== ゴールドがマイナスのときの物件売却（第32版）=====
@@ -1804,6 +1804,11 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     else if(r<.85){ev('mischief','回線落ち（何も起きなかった）')}
     else{const g=B*3;p.coin+=g;p.face='びっくり';ev('mischief',`荒らしラグ王が改心 ＋${g.toLocaleString()}G`)}}
   if(NF){if(p.coin<0&&ownedFans(s,seat).length){const c=JSON.parse(JSON.stringify(s));s.postSnap=c;s.needPost=autoSell(JSON.parse(JSON.stringify(s)),seat)}}else forceSell(s,seat,action.postSell,ev,true);
+  if(s.hl){const g=p.coin-st.players[seat].coin;if(g>0&&(!s.big||g>s.big.g)){const ge=s.ev.find(e=>e.k==='goal'),ee=s.ev.find(e=>e.k==='event'&&EVN[e.v]),nd=NODES[p.pos];
+    /* 何で稼いだか：この手番の出来事のうち、いちばん大きい「＋○G」のもの（ほかの人の分は除く） */const amt=e=>{const m=String(e.t||'').match(/＋([\d,]+)G/);return m?+m[1].replace(/,/g,''):0},mine=e=>!(e.seat!=null&&e.seat!==seat)&&!(e.k==='yellbonus'&&e.v!==seat),top=s.ev.filter(mine).reduce((a,e)=>amt(e)>(a?amt(a):0)?e:a,null);
+    const land=ee?`イベント「${EVN[ee.v]}」`:nd.type==='station'?`${nd.name}駅`:nd.name?`${nd.name}の${KIND[nd.type]||'マス'}`:KIND[nd.type]||'マス';
+    const why=ge||(top&&top.k==='goal')?`${((ge||top).t.match(/^(.+?)に1番乗り/)||[,nd.name])[1]}に1番乗り`:top&&top.k==='yellbonus'?'コアファンの節目ボーナス':top&&top.k==='mission'?'ポコチャレ達成':top&&top.k==='mischief'?'荒らしラグ王が改心':land;
+    s.big={seat,g,turn:s.turn,t:why}}}
   s.players.forEach(q=>q.cards=q.hand.length);s.turn+=1;s.oi+=1;
   if(s.oi>=4){s.oi=0;s.hour=(s.hour+1)%24;s.since+=1;
     if(s.hour===0)dayEnd(s,R);
@@ -1818,6 +1823,8 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
 // ラストスパート：日数を決めた対戦の最後の8手番（2周）。目的地の賞金が2倍（s.ls=1の盤面のみ）
 // その時点の順位（同点は同じ順位）：ゴールド＋物件＋ランクボーナス。最終結果と同じ数え方
 function placesOf(s){const t=[0,1,2,3].map(i=>assets(s,i)+(BONUS[s.players[i].rank]||0));return t.map(v=>1+t.filter(x=>x>v).length)}
+// デッドヒート：目的地まであとHEAT_STEPSマス以内の人（席の番号）。終わった盤面では空
+const HEAT_STEPS=4,heatOf=s=>{if(!s||s.finished||s.goal==null)return[];const dg=D(s.goal);return[0,1,2,3].filter(i=>{const v=dg[s.players[i].pos];return v>0&&v<=HEAT_STEPS})};let heatGoal=null;
 const LS_TURNS=8,lsOn=st=>!!(st&&st.ls)&&!st.finished&&st.maxTurn>0&&st.maxTurn-st.turn<=LS_TURNS;
 // 6時間ごと：ポコチャレの締め（マイナス0回の判定）→新しいポコチャレ→天気が変わる
 function blockEnd(s,R){s.players.forEach((p,i)=>{if(s.mis.includes('nominus')&&!p.md.includes('nominus')&&!p.mc.minus)misReward(s,p,i,'nominus','coin',R,(k,t,v)=>s.ev.push({k,t,v,seat:i}));p.mc=newMc(p);p.md=[]});pickMis(s,R);s.ev.push({k:'newmis',t:`${s.hour}:00 新しいポコチャレ`});
@@ -2783,6 +2790,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
+  /* デッドヒート：2人以上が目的地まで4マス以内に迫ったら、その目的地で1回だけ知らせる（表示だけ・2026.11.05.5） */{const nr=heatOf(s);if(nr.length>=2&&!evs.some(e=>e.k==='goal')&&heatGoal!==s.goal){heatGoal=s.goal;setTimeout(()=>{sfx('roulStop');vib([40,30,40]);banner('デッドヒート！','linear-gradient(90deg,#ff3f8f,#9d7bff)',`${nr.map(i=>seatName(i)).join("・")} 目的地まで${HEAT_STEPS}マス以内`)},SET.fast?1000:2400)}}
   {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍'+(ls.v!=null?`・${seatName(ls.v)}に応援ブースト`:''));fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
   if(evs.some(e=>e.k==='newmis'))setTimeout(()=>{toast(`${s.hour}:00 新しいポコチャレが出ました（ポコチャレボタンで確認）`);const b=$('#bMis');if(b){b.classList.remove('ping');void b.offsetWidth;b.classList.add('ping')}},SET.fast?500:1200);
   const ms=evs.filter(e=>e.k==='mission'&&e.seat==null);if(ms.length)setTimeout(()=>{sfx('celebrate');banner('ポコチャレ達成！','linear-gradient(90deg,#9d7bff,#ff5fa8)',ms.map(e=>MIS[e.v].s).join('・'));pillar(pNode,'#c9a6ff');burst('star',pNode)},SET.fast?700:1500);
@@ -2826,7 +2834,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
 let finalSeen=false;
 function showFinal(s){const me=mySeat(),rows=s.final.map((f,i)=>`<tr${f.seat===me?' class="me"':''}><td>${['1位','2位','3位','4位'][i]} ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}G</td></tr>`).join('');
     const earn=[0,1,2,3].sort((a,b)=>s.players[b].earned-s.players[a].earned)[0];const rk=[0,1,2,3].sort((a,b)=>RANKS.indexOf(s.players[b].rank)-RANKS.indexOf(s.players[a].rank))[0];
-    if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">${s.days?s.days+'日間':'無制限'}の対戦が終わりました</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(chartOf(s)[0],false,chartOf(s)[1])}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
+    if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">${s.days?s.days+'日間':'無制限'}の対戦が終わりました</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(chartOf(s)[0],false,chartOf(s)[1])}${awards(s)}${bigPlay(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
 function showOverlay(html,ms,kind){return new Promise(res=>{const o=$('#ov');o.innerHTML=`<div class="card${kind?' '+kind:''}">${html}<button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;const rb=$('#bRematch');if(rb)rb.onclick=()=>{rematch()};
   o.querySelectorAll('[data-count]').forEach(el=>countUp(el,0,+el.dataset.count,'＋'));
   const done=()=>{o.hidden=true;o.innerHTML='';clearTimeout(t);res()};$('#ovClose').onclick=done;o.onclick=e=>{if(e.target===o)done()};const t=ms?setTimeout(done,SET.fast?ms/2:ms):null})}
@@ -2899,6 +2907,8 @@ function showMis(){const st=misSt;if(!st||!st.mis)return;const o=$('#ov'),I=misI
     ${I.p?`<p class="ms-fan">${esc(fanNext(misSt||dispState,I.p).txt)}</p>`:''}<p class="ms-rw">🎁 達成ごとの報酬：<b>${(BASEPT[I.p.rank]*4).toLocaleString()}G</b> か <b>カード1枚</b>を選べて、さらに <b>コアファン＋2人・ランク＋20pt</b></p>
     <p class="muted ms-nx">次のお題は ${nx}:00（あと${left}時間）</p><button id="msClose">とじる</button></div>`;
   o.hidden=false;const c=$('#msClose');c.onclick=()=>{o.hidden=true;o.innerHTML=''}}
+// 名場面：対戦中に1手番でいちばんゴールドが増えた場面（s.hl=1の盤面のみ）
+function bigPlay(s){const b=s&&s.big;if(!b||!(b.g>0))return'';return`<p class="bigplay"><small>🎬 名場面</small><span><b style="color:${SEATC[b.seat]}">${esc(seatName(b.seat))}</b> 第${b.turn+1}手番 ${esc(b.t)}</span><b class="bp-g">＋${b.g.toLocaleString()}G</b></p>`}
 function awards(s){const best=(f,lo)=>{const v=[0,1,2,3].map(i=>f(i)),m=lo?Math.min(...v):Math.max(...v);return m>0||lo?[0,1,2,3].filter(i=>v[i]===m):[]};
   const A=[['稼ぎ王',best(i=>s.players[i].earned),i=>s.players[i].earned.toLocaleString()+'G'],['ランク王',best(i=>RANKS.indexOf(s.players[i].rank)),i=>s.players[i].rank],
     ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>'達成'+s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>'マイナスマス'+(s.players[i].minusTot||0)+'回']].concat(s.fy?[['コアファン王',best(i=>s.players[i].yt||0),i=>'合計'+(s.players[i].yt||0)+'人']]:[]).concat(s.ls?[['1番乗り王',best(i=>s.players[i].gl||0),i=>(s.players[i].gl||0)+'回']]:[]);
@@ -3629,7 +3639,9 @@ function myResPlace(e,n){const q=resSpot(n),c=e.firstElementChild;if(!q||!c)retu
   /* 真ん中→下→上→左→右の順に試し、マスから縦・横に26px以上離れる置き場所を使う。どこも重なるなら一番離れる場所にして、カメラも動かす */
   const r=()=>({top:c.offsetTop,bottom:c.offsetTop+c.offsetHeight,left:c.offsetLeft,right:c.offsetLeft+c.offsetWidth}),/* 登場アニメの拡大縮小に左右されない位置（#myRes は画面全体に固定） */d=()=>{const a=r();return Math.max(a.top-y,y-a.bottom,a.left-x,x-a.right)};let best='',bd=d();
   for(const k of ['at-bot','at-top','at-l','at-r']){if(bd>=26)break;e.classList.add(k);const v=d();if(v>bd){bd=v;best=k}e.classList.remove(k)}
-  if(best)e.classList.add(best);if(bd<26){const a=r();resAvoid(n,a.top-M.top,a.bottom-M.top,M.height)}}
+  if(best)e.classList.add(best);if(bd<26){const a=r();
+    /* カードが高すぎてどこに置いてもコマに重なり、カメラでもよけられないときは、物件の一覧を省いて置き直す（2026.11.05.5） */if(!e.classList.contains('mr-nosl')&&e.querySelector('.mr-sl')&&Math.max(a.top-M.top,M.bottom-a.bottom)<36){if(best)e.classList.remove(best);e.classList.add('mr-nosl');return myResPlace(e,n)}
+    resAvoid(n,a.top-M.top,a.bottom-M.top,M.height)}}
 // 大きい数は「12.3万」のように短く
 // コアファンの人数（内部の値がそのまま人数）
 function kpp(k){return[(Math.round((+k||0)*10)/10).toLocaleString(),'人']}
