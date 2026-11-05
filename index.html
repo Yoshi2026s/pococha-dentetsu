@@ -3516,8 +3516,9 @@ function cpuTalk(s,prev,seat,t){if(!meta||seat==null)return;const evs=s.ev||[],c
   const goal=evs.some(e=>e.k==='goal'),ee=evs.find(e=>e.k==='event'),card=evs.find(e=>e.k==='card');
   if(goal){if(isC)say(seat,'goal',D0);const o=cpu.filter(i=>i!==seat);if(o.length)say(o[Math.floor(Math.random()*o.length)],'rival',D0+(isC?2200:600))}
   if(s.troll!=null&&prev&&prev.troll!==s.troll&&cpu.includes(s.troll)){say(s.troll,'troll',D0+(goal?4200:400));return}
+  /* 独占をくずされたCPUは、自分の番でなくてもくやしがる（2026.11.05.16） */const mc=monoChange(prev,s);{const lost=mc.lost.map(x=>x[0]).find(i=>cpu.includes(i)&&i!==seat);if(lost!=null)say(lost,'bad',D0+(goal?4200:1800))}
   if(goal||!isC)return;let sc=null;
-  if(ee)sc=evBad(ee.v)?'bad':'good';else if(/マイナスマス −/.test(t))sc='bad';else if(evs.some(e=>e.k==='buy'))sc='buy';else if(card&&Math.random()<.7)sc='card';
+  /* フィーバー駅に止まった・独占したときは喜ぶ */if(evs.some(e=>e.k==='fever')||mc.gain.some(x=>x[0]===seat))sc='good';else if(ee)sc=evBad(ee.v)?'bad':'good';else if(/マイナスマス −/.test(t))sc='bad';else if(evs.some(e=>e.k==='buy'))sc='buy';else if(card&&Math.random()<.7)sc='card';
   else if(s.lastDice>=10)sc='big';else if(s.lastDice&&s.lastDice<=2)sc='small';else if(Math.random()<.35)sc='turn';
   if(sc)say(seat,sc,D0)}
 // ===== 数字の桁が増えたら文字を少し小さくして、はみ出さないようにする（第32版）=====

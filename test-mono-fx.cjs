@@ -23,6 +23,14 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
   let ts=[];const tw=async ms=>{ts=[];for(let t=0;t<ms;t+=100){const e=d.querySelector('#toast');if(e&&!e.hidden&&e.textContent.includes('独占まであと1件')&&!ts.includes(e.textContent))ts.push(e.textContent);await wait(100)}};
   w.__a=w.eval('(()=>{const s=mk(null);return s})()');w.__b=w.eval('(()=>{const s=mk(null),n=NODES[__k].bases.length;s.owner[__k]=NODES[__k].bases.map((_,j)=>j<n-1?curSeat(s):null);return s})()');
   w.eval('dispState=__a;playOne({state:__b,id:"r1",turn:__b.turn})');await tw(5000);assert(ts.length===1,'独占リーチの知らせが無い：'+ts);
+  // CPUのひとこと（2026.11.05.16）：独占をくずされたCPUはくやしがり、独占した・フィーバーに止まったCPUは喜ぶ
+  let sp=[];const swatch=async ms=>{sp=[];for(let t=0;t<ms;t+=100){d.querySelectorAll('#bar .sp-bub').forEach(e=>{if(!sp.includes(e.textContent))sp.push(e.textContent)});await wait(100)}};
+  const talk=async(a,b,seat)=>{w.__a=a;w.__b=b;w.eval(`__b.ev=__b.ev||[];cpuTalk(__b,__a,${seat},'')`);await swatch(4000);return sp};
+  const cpuS=w.eval('(meta.cpu||[]).slice()');assert(cpuS.length>=2,'CPUの席が足りない');const [c1,c2]=cpuS;
+  let t1=await talk(w.eval('mono('+c1+')'),w.eval('mono('+c2+')'),c2);
+  const L=JSON.parse(w.eval(`JSON.stringify([cpuChar(${c1}).L.bad,cpuChar(${c2}).L.good,seatName(${c1}),seatName(${c2})])`));
+  assert(t1.some(t=>t.includes(L[0])),'独占をくずされたCPUがくやしがらない：'+t1);assert(t1.some(t=>t.includes(L[1])),'独占したCPUが喜ばない：'+t1);
+  t1=await talk(w.eval('mk(null)'),w.eval(`(()=>{const s=mk(null);s.ev=[{k:'fever',t:'',v:0}];return s})()`),c2);assert(t1.some(t=>t.includes(L[1])),'フィーバーでCPUが喜ばない：'+t1);
   // 今日足した場面のリスナーコメント（2026.11.05.15）
   assert(w.eval("['fever','monolost','heat','lead','laststretch'].every(k=>Array.isArray(CMT[k])&&CMT[k].length>=10)"),'新しい場面のコメントが無い');
   assert.deepEqual(errors,[],'エラー：'+errors.join(' / '));console.log('OK 独占の演出と音');process.exit(0)}
