@@ -10,7 +10,7 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
   await p.route(/firebase|gstatic|googleapis/,r=>r.abort());await p.goto('file://'+path.resolve('index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);
   await p.click('#bCreate');await p.waitForTimeout(300);await p.click('#bStart');await p.waitForFunction(()=>!!pending&&curTip()&&curTip().turn===0,null,{timeout:15000});await p.waitForTimeout(800);
   await p.evaluate(()=>{window.__bn=[];const ob=banner;window.banner=function(...a){const e=ob.apply(this,a);if(e){const bc=e.querySelector('.bn');setTimeout(()=>{const k=e.querySelector('.bncard'),q=k&&k.getBoundingClientRect(),r=bc&&bc.getBoundingClientRect();__bn.push({t:a[0],card:!!k,inside:!!(q&&r&&q.left>=r.left-1&&q.right<=r.right+1)})},800)}return e};pending.st.players[curSeat(pending.st)].hand=['luckywarp'];render()});
-  await p.click('#bCard');await p.waitForTimeout(400);await p.click('#ov .cardbtn[data-k="luckywarp"]');
+  await p.click('#bCard');await p.waitForTimeout(400);await p.click('#ov .cardbtn[data-k="luckywarp"]');await p.waitForTimeout(200);await p.click('#ccOk');/* 使う前の確認（2026.11.05.20） */
   // カードを使うとポコチャレ達成で報酬を選ぶ画面が出ることがある。そのときはゴールドを選んで手番を確定する
   for(let i=0;i<20;i++){await p.waitForTimeout(200);if(await p.evaluate(()=>!!pending&&pending.stage==='reward')){await p.click('#bRwCoin');break}if(await p.evaluate(()=>curTip().turn>=1))break}
   await p.waitForFunction(()=>__bn.some(x=>/ラッキーワープ/.test(x.t)),null,{timeout:8000}).catch(()=>{});
