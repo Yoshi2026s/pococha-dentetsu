@@ -56,7 +56,7 @@ async function play(br,port,W,seed){
     if(s.roll){
       if(PAUSE_AT&&!paused&&mine>=PAUSE_AT){paused=true;await pauseResume(page,click,log);continue}
       mine++;if(s.card&&R()<0.2){await click('#bCard');await page.waitForTimeout(300);const k=await page.locator('#ov .cardbtn:not([disabled])').count();
-        if(k){await click('#ov .cardbtn:not([disabled])',Math.floor(R()*k));await page.waitForTimeout(300);const j=await page.locator('#justPick:not([hidden]) .jbtn').count();if(j)await click('#justPick .jbtn',Math.floor(R()*j))}
+        if(k){await click('#ov .cardbtn:not([disabled])',Math.floor(R()*k));await page.waitForTimeout(300);if(await page.locator('#ccOk').count())await click('#ccOk');await page.waitForTimeout(200);/* 使う前の確認（2026.11.05.20） */const j=await page.locator('#justPick:not([hidden]) .jbtn').count();if(j)await click('#justPick .jbtn',Math.floor(R()*j))}
         else await click('#ov #ovClose');continue}
       await click('#bRoll')}}
   if(!finished)log('未完了','制限時間内に最終結果まで進まなかった');
