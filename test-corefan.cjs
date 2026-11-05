@@ -44,11 +44,11 @@ async function open(b,file){const c=await b.newContext({viewport:{width:390,heig
   ok(r.day.ye.every(v=>v===0)&&r.day.yb.every(v=>v===0)&&r.day.rep.every(v=>v===12)&&r.day.ev,'0:00の決算でコアファンが0人に戻らない '+JSON.stringify(r.day));
   ok(r.yell.n>=20&&r.yell.min>=1&&r.yell.kinds.length>=6&&r.yell.kinds.every(k=>/^y_/.test(k)),'コアファンマスのイベント '+JSON.stringify(r.yell));
   ok(r.fanEv.length>=3,'イベントマスのファン交流イベント '+r.fanEv);
-  ok(/あと\d+人で\d+人ボーナス/.test(r.note)&&/0:00の決算で0人に戻る/.test(r.note),'結果カードの補足 '+r.note);
+  ok(/あと\d+人で\d+人ボーナス/.test(r.note)&&/〆（0:00の決算）で0人に戻る/.test(r.note),'結果カードの補足 '+r.note);
   ok(/あと\d+人で\d+人ボーナス/.test(r.sheet),'プレイヤー欄にコアファンの次のボーナスがない');
   ok(r.dbl&&r.dbl.dbl>=r.dbl.plain*2-1&&r.dbl.yt===r.dbl.dbl,'コアファン倍増カードでコアファンが2倍にならない '+JSON.stringify(r.dbl));
   ok(/コアファン王/.test(r.award)&&/合計9人/.test(r.award),'最終結果のコアファン王');
-  ok(/0:00の決算のあと/.test(r.help)&&!/目的地が変わるたびに、全員のコアファン|目的地が変わると、全員のコアファンは0/.test(r.help),'説明が新しいルールでない');
+  ok(/〆（0:00の決算）のあと/.test(r.help)&&!/目的地が変わるたびに、全員のコアファン|目的地が変わると、全員のコアファンは0/.test(r.help),'説明が新しいルールでない');
   if(p.errs.length)fail.push('JSエラー '+p.errs.join(' / '));
   // 以前の対戦（fy なし）は前の版と同じ計算（山札のカードの種類は版で変わるので、引いたカードの名前と手札は比べない）
   if(OLD){const q=await open(b,OLD);
