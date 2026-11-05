@@ -1590,7 +1590,7 @@ function chooseGoal(s,R){let c=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!(s.goal==
 function genesisState(seed,days){days=DAYS_OPT.includes(days)?days:1;const rounds=roundsFor(days);
   const s={turn:0,month:1,hour:START_H,since:0,days,maxTurn:rounds*4,oi:0,order:[0,1,2,3],rng:0,goal:null,goalDist:0,okiUsed:false,troll:null,boost:null,owner:{},closed:0,finished:false,hist:[[10000,10000,10000,10000]],
   players:[0,1,2,3].map(()=>({pos:START,coin:10000,rank:'E1',pt:0,cards:0,hand:[],face:'ふつう',earned:0,mc:newMc(),md:[],mtot:0,minusTot:0,ye:0,yb:0,dmis:0,dye:0,dbuy:0,e0:0})),ev:[],lastSeat:null,lastDice:null,lastPath:[]};
-  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;s.cb=1;/* ラストスパートで最下位に応援ブースト（2026.11.05.3） *//* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
+  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;s.cb=1;if(days>=1&&days<=3)s.hh=[[10000,10000,10000,10000]];/* 3日までの対戦は総Gを1時間ごとに記録（結果のグラフ用・2026.11.05.4） *//* ラストスパートで最下位に応援ブースト（2026.11.05.3） *//* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
   chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.fy=1;/* コアファンの新ルール（0:00で0人に戻る・コアファンイベント） */s.rng=n;return s}
 
 // ===== ゴールドがマイナスのときの物件売却（第32版）=====
@@ -1807,7 +1807,8 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
   s.players.forEach(q=>q.cards=q.hand.length);s.turn+=1;s.oi+=1;
   if(s.oi>=4){s.oi=0;s.hour=(s.hour+1)%24;s.since+=1;
     if(s.hour===0)dayEnd(s,R);
-    if(!s.finished&&s.hour%6===0)blockEnd(s,R)}
+    if(!s.finished&&s.hour%6===0)blockEnd(s,R);
+    if(Array.isArray(s.hh))s.hh.push([0,1,2,3].map(i=>assets(s,i)))}
   // 無制限モード：誰かが「ゲームを終える」を押したら、その手番のあとで最終決算をして終わる
   if(action.end&&!s.days&&!s.finished)dayEnd(s,R,true);
   if(s.ls&&!s.lsA&&lsOn(s)){s.lsA=1;s.lsP=placesOf(s);let bt='';
@@ -2808,7 +2809,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
     const rows=s.report.map(x=>`<tr><td>${esc(seatName(x.seat))}</td><td>＋${x.inc.toLocaleString()}G${x.mono?`<small class="mono">独占${x.mono}</small>`:''}</td><td>＋${(x.pay||0).toLocaleString()}G</td><td>${x.before}${x.after!==x.before?' → <b>'+x.after+'</b>':''}<small class="mono">${x.gain?'＋'+x.gain+'pt':'ランクダウン'}</small></td></tr>`).join('');
     const cl=s.report.filter(x=>x.conds&&x.conds.length).map(x=>`${esc(seatName(x.seat))}：${x.conds.join('・')}`).join('<br>');const fl=s.fy?`<p class="muted" style="font-size:12px;margin:6px 0 0">💖 今日のコアファン：${s.report.map(x=>`${esc(seatName(x.seat))} ${x.ye}人`).join('・')}${s.finished?'':'<br>決算のあと、全員のコアファンは0人に戻ります（また集め直し）'}</p>`:'';
     for(const x of s.report)if(x.inc>0)coinsFly(NODES[s.goal],x.seat,4);
-    await showOverlay(`${clockSvg()}<h3>0:00 決算</h3><p>${s.closed}日目の決算（${s.closedHrs||24}時間分）</p>${assetChart(s.hist)}<table><tr><td class="muted">ライバー</td><td class="muted">物件決算</td><td class="muted">ランク支給</td><td class="muted">ランク</td></tr>${rows}</table>${cl?`<p class="muted" style="font-size:11px;margin:4px 0 0">締めの条件クリア<br>${cl}</p>`:''}${fl}`,4800,'night');
+    await showOverlay(`${clockSvg()}<h3>0:00 決算</h3><p>${s.closed}日目の決算（${s.closedHrs||24}時間分）</p>${assetChart(chartOf(s)[0],false,chartOf(s)[1])}<table><tr><td class="muted">ライバー</td><td class="muted">物件決算</td><td class="muted">ランク支給</td><td class="muted">ランク</td></tr>${rows}</table>${cl?`<p class="muted" style="font-size:11px;margin:4px 0 0">締めの条件クリア<br>${cl}</p>`:''}${fl}`,4800,'night');
     if(s.boost!=null&&!s.finished){banner('新人応援ブースト！','var(--yell)',`${seatName(s.boost)}：サイコロ＋1・コアファン1.5倍`);await wait(1600)}
     {const ups=s.report.filter(x=>RANKS.indexOf(x.after)>RANKS.indexOf(x.before));/* 2人以上ランクアップしたときは1枚にまとめて、何度も閉じなくてよいようにする */
      if(ups.length===1){const x=ups[0];sfx('rankup');fireworks(2);await showOverlayFx('rgba(157,123,255,.38)',`<p class="eyebrow">${esc(seatName(x.seat))}</p><h3>ランクアップ！</h3><div class="meter"><i></i></div><div class="big">${x.before} → ${x.after}</div>`,2600)}
@@ -2825,7 +2826,7 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
 let finalSeen=false;
 function showFinal(s){const me=mySeat(),rows=s.final.map((f,i)=>`<tr${f.seat===me?' class="me"':''}><td>${['1位','2位','3位','4位'][i]} ${esc(seatName(f.seat))}</td><td>${f.total.toLocaleString()}G</td></tr>`).join('');
     const earn=[0,1,2,3].sort((a,b)=>s.players[b].earned-s.players[a].earned)[0];const rk=[0,1,2,3].sort((a,b)=>RANKS.indexOf(s.players[b].rank)-RANKS.indexOf(s.players[a].rank))[0];
-    if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">${s.days?s.days+'日間':'無制限'}の対戦が終わりました</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(s.hist)}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
+    if(!finalSeen){finalSeen=true;comments('final',10)}return showOverlayFx('rgba(255,207,58,.38)',`<p class="eyebrow">${s.days?s.days+'日間':'無制限'}の対戦が終わりました</p><h3>最終結果</h3><div class="podium">${faceSvg('うれしい',HAIR[s.final[0].seat])}</div><table>${rows}</table>${assetChart(chartOf(s)[0],false,chartOf(s)[1])}${awards(s)}${canWrite?'<button id="bRematch">新しい部屋でもう一度（再招待）</button>':''}`,0)}
 function showOverlay(html,ms,kind){return new Promise(res=>{const o=$('#ov');o.innerHTML=`<div class="card${kind?' '+kind:''}">${html}<button class="ghost" id="ovClose">とじる</button></div>`;o.hidden=false;const rb=$('#bRematch');if(rb)rb.onclick=()=>{rematch()};
   o.querySelectorAll('[data-count]').forEach(el=>countUp(el,0,+el.dataset.count,'＋'));
   const done=()=>{o.hidden=true;o.innerHTML='';clearTimeout(t);res()};$('#ovClose').onclick=done;o.onclick=e=>{if(e.target===o)done()};const t=ms?setTimeout(done,SET.fast?ms/2:ms):null})}
@@ -2903,9 +2904,12 @@ function awards(s){const best=(f,lo)=>{const v=[0,1,2,3].map(i=>f(i)),m=lo?Math.
     ['物件王',best(i=>baseCount(s,i)),i=>baseCount(s,i)+'件'],['独占王',best(i=>monoList(s,i).length),i=>monoList(s,i).length+'駅'],['ポコチャレ王',best(i=>s.players[i].mtot),i=>'達成'+s.players[i].mtot+'回'],['マイナスに負けない王',best(i=>s.players[i].minusTot||0,true),i=>'マイナスマス'+(s.players[i].minusTot||0)+'回']].concat(s.fy?[['コアファン王',best(i=>s.players[i].yt||0),i=>'合計'+(s.players[i].yt||0)+'人']]:[]).concat(s.ls?[['1番乗り王',best(i=>s.players[i].gl||0),i=>(s.players[i].gl||0)+'回']]:[]);
   /* 追い上げ王：ラストスパートに入った時点から順位をいちばん上げた人（2026.11.05.2） */if(s.lsP&&s.final){const fp=[];s.final.forEach((f,k)=>fp[f.seat]=k+1);const up=i=>s.lsP[i]-fp[i];A.push(['追い上げ王',best(up),i=>`${s.lsP[i]}位→${fp[i]}位`])}
   return`<div class="awards">${A.filter(a=>a[1].length&&a[1].length<4).map(([t,w,f])=>`<span class="award"><small>${t}</small><span>${w.map(i=>`<b style="color:${SEATC[i]}">${esc(seatName(i))}</b>`).join('・')}</span><i>${f(w[0])}</i></span>`).join('')}</div>`}
-function assetChart(hist,dark){if(!hist||hist.length<2)return'';/* 線の名札は地図の電車と同じ名前の2文字 */const PL=typeof pawnLabels==='function'&&meta&&meta.phase==='playing'?pawnLabels():null;const W=290,H=120,P=26,mx=Math.max(...hist.flat())*1.08,X=i=>P+i*(W-P-28)/(hist.length-1),Y=v=>H-18-(v/mx)*(H-30);
-  const mon=hist.map((_,i)=>i?`${i}日目`:'開始');let g=`<svg class="achart" viewBox="0 0 ${W} ${H}" role="img" aria-label="総Gの推移"><line x1="${P}" y1="${H-18}" x2="${W-24}" y2="${H-18}" stroke="currentColor" opacity=".3"/>`;
-  hist.forEach((_,i)=>g+=`<text x="${X(i)}" y="${H-5}" font-size="9" text-anchor="middle" fill="currentColor" opacity=".7">${mon[i]||i}</text>`);
+// 総Gの推移：1時間ごとの記録（s.hh）があればそれを使い、目盛りは時刻。なければ日ごと（s.hist）
+// 終わったあとは、最後の点を最終結果と同じ合計（ランクボーナスこみ）にして、1位の線がいちばん上で終わるようにする
+const chartOf=s=>{if(!(s.hh&&s.hh.length>2))return[s.hist,false];const h=s.hh.slice();if(s.finished&&Array.isArray(s.final)){const t=[];s.final.forEach(f=>t[f.seat]=f.total);if(t.every(v=>typeof v==='number'))h[h.length-1]=t}return[h,true]};
+function assetChart(hist,dark,hourly){if(!hist||hist.length<2)return'';/* 線の名札は地図の電車と同じ名前の2文字 */const PL=typeof pawnLabels==='function'&&meta&&meta.phase==='playing'?pawnLabels():null;const W=290,H=120,P=26,fl=hist.flat(),mx=Math.max(...fl)*1.04,mn=hourly?Math.max(0,Math.min(...fl)*.9):0/* 1時間ごとのグラフは差が見えるよう、いちばん少ない値の少し下から描く */,X=i=>P+i*(W-P-28)/(hist.length-1),Y=v=>H-18-((v-mn)/Math.max(1,mx-mn))*(H-30);
+  const step=hist.length<=8?2:hist.length<=32?6:12,mon=hist.map((_,i)=>{if(!hourly)return i?`${i}日目`:'開始';const h=(START_H+i)%24;return i===0?'開始':h%step===0?h+'時':''});let g=`<svg class="achart" viewBox="0 0 ${W} ${H}" role="img" aria-label="総Gの推移"><line x1="${P}" y1="${H-18}" x2="${W-24}" y2="${H-18}" stroke="currentColor" opacity=".3"/>`;
+  hist.forEach((_,i)=>g+=`<text x="${X(i)}" y="${H-5}" font-size="9" text-anchor="middle" fill="currentColor" opacity=".7">${mon[i]==null?i:mon[i]}</text>`);
   const ly={};[0,1,2,3].map(k=>[k,Y(hist[hist.length-1][k])]).sort((a,b)=>a[1]-b[1]).reduce((prev,[k,y])=>{const v=Math.max(y,prev+10);ly[k]=v;return v},-1e9);
   [0,1,2,3].forEach(k=>{const pts=hist.map((h,i)=>X(i).toFixed(1)+','+Y(h[k]).toFixed(1)).join(' '),last=hist[hist.length-1][k];
     g+=`<polyline points="${pts}" fill="none" stroke="${SEATC[k]}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${X(hist.length-1)}" cy="${Y(last)}" r="3.5" fill="${SEATC[k]}"/><text x="${X(hist.length-1)+6}" y="${ly[k]+3}" font-size="9" font-weight="800" fill="${SEATC[k]}">${esc(PL?PL[k]:(k+1)+'P')}</text>`});
