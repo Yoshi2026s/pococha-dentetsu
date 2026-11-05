@@ -17,5 +17,9 @@ setTimeout(async()=>{const w=dom.window,d=w.document;try{
   // 賞の一覧は今までどおり（4人全員が同じ賞のときは出さない）
   assert.equal(w.eval('awardList(__fin).every(a=>a[1].length>0&&a[1].length<4)'),true);assert(w.eval('awards(__fin)').includes('class="award"'));
   assert.equal(w.eval('resultText(null)'),'');
+  // 最終結果のひとこと：1位なら2位との差、それ以外はひとつ上まであと何G
+  const fn=w.eval(`(()=>{const s=JSON.parse(JSON.stringify(__fin)),me=mySeat(),o=[];const set=k=>{const i=s.final.findIndex(f=>f.seat===me),t=s.final.splice(i,1)[0];s.final.splice(k,0,t);s.final.forEach((f,j)=>f.total=50000-j*1000)};set(0);o.push(finNote(s,me));set(2);o.push(finNote(s,me));set(1);o.push(finNote(s,me));return JSON.stringify(o)})()`);
+  const F=JSON.parse(fn);assert(/2位に<b>1,000G<\/b>差で優勝/.test(F[0]),'1位のひとことが違う：'+F[0]);assert(/あと<b>1,000G<\/b>で2位でした/.test(F[1]),'3位のひとことが違う：'+F[1]);assert(/あと<b>1,000G<\/b>で優勝でした/.test(F[2]),'2位のひとことが違う：'+F[2]);
+  assert(d.querySelector('#ov .finnote'),'最終結果にひとことが無い');assert.equal(w.eval('finNote(__fin,-1)'),'');
   assert.deepEqual(errors,[],'エラー：'+errors.join(' / '));console.log('OK 結果のシェア\n'+copied);process.exit(0)}
 catch(e){console.error('NG',e.message);process.exit(1)}},300);
