@@ -10,7 +10,7 @@ const fail=[];const ok=(c,m)=>{if(!c)fail.push(m)};
   await p.route(/firebase|gstatic|googleapis/,r=>r.abort());await p.goto('file://'+path.resolve('index.html'));await p.waitForFunction(()=>!document.querySelector('#bCreate').disabled);
   ok(!/試験版/.test(await p.locator('#ttl').textContent()),'題名に試験版が残る');
   await p.click('#bHow');await p.waitForTimeout(400);const h=await p.evaluate(()=>[document.querySelectorAll('#ov .howlist li').length,document.querySelector('#ov').innerText]);ok(h[0]>=3&&/A・B・C/.test(h[1])&&!/光る矢印をタップ/.test(h[1]),'遊び方の1ページ目');
-  for(let i=0;i<4;i++){await p.click('#hNext');await p.waitForTimeout(150)}ok((await p.locator('#hNext').textContent())==='とじる','遊び方の最後のボタン');await p.click('#hNext');
+  for(let i=0;i<5;i++){await p.click('#hNext');await p.waitForTimeout(150)}ok((await p.locator('#hNext').textContent())==='とじる','遊び方の最後のボタン');await p.click('#hNext');
   await p.click('#bCreate');await p.waitForTimeout(300);await p.click('#bStart');await p.waitForTimeout(2000);
   await p.click('#bMis');await p.waitForTimeout(500);ok(/を選べて/.test(await p.locator('#ov .ms-rw').textContent()),'ポコチャレの報酬の説明');await p.evaluate(()=>{document.querySelectorAll('#misSheet').forEach(e=>e.remove());const o=document.querySelector('#ov');o.hidden=true;o.innerHTML=''});
   await p.click('#skyLabel');await p.waitForTimeout(500);const wx=await p.evaluate(()=>({h:dispState.hour,t:document.querySelector('#ov').innerText}));if(wx.h>=18)ok(/次の天気の変化と決算は/.test(wx.t),'天気の画面の時刻のまとめ');await p.evaluate(()=>{const o=document.querySelector('#ov');o.hidden=true;o.innerHTML=''});
