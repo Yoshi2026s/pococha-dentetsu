@@ -384,7 +384,7 @@ small.mono{display:inline-block;margin-left:4px;padding:0 5px;border-radius:6px;
 .bar #actMain button{white-space:nowrap;padding-inline:2px;font-size:clamp(13px,3.8vw,15px);min-width:0;letter-spacing:-.02em}.bar .main button#bCard{flex:.85}.bar .main button#bRoll{flex:1.2}
 .mapbtn{position:absolute;right:8px;top:8px;z-index:6;min-height:34px;padding:4px 12px;border-radius:999px;border:1.5px solid var(--line);background:color-mix(in srgb,var(--panel) 88%,transparent);color:var(--ink);font:inherit;font-size:12px;font-weight:800;backdrop-filter:blur(4px)}
 .goalarrow{position:absolute;z-index:5;white-space:nowrap;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;pointer-events:none;padding:3px 8px 3px 4px;border-radius:999px;background:color-mix(in srgb,#ffcf3a 85%,#fff);color:#5a3d00;font-size:11px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.2)}
-.goalarrow[hidden]{display:none}.goalarrow i{font-style:normal;display:inline-block;font-size:13px;color:#c03d7a}.goalarrow b{margin-left:4px;color:#c03d7a}
+.goalarrow[hidden]{display:none}.fvarrow{background:color-mix(in srgb,#ff7a1a 80%,#fff)!important;color:#fff}.fvarrow i,.fvarrow b{color:#fff!important}.goalarrow i{font-style:normal;display:inline-block;font-size:13px;color:#c03d7a}.goalarrow b{margin-left:4px;color:#c03d7a}
 .stepring{transform-box:fill-box;transform-origin:center;animation:sring .85s ease-out forwards}@keyframes sring{0%{transform:scale(.6);opacity:1}100%{transform:scale(2.2);opacity:0}}
 .fx.sqname{transform:translate(-50%,-50%);pointer-events:none;z-index:7;animation:sqn 1.7s ease-out forwards}
 .fx.sqname b{display:block;padding:5px 12px;border-radius:999px;background:var(--c,#888);color:#fff;font-family:var(--f-display);font-size:15px;font-weight:800;white-space:nowrap;border:2px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.25);text-shadow:0 1px 2px rgba(0,0,0,.35)}
@@ -828,7 +828,7 @@ input[type=text]{border-color:color-mix(in srgb,var(--pink) 40%,var(--line))!imp
       <div id="mapwrap"><svg id="map" viewBox="0 0 400 560" role="img" aria-label="全国のすごろく地図"></svg><svg id="mapfx" viewBox="0 0 400 560" aria-hidden="true"></svg></div>
       <div class="skylabel" id="skyLabel" role="button" tabindex="0" aria-label="時間帯と天気"><canvas class="wxwin" id="wxWin" width="132" height="88" aria-hidden="true"></canvas><div id="skyTxt"></div><div id="skyWx"></div></div>
       <canvas id="fx" width="900" height="700"></canvas>
-      <button type="button" class="mapbtn" id="bView">全体を見る</button><div class="goalarrow" id="goalArrow" hidden></div>
+      <button type="button" class="mapbtn" id="bView">全体を見る</button><div class="goalarrow" id="goalArrow" hidden></div><div class="goalarrow fvarrow" id="feverArrow" hidden></div>
       <div class="dicebox"><div class="cube" id="cube"></div></div>
     </div>
     <div class="goalline" hidden><span>目的地 <b id="goalName">–</b></span><span class="muted" id="goalLeft"></span></div>
@@ -3015,7 +3015,7 @@ function rollCube(d,faces,card){spins+=2;const sp=card&&DICE[card];let f=Array.i
   // 足し算は実際に進む数から出す（カードの＋分だけでなく、ブーストの＋1なども表示に入れて、目と進む数をそろえる）
   const sum=f.reduce((x,y)=>x+y,0);let mul=sp&&f.length===(sp[0]||1)?(sp[3]||1):1;if(sum*mul>d)mul=1;const add=fixed?0:Math.max(0,d-sum*mul);
   tag.textContent=fixed?`🍀${d}`:(f.length>1||add||mul>1)?`${mul>1?'×'+mul:''}${add?'＋'+add:''}＝${d}`:'';tag.hidden=!tag.textContent;tag.classList.remove('pop');void tag.offsetWidth;tag.classList.add('pop')
-  /* サイコロが2個以上に増えると箱が広がるので、目的地の矢印がサイコロに重ならないよう置き直す */setTimeout(()=>{try{updateGoalArrow()}catch{}},60)}
+  /* サイコロが2個以上に増えると箱が広がるので、目的地の矢印がサイコロに重ならないよう置き直す */setTimeout(()=>{try{updateGoalArrow();updateFeverArrow()}catch{}},60)}
 
 // ===== 豪華なマス（立体のコマ：影・ふち・光沢・白い内輪・記号・きらめき） =====
 const SQC={plus:'var(--plus)',minus:'var(--anti)',yell:'var(--yell)',port:'#2b6cb0',airport:'var(--air,#6c5cff)',anti:'var(--anti)',card:'var(--card)',rank:'var(--rank)',collab:'var(--collab)',plain:'var(--plain,#cfc4d9)',event:'var(--event,#8a8296)',sea:'var(--seaDeep,#3aa8c8)',shop:'var(--shop,#a77bff)',station:'var(--station)'};
@@ -3174,7 +3174,14 @@ function drawPawns(s){if(!s||!built)return;s.players.forEach((p,i)=>movePawn(i,p
 // カメラ（移動中は自分の駒に寄って追いかける）
 let VH=560,vb=[0,0,400,560],camAnim=null,camGoal=null,camGoalAt=0;// 画面に映す範囲（縦横比は常に400:560）
 // カメラが動く間は毎コマ呼ばれる。ここで画面の大きさを測ると地図全体の再計算が起きて重いので、測る処理（目的地の矢印）は約0.1秒に1回にまとめる
-let arrowT=0;function qArrow(){if(!arrowT)arrowT=setTimeout(()=>{arrowT=0;updateGoalArrow()},90)}
+let arrowT=0;function qArrow(){if(!arrowT)arrowT=setTimeout(()=>{arrowT=0;updateGoalArrow();try{updateFeverArrow()}catch{}},90)}
+// フィーバー駅が地図の表示範囲の外にあるとき、画面の端にその向きを指すオレンジの矢印（目的地の矢印と重なるときはずらす・2026.11.05.11）
+function updateFeverArrow(){const a=$('#feverArrow'),s=dispState;if(!a)return;if(!s||!s.fv||s.fever==null||s.finished){a.hidden=true;return}const f=NODES[s.fever],v=vb,m=6;
+  const inside=f.x>v[0]+m&&f.x<v[0]+v[2]-m&&f.y>v[1]+m&&f.y<v[1]+v[3]-m;if(inside||v[2]>=WW-1){a.hidden=true;return}
+  const cx=v[0]+v[2]/2,cy=v[1]+v[3]/2,dx=f.x-cx,dy=f.y-cy,k=Math.min(Math.abs((v[2]/2-14)/(dx||1e-6)),Math.abs((v[3]/2-14)/(dy||1e-6)));
+  let px=Math.min(76,Math.max(22,(dx*k+v[2]/2)/v[2]*100)),py=Math.min(92,Math.max(8,(dy*k+v[3]/2)/v[3]*100));const ang=Math.atan2(dy,dx)*180/Math.PI,d=D(s.fever)[s.players[focusSeat()].pos];
+  a.hidden=false;a.style.left=px+'%';a.style.top=py+'%';a.innerHTML=`<i style="transform:rotate(${ang}deg)">➤</i><span>🔥${esc(f.name)}<b>あと${d}</b></span>`;
+  /* 目的地の矢印・「全体を見る」・天気の札・サイコロに重ならない高さを、元の位置→目的地の矢印の下→上→少しずつずらす順に試す */const box=$('#mapbox').getBoundingClientRect();if(!box.height)return;const obs=[$('#goalArrow'),$('#bView'),$('#skyLabel'),box.querySelector?$('#mapbox').querySelector('.dicebox'):null].filter(e=>e&&!e.hidden&&e.offsetParent!==null).map(e=>e.getBoundingClientRect()).filter(q=>q.width);const hit=()=>{const r=a.getBoundingClientRect();return obs.some(q=>r.left<q.right&&q.left<r.right&&r.top<q.bottom+3&&q.top<r.bottom+3)};if(!hit())return;const h=a.getBoundingClientRect().height,g=obs[0]&&!$('#goalArrow').hidden?obs[0]:null,c=[];if(g){const gc=(g.top+g.bottom)/2-box.top,gap=(g.height+h)/2+6;c.push(gc+gap,gc-gap)}for(let y=h/2+4;y<box.height-h/2;y+=h/2)c.push(y);for(const y of c){if(y<h/2+2||y>box.height-h/2-2)continue;a.style.top=(y/box.height*100)+'%';if(!hit())return}a.style.top=py+'%'}
 // ===== カメラを軽く動かす（第39版）=====
 // カメラが動く間に地図の表示範囲（viewBox）を毎コマ書き換えると、そのたびに地図全体を描き直して重い。
 // そこで、動き始めに「動く前と後の両方が入る範囲」で1回だけ描き、動いている間はその絵をCSSの移動・拡大だけで動かす（画面の合成だけで済む）。
