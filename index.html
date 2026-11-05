@@ -1583,6 +1583,9 @@ function misReward(s,p,i,id,kind,R,ev){p.md.push(id);p.mtot+=1;p.dmis=(p.dmis||0
   addYell(s,p,i,2);addRank(s,p,i,20)}
 function assets(s,i){let a=s.players[i].coin;for(const k in s.owner)s.owner[k].forEach((x,j)=>{if(x===i)a+=NODES[k].bases[j].price});return a}
 const GOAL_NEAR1=16;
+// ご当地フィーバー駅：目的地から2〜10マスで、いちばん近い人から2〜8マスの駅（目的地へ向かう途中で寄れる場所）。なければ目的地から3〜12マス、それもなければどこでも（目的地・だれかがいる駅は除く）
+function pickFever(s,R){const dg=D(s.goal),all=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!s.players.some(q=>q.pos===i)),near=i=>{const dd=D(i);return Math.min(...s.players.map(q=>dd[q.pos]))};
+  let c=all.filter(i=>dg[i]>=2&&dg[i]<=10&&near(i)>=2&&near(i)<=8);if(!c.length)c=all.filter(i=>dg[i]>=3&&dg[i]<=12);if(!c.length)c=all;return c[Math.floor(R()*c.length)]}
 // 目的地：プレイヤーの場所に関係なく、全駅から完全ランダム（今の目的地と、最初だけスタート駅は除く）
 function chooseGoal(s,R){let c=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!(s.goal==null&&i===START));
   /* 1日の対戦（全24手番）は、全国から選ぶと誰も着けないことが多いので、今の場所から6〜16マスの駅から選ぶ（s.ls=1の盤面のみ・2026.11.05.2） */if(s.ls&&s.days===1){const from=s.goal==null?START:s.goal,n=c.filter(i=>{const v=D(i)[from];return v>=6&&v<=GOAL_NEAR1});if(n.length)c=n}
@@ -1590,8 +1593,8 @@ function chooseGoal(s,R){let c=ST.map((_,i)=>i).filter(i=>i!==s.goal&&!(s.goal==
 function genesisState(seed,days){days=DAYS_OPT.includes(days)?days:1;const rounds=roundsFor(days);
   const s={turn:0,month:1,hour:START_H,since:0,days,maxTurn:rounds*4,oi:0,order:[0,1,2,3],rng:0,goal:null,goalDist:0,okiUsed:false,troll:null,boost:null,owner:{},closed:0,finished:false,hist:[[10000,10000,10000,10000]],
   players:[0,1,2,3].map(()=>({pos:START,coin:10000,rank:'E1',pt:0,cards:0,hand:[],face:'ふつう',earned:0,mc:newMc(),md:[],mtot:0,minusTot:0,ye:0,yb:0,dmis:0,dye:0,dbuy:0,e0:0})),ev:[],lastSeat:null,lastDice:null,lastPath:[]};
-  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;s.cb=1;s.hl=1;/* 名場面（1手番でいちばん稼いだ場面）を記録（2026.11.05.5） */if(days>=1&&days<=3)s.hh=[[10000,10000,10000,10000]];/* 3日までの対戦は総Gを1時間ごとに記録（結果のグラフ用・2026.11.05.4） *//* ラストスパートで最下位に応援ブースト（2026.11.05.3） *//* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
-  chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);s.fy=1;/* コアファンの新ルール（0:00で0人に戻る・コアファンイベント） */s.rng=n;return s}
+  let n=0;const R=()=>rand(seed,n++);s.fanOff=Math.floor(R()*100000);const steps=[7,11,13,17,19,23,29,31,37,41];s.fanStep=steps[Math.floor(R()*steps.length)];s.gp=1;s.ls=1;s.cb=1;s.hl=1;s.fv=1;/* ご当地フィーバー駅（2026.11.05.10） *//* 名場面（1手番でいちばん稼いだ場面）を記録（2026.11.05.5） */if(days>=1&&days<=3)s.hh=[[10000,10000,10000,10000]];/* 3日までの対戦は総Gを1時間ごとに記録（結果のグラフ用・2026.11.05.4） *//* ラストスパートで最下位に応援ブースト（2026.11.05.3） *//* ラストスパート・逆転ボーナスのある盤面（2026.11.05.1。以前の盤面は検算が合うよう従来どおり） */
+  chooseGoal(s,R);pickMis(s,R);s.weather=pickWeather(R);if(s.fv)s.fever=pickFever(s,R);s.fy=1;/* コアファンの新ルール（0:00で0人に戻る・コアファンイベント） */s.rng=n;return s}
 
 // ===== ゴールドがマイナスのときの物件売却（第32版）=====
 // マイナスになったら、プラスになるまで持っている物件を売る（売値＝獲得したときの値段）。おすすめは「売っても毎日のゴールドがいちばん減らない」物件
@@ -1786,6 +1789,8 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
       if(names.length){const c0=baseCount(s,seat);p.dbuy=(p.dbuy||0)+names.length;p.mc.fb=(p.mc.fb||0)+names.length;s.owner[p.pos]=o;bought=true;p.face='うれしい';txt+=`・${nd.name}で${names.join('・')}が物件に`;ev('buy','',nd.name);if(isMono(s,p.pos,seat)){p.mc.mono=(p.mc.mono||0)+1}if(isMono(s,p.pos,seat))ev('mono',`${nd.name}を独占！ 決算${nd.mono}倍`,nd.name);
         const c1=baseCount(s,seat);for(const t of TIERS)if(c0<t&&c1>=t)ev('fantier',`物件${t}件達成！ ゴールド獲得＋${Math.round(fanBonus(c1)*100)}%`,t)}}
     if(!bought&&nd.type==='station'&&!reached&&!MOVEC.includes(action.type))txt+='・'+nd.name;
+    /* ご当地フィーバー駅（s.fv=1の盤面のみ・2026.11.05.10）：最初に止まった人に 基本ゴールド×3（物件数ボーナスこみ）・コアファン＋3人・＋10pt。止まったら次の駅へ移る */
+    if(s.fv&&s.fever===p.pos){const g=G(p,B*3);p.coin+=g;p.earned+=g;yellAdd(p,seat,3);ptAdd(p,seat,10);p.face='うれしい';ev('fever',`🔥 ご当地フィーバー！ ${nd.name}で ＋${g.toLocaleString()}G・コアファン＋3人・＋10pt`,p.pos);s.fever=pickFever(s,R);ev('fevermove','次のフィーバー駅は'+NODES[s.fever].name,s.fever)}
     if(reached)p.mc.goal++;else if(nd.type==='yell')p.mc.yell++;
     if(bought&&!p.mc.bs.includes(p.pos))p.mc.bs.push(p.pos);
     p.mc.mv=(p.mc.mv||0)+Math.max(0,path.length-1);if(nd.type==='station'&&!reached&&path.length>1)p.mc.st=(p.mc.st||0)+1;if(path.some(k=>NODES[k].sea||NODES[k].air))p.mc.ride=(p.mc.ride||0)+1;
@@ -1816,6 +1821,7 @@ function applyTurn(st,action,seed,opt){const NF=!!(opt&&opt.noForce);
     if(Array.isArray(s.hh))s.hh.push([0,1,2,3].map(i=>assets(s,i)))}
   // 無制限モード：誰かが「ゲームを終える」を押したら、その手番のあとで最終決算をして終わる
   if(action.end&&!s.days&&!s.finished)dayEnd(s,R,true);
+  if(s.fv&&s.goal!==st.goal&&!s.finished){s.fever=pickFever(s,R);ev('fevermove','目的地が変わったので、フィーバー駅は'+NODES[s.fever].name+'へ',s.fever)}/* フィーバー駅は目的地の近くに置くので、目的地が変わったら移す */
   if(s.ls&&!s.lsA&&lsOn(s)){s.lsA=1;s.lsP=placesOf(s);let bt='';
     /* 資産が単独最下位の人に、最後まで新人応援ブースト（サイコロ＋1・コアファン1.5倍）。s.cb=1の盤面のみ */if(s.cb){const as=[0,1,2,3].map(i=>assets(s,i)),lo=Math.min(...as);if(as.filter(x=>x===lo).length===1){s.boost=as.indexOf(lo);bt=`・${s.boost+1}Pに応援ブースト（サイコロ＋1・コアファン1.5倍）`}}
     ev('laststretch',`🔥 ラストスパート！ 残り${s.maxTurn-s.turn}手番は目的地の賞金が2倍${bt}`,bt?s.boost:null)}
@@ -1834,7 +1840,7 @@ const HEAT_STEPS=4,heatOf=s=>{if(!s||s.finished||s.goal==null)return[];const dg=
 const LS_TURNS=8,lsOn=st=>!!(st&&st.ls)&&!st.finished&&st.maxTurn>0&&st.maxTurn-st.turn<=LS_TURNS;
 // 6時間ごと：ポコチャレの締め（マイナス0回の判定）→新しいポコチャレ→天気が変わる
 function blockEnd(s,R){s.players.forEach((p,i)=>{if(s.mis.includes('nominus')&&!p.md.includes('nominus')&&!p.mc.minus)misReward(s,p,i,'nominus','coin',R,(k,t,v)=>s.ev.push({k,t,v,seat:i}));p.mc=newMc(p);p.md=[]});pickMis(s,R);s.ev.push({k:'newmis',t:`${s.hour}:00 新しいポコチャレ`});
-  const w0=s.weather||0;s.weather=pickWeather(R);s.ev.push({k:'weather',t:`${s.hour}:00 天気${w0===s.weather?'は':'が'}${WEATHER[s.weather][0]}${WEATHER[s.weather][1]}${w0===s.weather?'のまま':'に変わった'}`,v:s.weather})}
+  const w0=s.weather||0;s.weather=pickWeather(R);if(s.fv){s.fever=pickFever(s,R);s.ev.push({k:'fevermove',t:`${s.hour}:00 新しいフィーバー駅は${NODES[s.fever].name}`,v:s.fever})}s.ev.push({k:'weather',t:`${s.hour}:00 天気${w0===s.weather?'は':'が'}${WEATHER[s.weather][0]}${WEATHER[s.weather][1]}${w0===s.weather?'のまま':'に変わった'}`,v:s.weather})}
 // 締めの条件（0:00決算）：クリアするとランクポイント。1つもクリアできないとランクダウン。1日目の6時間など短い日は条件もゆるくなる
 const CONDS=[['fan','物件を獲得',15],['mis','ポコチャレ2回達成',20],['yell','コアファン10人獲得',20],['earn','ゴールド目標達成',15]];
 // 毎日0:00：決算（物件からのゴールド＝24時間あたりの率×経過時間／ランク帯の基本支給）→締めの条件でランクポイント→マイナスの処理→新人応援→並べ替え
@@ -2640,7 +2646,7 @@ function allRoutes(st,d){const start=st.players[curSeat(st)].pos,out=[],seen=new
 // 止まるマスの「見込み」で採点（乱数の先読みはしない）
 // 止まるマスの損得（第31版）：目的地にぴったり＞物件が買える駅＞イベント・プラス・コアファン・カード＞…＞マイナス。目的地への近さも少し足す
 function landValue(st,seat,end){const p=st.players[seat],n=NODES[end],B=BASEPT[p.rank],wx=st.weather||0,guard=(p.shield||0)>0||p.hand.includes('block');
-  if(end===st.goal)return 1e6;let v=-D(st.goal)[end]*Math.max(120,B*.25);
+  if(end===st.goal)return 1e6;let v=-D(st.goal)[end]*Math.max(120,B*.25);if(st.fv&&end===st.fever)v+=B*3.5;/* フィーバー駅 */
   const plusF=[1.3,1.1,.9,.7][wx]||1,minusF=[.8,1,1.2,1.5][wx]||1;
   v+={yell:B*.9,plus:B*1.3*plusF,minus:guard?-B*.15:-B*1.5*minusF,card:p.hand.length<HANDMAX?B*.8+400:0,event:B*1.4,airport:B*1.1,port:B*1.1,shop:p.coin>=1500&&p.hand.length<HANDMAX-2?B*.4+300:0}[n.type]||0;
   if(n.type==='station'){const o=own(st,end),bs=n.bases||[];let c=p.coin,buy=0,cnt=0;o.forEach((x,j)=>{if(x==null&&bs[j]&&bs[j].price<=c){c-=bs[j].price;buy+=bs[j].price;cnt++}});
@@ -2808,6 +2814,8 @@ function playOne(r){const gen=animGen;animN++;playing=playing.then(async()=>{if(
   {const sl=evs.find(e=>e.k==='steal');if(sl){sfx('card');toast(sl.t);heartsFly(sl.v,seat)}}
   if(evs.some(e=>e.k==='oshikatsu')){burst('heart',pNode);banner('推し活！','linear-gradient(90deg,#ff5fa8,#9d7bff)','次の0:00決算で物件のゴールド1.5倍')}
   if(evs.some(e=>e.k==='block')){shock(pNode,'#7ad0ff');toast((evs.find(e=>e.k==='block')||{}).t)}
+  /* ご当地フィーバー（2026.11.05.10） */{const fe=evs.find(e=>e.k==='fever');if(fe)setTimeout(()=>{const n=NODES[fe.v];sfx('celebrate');vib([40,30,80]);pillar(n,'#ff7a1a');burst('star',n);coinsFly(n,seat,8);banner('フィーバー！','linear-gradient(90deg,#ff5a1a,#ffb000)',`${seatName(seat)}：${NODES[fe.v].name}で${(fe.t.match(/＋[\d,]+G/)||[''])[0]}`)},SET.fast?600:1300);
+    const fm=evs.filter(e=>e.k==='fevermove').pop();if(fm&&!s.finished)setTimeout(()=>toast('🔥 '+fm.t.replace(/^\d+:00 /,'')),SET.fast?1600:3400)}
   /* 1位の入れかわり：上のプレイヤー欄と同じ数え方（ゴールド＋物件）で、単独1位の人が変わったら知らせる（表示だけ・2026.11.05.6） */{const a=leaderOf(prev),b=leaderOf(s);if(a>=0&&b>=0&&a!==b&&s.turn>=4&&!s.finished)setTimeout(()=>{sfx('celebrate');vib(30);toast(`👑 ${seatName(b)}が1位に浮上！（${seatName(a)}を逆転）`)},SET.fast?1200:2800)}
   /* デッドヒート：2人以上が目的地まで4マス以内に迫ったら、その目的地で1回だけ知らせる（表示だけ・2026.11.05.5） */{const nr=heatOf(s);if(nr.length>=2&&!evs.some(e=>e.k==='goal')&&heatGoal!==s.goal){heatGoal=s.goal;setTimeout(()=>{sfx('roulStop');vib([40,30,40]);banner('デッドヒート！','linear-gradient(90deg,#ff3f8f,#9d7bff)',`${nr.map(i=>seatName(i)).join("・")} 目的地まで${HEAT_STEPS}マス以内`)},SET.fast?1000:2400)}}
   {const ls=evs.find(e=>e.k==='laststretch');if(ls)setTimeout(()=>{sfx('rankup');vib([60,40,120]);banner('ラスト2周！','linear-gradient(90deg,#ff3f3f,#ff8a3d,#ffd23f)','🔥 目的地の賞金2倍'+(ls.v!=null?`・${seatName(ls.v)}に応援ブースト`:''));fireworks(2)},SET.fast?900:2100)}/* 最後の8手番に入った（2026.11.05.1） */
@@ -2897,7 +2905,7 @@ async function setCpuChar(i,id){if(!meta||meta.host!==myId){toast('CPUの入れ�
 function profHTML(c){return`<div class="prof"><div class="prof-h"><b>${esc(c.name)}</b><span class="chip">${CHAR_LV[c.lv]}</span></div><dl>
   <dt>性別・年齢</dt><dd>${c.g}・${c.age}歳</dd><dt>職業</dt><dd>${esc(c.job)}</dd><dt>出身地</dt><dd>${esc(c.from)}</dd><dt>普段の性格</dt><dd>${esc(c.per)}</dd><dt>人柄</dt><dd>${esc(c.nat)}</dd><dt>家族構成</dt><dd>${esc(c.fam)}</dd><dt>話し方</dt><dd>${esc(c.talk)}</dd><dt>プレイの特徴</dt><dd>${esc(c.style)}</dd></dl><p class="prof-say">「${esc(c.L.turn)}」</p></div>`}
 // ===== 行動の見やすい表示（2026-11-01）：記録のできごとにアイコンをつけ、手番ごとのゴールドの増減を添える =====
-const EVIC={move:'🎲',buy:'🏠',fantier:'🏠',getcard:'🃏',getcard2:'🃏',card:'🃏',mission:'🏅',rankup:'⭐',rankdown:'⬇️',yellbonus:'💖',yellreset:'💖',goal:'🏁',newgoal:'🏁',troll:'😈',mischief:'😈',attack:'⚔️',defend:'🛡️',block:'🛡️',monthend:'💰',event:'🎪',weather:'🌦️',mono:'👑',sell:'💸'};
+const EVIC={move:'🎲',buy:'🏠',fantier:'🏠',getcard:'🃏',getcard2:'🃏',card:'🃏',mission:'🏅',rankup:'⭐',rankdown:'⬇️',yellbonus:'💖',yellreset:'💖',fever:'🔥',fevermove:'🔥',goal:'🏁',newgoal:'🏁',troll:'😈',mischief:'😈',attack:'⚔️',defend:'🛡️',block:'🛡️',monthend:'💰',event:'🎪',weather:'🌦️',mono:'👑',sell:'💸'};
 function logParts(r){const out=[];for(const e of (r.state&&r.state.ev)||[]){if(!e||!e.t)continue;let t=nameize(e.t),ic=EVIC[e.k]||'・';if(e.k==='move'){const m=t.match(/^サイコロ([0-9+]+)・?(.*)$/);if(m){ic='🎲'+m[1];t=m[2]||'移動'}}out.push({k:e.k,ic,t})}return out}
 function logDelta(r){const ls=r.state&&r.state.lastSeat,par=r.parent&&records.get(r.parent);if(ls==null||!par||!par.state||!par.state.players[ls])return 0;return r.state.players[ls].coin-par.state.players[ls].coin}
 function logBody(r,noWho){const ls=r.state.lastSeat,d=logDelta(r),proxy=String(r.by).startsWith('cpu')&&!(meta.cpu||[]).includes(ls);
@@ -3159,6 +3167,7 @@ function layoutPawns(s){const by={};s.players.forEach((p,i)=>(by[p.pos]=by[p.pos
 function setPoff(i,o){const e=document.querySelector('#pw'+i+' .poff');if(e)e.style.transform=`translate(${o[0]}px,${o[1]}px)`}
 function drawPawns(s){if(!s||!built)return;s.players.forEach((p,i)=>movePawn(i,p.pos));layoutPawns(s);/* 荒らしラグ王が取りついている人のコマの上に😈（2026-11-01） */s.players.forEach((p,i)=>{const g=document.querySelector('#pw'+i+' .poff');if(!g)return;let t=g.querySelector('.pw-tr');if(s.troll===i&&!s.finished){if(!t){t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('class','pw-tr');t.setAttribute('y','-11');t.setAttribute('text-anchor','middle');t.setAttribute('font-size','10');t.textContent='😈';g.appendChild(t)}}else if(t)t.remove()});
   const g=NODES[s.goal];$('#goalMark').innerHTML=g?`<circle class="goalpulse" cx="${g.x}" cy="${g.y}" r="16" fill="none" stroke="var(--pink)" stroke-width="3"/><circle class="goalpulse" style="animation-delay:-.7s" cx="${g.x}" cy="${g.y}" r="21" fill="none" stroke="#ffcf3a" stroke-width="1.5"/><use href="#sq-goal" x="${g.x-20}" y="${g.y-22}" width="40" height="40"/><g class="lbl2" data-x="${g.x}" data-y="${g.y}"><g class="goaltag" transform="translate(${g.x} ${g.y-36})"><rect x="-27" y="-8.5" width="54" height="15" rx="7.5" fill="var(--pink)" stroke="#fff" stroke-width="1.5"/><path d="M-4 6.5 L0 11 L4 6.5Z" fill="var(--pink)"/><text y="2.8" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" font-family="var(--f-display)">🏁 目的地</text></g></g>`:'';
+  /* ご当地フィーバー駅の目印（オレンジの輪と🔥） */{const f=s.fv&&s.fever!=null?NODES[s.fever]:null;if(f)$('#goalMark').insertAdjacentHTML('beforeend',`<g class="fevermark"><circle class="goalpulse" cx="${f.x}" cy="${f.y}" r="15" fill="none" stroke="#ff7a1a" stroke-width="3"/><text x="${f.x}" y="${f.y-17}" text-anchor="middle" font-size="15">🔥</text></g>`)}
   $('#owners').innerHTML=Object.keys(s.owner).map(k=>{const n=NODES[k],o=s.owner[k],m=o.every(x=>x!=null&&x===o[0]);let g=m?`<circle cx="${n.x}" cy="${n.y}" r="12" fill="none" stroke="${SEATC[o[0]]}" stroke-width="3"/><path d="M${n.x-6} ${n.y-14} l2 -6 2.5 3 1.5 -4 1.5 4 2.5 -3 2 6z" fill="url(#sg-gold)" stroke="#9a6a00" stroke-width=".6"/>`:'';
     o.forEach((x,j)=>{const cx=n.x+(j-(o.length-1)/2)*7,cy=n.y+12.5;g+=`<circle cx="${cx}" cy="${cy}" r="3" fill="${x==null?'#fff':SEATC[x]}" stroke="var(--ink)" stroke-width=".8"/>`});return g}).join('');
   if(s.troll!=null){const n=NODES[s.players[s.troll].pos];const big=lateGame(s);$('#trollMark').innerHTML=`<g class="lbl2" data-x="${n.x}" data-y="${n.y}"><g transform="translate(${n.x+12} ${n.y-22}) scale(${big?1.3:1})"><g class="bob"><rect x="-9" y="-7" width="18" height="13" rx="3" fill="${big?'var(--anti)':'#5d5470'}"/><rect x="-7" y="-5" width="14" height="9" rx="1" fill="#1d1726"/><rect x="-6" y="-3" width="9" height="1" fill="#fff"/><rect x="-4" y="0" width="10" height="1" fill="#fff"/><rect x="-2" y="6" width="4" height="3" fill="${big?'var(--anti)':'#5d5470'}"/></g></g></g>`}else $('#trollMark').innerHTML='';scaleMarks.dirty=true;scaleMarks(400/vb[2])}
@@ -3834,7 +3843,7 @@ const HOW=[['目的地を目指そう',['目的地は全国の駅からランダ
  ['マスと物件',['🟢プラス（ゴールド増）・🔴マイナス（減）・🔵コアファン・🟡カード・🎪イベント・🛍️カードショップ。','プラス・マイナス・コアファンの量は、時間帯（朝・昼・ゴールデン・深夜）と天気（6時間ごとに変わる）で変わります。','✈空港どうしは紫の点線（空路）、白い点線はフェリー航路。少ないマスで遠くまで行けます。','駅に止まると、ゴールドで物件（各地の名物）を獲得。毎日0:00の決算でゴールドがもらえます。','1つの駅の物件を全部1人で持つと「独占」で決算1.4〜2倍。物件が増えるほど、マスやイベントのゴールドも＋5〜160%。']],
  ['コアファン',['コアファンは人数で数えます。コアファンマス・イベント・ポコチャレ・1番乗りで増え、炎上などで減ります。','コアファンマスでは「常連さんがお友達を連れてきた」などのコアファンイベントが起き、人数が増えたりゴールド・ランクptがついたりします。','10人たまるごとにボーナスのゴールド（基本ゴールド×2）。いまの人数と次のボーナスまでは、プレイヤー欄をタップすると見られます。','毎日の〆（0:00の決算）のあと、全員のコアファンは0人に戻ります（1日ごとに集め直し）。']],
  ['ランク帯',['E・D・C・B・A・Sの6帯×1〜6段階（E1〜S6）。全員E1スタート。','ランクが高いほど基本ゴールドが増え、マス・イベント・0:00決算の金額が上がります。','ランクptは1番乗り・イベント・ポコチャレ・0:00の締めの条件（物件獲得・ポコチャレ2回・コアファン10人・ゴールド目標）でたまり、必要数に届くとすぐランクアップ。','炎上・案件キャンセル・荒らしコメントでptが減り、0を下回るか、締めの条件を1つもクリアできないとランクダウン（ptは0から）。']],
- ['時間・お邪魔キャラ',['4人が1回ずつ動くと1時間進む24時間制で、18:00スタート。','ポコチャレは6時間ごとに3つ出ます。','だれかが目的地に1番乗りすると、目的地からいちばん遠い人に「荒らしラグ王」が取りつきます。','最後の0:00決算のあと、ゴールド＋物件＋ランクボーナスの合計が一番多い人が優勝。','日数を決めた対戦の最後の8手番は🔥ラストスパート：目的地の賞金が2倍。ゴールド＋物件の合計が単独で最下位の人は、最後までサイコロ＋1・コアファン1.5倍の応援ブースト。その人が1番乗りすると、⤴️逆転ボーナスで賞金1.5倍。','途中でやめるときはメニューの「⏸ ゲームを中断する」。タイトルの「続きから遊ぶ」で再開できます。']]];
+ ['時間・お邪魔キャラ',['4人が1回ずつ動くと1時間進む24時間制で、18:00スタート。','ポコチャレは6時間ごとに3つ出ます。','だれかが目的地に1番乗りすると、目的地からいちばん遠い人に「荒らしラグ王」が取りつきます。','最後の0:00決算のあと、ゴールド＋物件＋ランクボーナスの合計が一番多い人が優勝。','🔥ご当地フィーバー駅：目的地の近くの1駅が燃えています。最初に止まった人に基本ゴールド×3・コアファン＋3人・＋10pt。止まられる・6時間ごと・目的地が変わると別の駅へ移ります。','日数を決めた対戦の最後の8手番は🔥ラストスパート：目的地の賞金が2倍。ゴールド＋物件の合計が単独で最下位の人は、最後までサイコロ＋1・コアファン1.5倍の応援ブースト。その人が1番乗りすると、⤴️逆転ボーナスで賞金1.5倍。','途中でやめるときはメニューの「⏸ ゲームを中断する」。タイトルの「続きから遊ぶ」で再開できます。']]];
 let howI=0;function showHow(){const o=$('#ov');const [h,t]=HOW[howI];o.innerHTML=`<div class="card"><button type="button" class="ghost xclose" id="hClose" aria-label="閉じる">×</button><p class="eyebrow">遊び方 ${howI+1}／${HOW.length}</p><h3>${h}</h3><ul class="howlist">${t.map(x=>`<li>${x}</li>`).join('')}</ul><div class="row" style="justify-content:center">${howI>0?'<button class="ghost" id="hPrev">もどる</button>':''}<button id="hNext">${howI<HOW.length-1?'つぎへ':'とじる'}</button></div></div>`;o.hidden=false;
   const p=$('#hPrev');if(p)p.onclick=()=>{howI--;showHow()};$('#hClose').onclick=()=>{o.hidden=true;o.innerHTML='';howI=0};$('#hNext').onclick=()=>{if(howI<HOW.length-1){howI++;showHow()}else{o.hidden=true;o.innerHTML='';howI=0}}}
 /* ホーム画面に追加（2026-11-02）：Android などは確認画面を出し、iPhone などはやり方を案内する。ホーム画面から開いているときはボタンを出さない */
