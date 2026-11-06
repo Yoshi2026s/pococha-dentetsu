@@ -14,7 +14,7 @@ const fail=[];let tag='';const ok=(c,m)=>{if(!c)fail.push(tag+m)};
     onLive(base);onLive({...base,stage:'card',info:'カードを選び中（手札2枚）'});onLive({...base,stage:'card',info:'カードを使うか確認中'});
     const x=ADJ[f][1],y=(ADJ[x]||[]).find(z=>z!==f);
     onLive({...base,stage:'route',d:3,ds:[1,2],path:[f],opts:ADJ[f].slice()});onLive({...base,stage:'route',d:3,ds:[1,2],path:[f,x],opts:[]});
-    out.bub=(()=>{const e=document.querySelector('#liveBub');if(!e||e.hidden)return null;const t=e.querySelector('.lb-tx'),l=e.querySelector('.lb-log'),cs=getComputedStyle(t),rb=e.getBoundingClientRect(),mb=document.querySelector('#mapbox').getBoundingClientRect(),lr=l.getBoundingClientRect();return{clamp:cs.webkitLineClamp,ws:getComputedStyle(e.querySelector('.lb-t')).whiteSpace,h:rb.height,inMap:rb.left>=mb.left-1&&rb.right<=mb.right+1&&rb.bottom<=mb.bottom+1,log:[lr.width,lr.height]}})();
+    out.bub=(()=>{const e=document.querySelector('#liveBub');if(!e||e.hidden)return null;const t=e.querySelector('.lb-tx'),l=e.querySelector('.lb-log'),cs=getComputedStyle(t),rb=e.getBoundingClientRect(),dk=document.querySelector('.dicebox'),dr=dk?dk.getBoundingClientRect():null,mb=document.querySelector('#mapbox').getBoundingClientRect(),lr=l.getBoundingClientRect();return{clamp:cs.webkitLineClamp,ws:getComputedStyle(e.querySelector('.lb-t')).whiteSpace,h:rb.height,inMap:rb.left>=mb.left-1&&rb.right<=mb.right+1&&rb.bottom<=mb.bottom+1,log:[lr.width,lr.height],dice:!dr||dr.width===0||rb.right<=dr.left+1||rb.bottom<=dr.top+1||rb.top>=dr.bottom-1}})();
     onLive({...base,stage:'route',d:3,ds:[1,2],path:[f],opts:ADJ[f].slice()});/* 1マス戻した */
     if(y!=null){onLive({...base,stage:'route',d:2,path:[f,x,y],opts:[]})}
     out.items=(liveLog?liveLog.items:[]).map(i=>i.text);
@@ -24,6 +24,22 @@ const fail=[];let tag='';const ok=(c,m)=>{if(!c)fail.push(tag+m)};
     const ws=[...sh.querySelectorAll('button')].map(b=>b.offsetHeight);out.btn=Math.min(...ws);
     document.querySelector('#llClose').click();showPlayers();out.ps=!!document.querySelector('#psLog');document.querySelector('#psLog')&&document.querySelector('#psLog').click();out.ps2=!!document.querySelector('#ov .llsheet');document.querySelector('#llClose')&&document.querySelector('#llClose').click();
     return out});
+  ok(r.bub&&r.bub.dice,'吹き出しが右下のサイコロに重なる '+JSON.stringify(r.bub));
+  /* 確定：✅ 確定を書き足す・途中経過のない番（CPU）も記録から作る・最近8手番・前後の番へ移る */
+  const f2=await p.evaluate(async()=>{const tip=curTip(),st=tip.state,seat=curSeat(st),out={};db={...db,online:{setLive:async()=>{}}};
+    const mk=(s0)=>{const pv=preview(s0,{type:'roll'}),pos=s0.players[curSeat(s0)].pos,rt=smartRoute(s0,pos,pv.dice,new Set([pos])).route;return applyTurn(s0,{type:'roll',route:rt,buy:false,reward:'coin',shopDone:true},meta.seed,{noForce:true})};
+    const s1=mk(st);liveLogFinal({state:s1,parent:tip.id,by:'s'+seat+':OTHER'},st);const g=liveLogs.find(x=>x.turn===tip.turn&&x.seat===seat);out.g=g?[g.done,g.items.map(i=>i.text)]:null;
+    /* 次の番（CPUの席にして、途中経過なし） */const seat2=curSeat(s1);meta={...meta,cpu:[seat2]};const s2=mk(s1);liveLogFinal({state:s2,parent:'x',by:'cpu'+seat2+':H'},s1);const g2=liveLogs.find(x=>x.turn===s1.turn&&x.seat===seat2);out.g2=g2?[g2.fromRec,g2.items.map(i=>i.text)]:null;
+    /* 確定のあとに同じ番の途中経過が来ても書き足さない */liveLogAdd({turn:s1.turn,seat:seat2},'late','遅れて届いた');out.late=g2.items.some(i=>i.text==='遅れて届いた');
+    showLiveLog();await new Promise(r=>setTimeout(r,200));const q=()=>{const o=document.querySelector('#ov .llsheet');return o?[o.querySelector('h3').textContent,o.querySelector('.ll-sub').textContent,o.querySelector('#llPrev').disabled,o.querySelector('#llNext').disabled,o.querySelectorAll('.ll-done').length,o.querySelector('#llPrev').offsetHeight,document.querySelector('#llClose').getBoundingClientRect().bottom<=innerHeight+1||(innerHeight<500&&(v=>/auto|scroll/.test(getComputedStyle(v).overflowY)&&v.scrollHeight>v.clientHeight)(document.querySelector('#ov')))]:null};
+    out.s1=q();document.querySelector('#llPrev').click();await new Promise(r=>setTimeout(r,200));out.s2=q();document.querySelector('#llClose').click();
+    for(let k=0;k<12;k++)liveLogAdd({turn:1000+k,seat:1},'x','t'+k);out.cap=[liveLogs.length,liveLogs[0].turn];return out});
+  ok(f2.g&&f2.g[0]&&/^✅ 確定/.test(f2.g[1][f2.g[1].length-1]),'確定の書き足し '+JSON.stringify(f2.g));
+  ok(f2.g2&&f2.g2[0]&&f2.g2[1][0]==='🤖 CPUの番'&&f2.g2[1].some(t=>/^🎲 サイコロ \d/.test(t))&&/^✅ 確定/.test(f2.g2[1][f2.g2[1].length-1]),'CPUの番を記録から作る '+JSON.stringify(f2.g2));
+  ok(!f2.late,'確定後の途中経過を書き足した');
+  ok(f2.s1&&/CPUの番|番の流れ/.test(f2.s1[0])&&/記録から/.test(f2.s1[1])&&f2.s1[2]===false&&f2.s1[3]===true&&f2.s1[4]===1&&f2.s1[5]>=48&&f2.s1[6],'流れの画面（最新・前へ） '+JSON.stringify(f2.s1));
+  ok(f2.s2&&f2.s2[3]===false&&/確定しました/.test(f2.s2[1]),'前の番へ移る '+JSON.stringify(f2.s2));
+  ok(f2.cap[0]===8&&f2.cap[1]===1004,'最近8手番まで '+JSON.stringify(f2.cap));
   const it=r.items||[];
   ok(r.bub&&r.bub.clamp==='2'&&r.bub.ws==='normal'&&r.bub.inMap,'吹き出しが2行まで出ない・地図からはみ出す '+JSON.stringify(r.bub));
   ok(r.bub&&r.bub.log[0]>=48&&r.bub.log[1]>=48,'📜ボタンが48px未満 '+JSON.stringify(r.bub));
